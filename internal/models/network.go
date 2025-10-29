@@ -23,28 +23,28 @@ type Network struct {
 	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 
 	// Relationships
-	Nodes    []Node    `json:"nodes" gorm:"foreignKey:NetworkID"`
-	Links    []Link    `json:"links" gorm:"foreignKey:NetworkID"`
-	Policies []Policy  `json:"policies" gorm:"foreignKey:NetworkID"`
-	User     User      `json:"user" gorm:"foreignKey:UserID"`
+	Nodes    []Node   `json:"nodes" gorm:"foreignKey:NetworkID"`
+	Links    []Link   `json:"links" gorm:"foreignKey:NetworkID"`
+	Policies []Policy `json:"policies" gorm:"foreignKey:NetworkID"`
+	User     User     `json:"user" gorm:"foreignKey:UserID"`
 }
 
 // NetworkStatus represents the current status of a network
 type NetworkStatus string
 
 const (
-	NetworkStatusPending    NetworkStatus = "pending"
+	NetworkStatusPending      NetworkStatus = "pending"
 	NetworkStatusProvisioning NetworkStatus = "provisioning"
-	NetworkStatusActive     NetworkStatus = "active"
-	NetworkStatusError      NetworkStatus = "error"
-	NetworkStatusSuspended  NetworkStatus = "suspended"
-	NetworkStatusDeleting   NetworkStatus = "deleting"
+	NetworkStatusActive       NetworkStatus = "active"
+	NetworkStatusError        NetworkStatus = "error"
+	NetworkStatusSuspended    NetworkStatus = "suspended"
+	NetworkStatusDeleting     NetworkStatus = "deleting"
 )
 
 // NetworkConfig holds network configuration
 type NetworkConfig struct {
-	Topology    string            `json:"topology"`    // star, mesh, tree, custom
-	Subnet      string            `json:"subnet"`      // CIDR notation
+	Topology    string            `json:"topology"` // star, mesh, tree, custom
+	Subnet      string            `json:"subnet"`   // CIDR notation
 	Gateway     string            `json:"gateway"`
 	DNS         []string          `json:"dns"`
 	MTU         int               `json:"mtu"`
@@ -56,18 +56,18 @@ type NetworkConfig struct {
 
 // Node represents a network node (router, switch, host, etc.)
 type Node struct {
-	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	NetworkID   uuid.UUID      `json:"network_id" gorm:"type:uuid;not null"`
-	Name        string         `json:"name" gorm:"not null"`
-	Type        NodeType       `json:"type" gorm:"type:varchar(20);not null"`
-	Status      NodeStatus     `json:"status" gorm:"type:varchar(20);default:'pending'"`
-	IPAddress   string         `json:"ip_address"`
-	MACAddress  string         `json:"mac_address"`
-	Config      NodeConfig     `json:"config" gorm:"type:jsonb"`
-	Position    Position       `json:"position" gorm:"type:jsonb"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	ID         uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	NetworkID  uuid.UUID      `json:"network_id" gorm:"type:uuid;not null"`
+	Name       string         `json:"name" gorm:"not null"`
+	Type       NodeType       `json:"type" gorm:"column:node_type;type:varchar(20);not null"`
+	Status     NodeStatus     `json:"status" gorm:"type:varchar(20);default:'pending'"`
+	IPAddress  string         `json:"ip_address"`
+	MACAddress string         `json:"mac_address"`
+	Config     NodeConfig     `json:"config" gorm:"type:jsonb"`
+	Position   Position       `json:"position" gorm:"type:jsonb"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 
 	// Relationships
 	Network Network `json:"network" gorm:"foreignKey:NetworkID"`
@@ -78,46 +78,46 @@ type Node struct {
 type NodeType string
 
 const (
-	NodeTypeRouter    NodeType = "router"
-	NodeTypeSwitch    NodeType = "switch"
-	NodeTypeHost      NodeType = "host"
-	NodeTypeFirewall  NodeType = "firewall"
+	NodeTypeRouter       NodeType = "router"
+	NodeTypeSwitch       NodeType = "switch"
+	NodeTypeHost         NodeType = "host"
+	NodeTypeFirewall     NodeType = "firewall"
 	NodeTypeLoadBalancer NodeType = "load_balancer"
-	NodeTypeGateway   NodeType = "gateway"
+	NodeTypeGateway      NodeType = "gateway"
 )
 
 // NodeStatus represents the current status of a node
 type NodeStatus string
 
 const (
-	NodeStatusPending    NodeStatus = "pending"
+	NodeStatusPending      NodeStatus = "pending"
 	NodeStatusProvisioning NodeStatus = "provisioning"
-	NodeStatusActive     NodeStatus = "active"
-	NodeStatusError      NodeStatus = "error"
-	NodeStatusSuspended  NodeStatus = "suspended"
-	NodeStatusDeleting   NodeStatus = "deleting"
+	NodeStatusActive       NodeStatus = "active"
+	NodeStatusError        NodeStatus = "error"
+	NodeStatusSuspended    NodeStatus = "suspended"
+	NodeStatusDeleting     NodeStatus = "deleting"
 )
 
 // NodeConfig holds node-specific configuration
 type NodeConfig struct {
-	CPU        int               `json:"cpu"`
-	Memory     int               `json:"memory"`     // MB
-	Storage    int               `json:"storage"`    // GB
-	OS         string            `json:"os"`
-	Image      string            `json:"image"`
-	Ports      []PortConfig      `json:"ports"`
-	Services   []ServiceConfig   `json:"services"`
+	CPU         int               `json:"cpu"`
+	Memory      int               `json:"memory"`  // MB
+	Storage     int               `json:"storage"` // GB
+	OS          string            `json:"os"`
+	Image       string            `json:"image"`
+	Ports       []PortConfig      `json:"ports"`
+	Services    []ServiceConfig   `json:"services"`
 	CustomAttrs map[string]string `json:"custom_attrs"`
 }
 
 // PortConfig represents a network port configuration
 type PortConfig struct {
-	Number     int    `json:"number"`
-	Name       string `json:"name"`
-	Type       string `json:"type"` // ethernet, wifi, etc.
-	Speed      int    `json:"speed"` // Mbps
-	Duplex     string `json:"duplex"` // full, half
-	AutoNegotiate bool `json:"auto_negotiate"`
+	Number        int    `json:"number"`
+	Name          string `json:"name"`
+	Type          string `json:"type"`   // ethernet, wifi, etc.
+	Speed         int    `json:"speed"`  // Mbps
+	Duplex        string `json:"duplex"` // full, half
+	AutoNegotiate bool   `json:"auto_negotiate"`
 }
 
 // ServiceConfig represents a service running on a node
@@ -132,14 +132,14 @@ type ServiceConfig struct {
 
 // HealthCheckConfig holds health check configuration
 type HealthCheckConfig struct {
-	Enabled     bool   `json:"enabled"`
-	Type        string `json:"type"` // http, tcp, ping
-	Path        string `json:"path"`
-	Interval    int    `json:"interval"` // seconds
-	Timeout     int    `json:"timeout"`  // seconds
-	Retries     int    `json:"retries"`
-	SuccessThreshold int `json:"success_threshold"`
-	FailureThreshold int `json:"failure_threshold"`
+	Enabled          bool   `json:"enabled"`
+	Type             string `json:"type"` // http, tcp, ping
+	Path             string `json:"path"`
+	Interval         int    `json:"interval"` // seconds
+	Timeout          int    `json:"timeout"`  // seconds
+	Retries          int    `json:"retries"`
+	SuccessThreshold int    `json:"success_threshold"`
+	FailureThreshold int    `json:"failure_threshold"`
 }
 
 // Link represents a connection between two nodes
@@ -165,12 +165,12 @@ type Link struct {
 type LinkStatus string
 
 const (
-	LinkStatusPending    LinkStatus = "pending"
+	LinkStatusPending      LinkStatus = "pending"
 	LinkStatusProvisioning LinkStatus = "provisioning"
-	LinkStatusActive     LinkStatus = "active"
-	LinkStatusError      LinkStatus = "error"
-	LinkStatusSuspended  LinkStatus = "suspended"
-	LinkStatusDeleting   LinkStatus = "deleting"
+	LinkStatusActive       LinkStatus = "active"
+	LinkStatusError        LinkStatus = "error"
+	LinkStatusSuspended    LinkStatus = "suspended"
+	LinkStatusDeleting     LinkStatus = "deleting"
 )
 
 // LinkConfig holds link-specific configuration
@@ -245,7 +245,7 @@ type SecurityConfig struct {
 
 // FirewallConfig holds firewall configuration
 type FirewallConfig struct {
-	Enabled bool         `json:"enabled"`
+	Enabled bool           `json:"enabled"`
 	Rules   []FirewallRule `json:"rules"`
 }
 
@@ -317,15 +317,15 @@ type AlertConfig struct {
 
 // Policy represents a network policy
 type Policy struct {
-	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	NetworkID   uuid.UUID      `json:"network_id" gorm:"type:uuid;not null"`
-	Name        string         `json:"name" gorm:"not null"`
-	Type        PolicyType     `json:"type" gorm:"type:varchar(20);not null"`
-	Status      PolicyStatus   `json:"status" gorm:"type:varchar(20);default:'pending'"`
-	Config      PolicyConfig   `json:"config" gorm:"type:jsonb"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	NetworkID uuid.UUID      `json:"network_id" gorm:"type:uuid;not null"`
+	Name      string         `json:"name" gorm:"not null"`
+	Type      PolicyType     `json:"type" gorm:"column:policy_type;type:varchar(20);not null"`
+	Status    PolicyStatus   `json:"status" gorm:"type:varchar(20);default:'pending'"`
+	Config    PolicyConfig   `json:"config" gorm:"type:jsonb"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 
 	// Relationships
 	Network Network `json:"network" gorm:"foreignKey:NetworkID"`
@@ -335,28 +335,28 @@ type Policy struct {
 type PolicyType string
 
 const (
-	PolicyTypeTraffic    PolicyType = "traffic"
-	PolicyTypeSecurity   PolicyType = "security"
-	PolicyTypeQoS        PolicyType = "qos"
-	PolicyTypeRouting    PolicyType = "routing"
-	PolicyTypeAccess     PolicyType = "access"
+	PolicyTypeTraffic  PolicyType = "traffic"
+	PolicyTypeSecurity PolicyType = "security"
+	PolicyTypeQoS      PolicyType = "qos"
+	PolicyTypeRouting  PolicyType = "routing"
+	PolicyTypeAccess   PolicyType = "access"
 )
 
 // PolicyStatus represents the current status of a policy
 type PolicyStatus string
 
 const (
-	PolicyStatusPending    PolicyStatus = "pending"
-	PolicyStatusActive     PolicyStatus = "active"
-	PolicyStatusError      PolicyStatus = "error"
-	PolicyStatusSuspended  PolicyStatus = "suspended"
-	PolicyStatusDeleting   PolicyStatus = "deleting"
+	PolicyStatusPending   PolicyStatus = "pending"
+	PolicyStatusActive    PolicyStatus = "active"
+	PolicyStatusError     PolicyStatus = "error"
+	PolicyStatusSuspended PolicyStatus = "suspended"
+	PolicyStatusDeleting  PolicyStatus = "deleting"
 )
 
 // PolicyConfig holds policy-specific configuration
 type PolicyConfig struct {
-	Rules       []PolicyRule     `json:"rules"`
-	Priority    int              `json:"priority"`
+	Rules       []PolicyRule      `json:"rules"`
+	Priority    int               `json:"priority"`
 	CustomAttrs map[string]string `json:"custom_attrs"`
 }
 
@@ -399,8 +399,8 @@ const (
 type UserStatus string
 
 const (
-	UserStatusActive   UserStatus = "active"
-	UserStatusInactive UserStatus = "inactive"
+	UserStatusActive    UserStatus = "active"
+	UserStatusInactive  UserStatus = "inactive"
 	UserStatusSuspended UserStatus = "suspended"
 )
 
@@ -415,7 +415,7 @@ func (nc *NetworkConfig) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	var bytes []byte
 	switch v := value.(type) {
 	case []byte:
@@ -425,7 +425,7 @@ func (nc *NetworkConfig) Scan(value interface{}) error {
 	default:
 		return errors.New("cannot scan NetworkConfig from non-bytes/string")
 	}
-	
+
 	return json.Unmarshal(bytes, nc)
 }
 
@@ -438,7 +438,7 @@ func (nc *NodeConfig) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	var bytes []byte
 	switch v := value.(type) {
 	case []byte:
@@ -448,7 +448,7 @@ func (nc *NodeConfig) Scan(value interface{}) error {
 	default:
 		return errors.New("cannot scan NodeConfig from non-bytes/string")
 	}
-	
+
 	return json.Unmarshal(bytes, nc)
 }
 
@@ -461,7 +461,7 @@ func (lc *LinkConfig) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	var bytes []byte
 	switch v := value.(type) {
 	case []byte:
@@ -471,7 +471,7 @@ func (lc *LinkConfig) Scan(value interface{}) error {
 	default:
 		return errors.New("cannot scan LinkConfig from non-bytes/string")
 	}
-	
+
 	return json.Unmarshal(bytes, lc)
 }
 
@@ -484,7 +484,7 @@ func (pc *PolicyConfig) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	var bytes []byte
 	switch v := value.(type) {
 	case []byte:
@@ -494,7 +494,7 @@ func (pc *PolicyConfig) Scan(value interface{}) error {
 	default:
 		return errors.New("cannot scan PolicyConfig from non-bytes/string")
 	}
-	
+
 	return json.Unmarshal(bytes, pc)
 }
 
@@ -507,7 +507,7 @@ func (p *Position) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	
+
 	var bytes []byte
 	switch v := value.(type) {
 	case []byte:
@@ -517,6 +517,6 @@ func (p *Position) Scan(value interface{}) error {
 	default:
 		return errors.New("cannot scan Position from non-bytes/string")
 	}
-	
+
 	return json.Unmarshal(bytes, p)
 }

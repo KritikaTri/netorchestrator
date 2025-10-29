@@ -80,6 +80,25 @@ func (s *NetworkService) ListAllNetworks(ctx context.Context) ([]models.Network,
 	return networks, nil
 }
 
+// GetUserByUsername retrieves a user UUID by username
+func (s *NetworkService) GetUserByUsername(ctx context.Context, username string) (uuid.UUID, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return uuid.Nil, fmt.Errorf("database not available")
+	}
+
+	var user models.User
+	if err := s.db.WithContext(ctx).Select("id").Where("username = ?", username).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return uuid.Nil, fmt.Errorf("user not found: %s", username)
+		}
+		s.logger.Error("Failed to get user by username", zap.String("username", username), zap.Error(err))
+		return uuid.Nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return user.ID, nil
+}
+
 // UpdateNetwork updates an existing network
 func (s *NetworkService) UpdateNetwork(ctx context.Context, network *models.Network) error {
 	if err := s.db.WithContext(ctx).Save(network).Error; err != nil {
@@ -133,6 +152,22 @@ func (s *NetworkService) ListNodes(ctx context.Context, networkID uuid.UUID) ([]
 	if err := s.db.WithContext(ctx).Where("network_id = ?", networkID).Find(&nodes).Error; err != nil {
 		s.logger.Error("Failed to list nodes", zap.Error(err))
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
+	}
+
+	return nodes, nil
+}
+
+// ListAllNodes retrieves all nodes across all networks
+func (s *NetworkService) ListAllNodes(ctx context.Context) ([]models.Node, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return nil, fmt.Errorf("database not available")
+	}
+
+	var nodes []models.Node
+	if err := s.db.WithContext(ctx).Preload("Network").Find(&nodes).Error; err != nil {
+		s.logger.Error("Failed to list all nodes", zap.Error(err))
+		return nil, fmt.Errorf("failed to list all nodes: %w", err)
 	}
 
 	return nodes, nil
