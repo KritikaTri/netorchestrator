@@ -163,8 +163,44 @@ func (h *Handlers) AuthMiddleware() gin.HandlerFunc {
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /networks [get]
 func (h *Handlers) ListNetworks(c *gin.Context) {
-	// TODO: Get user ID from JWT token
-	userID := uuid.New() // Placeholder
+	// Get user ID from JWT token (set by authentication middleware)
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User ID not found in token",
+		})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		// Handle hardcoded demo IDs that aren't valid UUIDs
+		if userIDStr == "admin-uuid" || userIDStr == "user-uuid" {
+			// For demo users, get all networks (admin can see all)
+			networks, err := h.networkService.ListAllNetworks(c.Request.Context())
+			if err != nil {
+				h.logger.Error("Failed to list networks", zap.Error(err))
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error":   "Failed to list networks",
+					"code":    "NETWORK_LIST_ERROR",
+					"details": "Unable to retrieve networks from database",
+				})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"networks": networks,
+				"count":    len(networks),
+				"status":   "success",
+			})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID format",
+		})
+		return
+	}
 
 	networks, err := h.networkService.ListNetworks(c.Request.Context(), userID)
 	if err != nil {
@@ -194,8 +230,34 @@ func (h *Handlers) CreateNetwork(c *gin.Context) {
 		return
 	}
 
-	// TODO: Get user ID from JWT token
-	network.UserID = uuid.New() // Placeholder
+	// Get user ID from JWT token (set by authentication middleware)
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User ID not found in token",
+		})
+		return
+	}
+
+	// Handle demo users with hardcoded IDs
+	if userIDStr == "admin-uuid" {
+		// Use the admin user's actual UUID from database
+		adminUUID, _ := uuid.Parse("c908165f-b5f6-4869-a1b1-ce720e8e626d")
+		network.UserID = adminUUID
+	} else if userIDStr == "user-uuid" {
+		// Use the regular user's actual UUID from database
+		userUUID, _ := uuid.Parse("60c52e9f-b2dc-4813-822b-f279d41496f0")
+		network.UserID = userUUID
+	} else {
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid user ID format",
+			})
+			return
+		}
+		network.UserID = userID
+	}
 
 	// Validate network
 	if err := h.validationService.ValidateNetwork(c.Request.Context(), &network); err != nil {

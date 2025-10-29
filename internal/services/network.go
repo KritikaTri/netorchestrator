@@ -69,6 +69,17 @@ func (s *NetworkService) ListNetworks(ctx context.Context, userID uuid.UUID) ([]
 	return networks, nil
 }
 
+// ListAllNetworks retrieves all networks (for admin users)
+func (s *NetworkService) ListAllNetworks(ctx context.Context) ([]models.Network, error) {
+	var networks []models.Network
+	if err := s.db.WithContext(ctx).Find(&networks).Error; err != nil {
+		s.logger.Error("Failed to list all networks", zap.Error(err))
+		return nil, fmt.Errorf("failed to list all networks: %w", err)
+	}
+
+	return networks, nil
+}
+
 // UpdateNetwork updates an existing network
 func (s *NetworkService) UpdateNetwork(ctx context.Context, network *models.Network) error {
 	if err := s.db.WithContext(ctx).Save(network).Error; err != nil {

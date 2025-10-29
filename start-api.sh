@@ -5,12 +5,12 @@ echo "🚀 Starting NetOrchestrator API Gateway..."
 
 # Check prerequisites
 echo "📋 Checking prerequisites..."
-if ! command -v podman &> /dev/null; then
+if ! command -v docker &> /dev/null; then
     echo "❌ Podman not found"
     exit 1
 fi
 
-if ! podman ps | grep -q postgres; then
+if ! docker ps | grep -q postgres; then
     echo "❌ PostgreSQL container not running"
     exit 1
 fi

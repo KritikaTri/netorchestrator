@@ -32,37 +32,37 @@ print_error() {
 }
 
 # Check if Podman is available
-if ! command -v podman &> /dev/null; then
+if ! command -v docker &> /dev/null; then
     print_error "Podman is not installed or not in PATH"
     print_error "Please install Podman Desktop for macOS"
     exit 1
 fi
 
-# Check if podman-compose is available
-if ! command -v podman-compose &> /dev/null; then
-    print_warning "podman-compose not found, installing..."
-    pip3 install podman-compose
+# Check if docker-compose is available
+if ! command -v docker-compose &> /dev/null; then
+    print_warning "docker-compose not found, installing..."
+    pip3 install docker-compose
 fi
 
 print_status "Stopping any existing containers..."
-podman-compose -f docker-compose.monitoring.yml down 2>/dev/null || true
+docker-compose -f docker-compose.monitoring.yml down 2>/dev/null || true
 
 print_status "Removing old volumes (if requested)..."
 if [[ "${1}" == "--clean" ]]; then
     print_warning "Cleaning up all volumes and data..."
-    podman volume rm netorchestrator_postgres_data 2>/dev/null || true
-    podman volume rm netorchestrator_redis_data 2>/dev/null || true
-    podman volume rm netorchestrator_influxdb_data 2>/dev/null || true
-    podman volume rm netorchestrator_prometheus_data 2>/dev/null || true
-    podman volume rm netorchestrator_grafana_data 2>/dev/null || true
-    podman volume rm netorchestrator_alertmanager_data 2>/dev/null || true
+    docker volume rm netorchestrator_postgres_data 2>/dev/null || true
+    docker volume rm netorchestrator_redis_data 2>/dev/null || true
+    docker volume rm netorchestrator_influxdb_data 2>/dev/null || true
+    docker volume rm netorchestrator_prometheus_data 2>/dev/null || true
+    docker volume rm netorchestrator_grafana_data 2>/dev/null || true
+    docker volume rm netorchestrator_alertmanager_data 2>/dev/null || true
 fi
 
 print_status "Building NetOrchestrator application..."
-podman build -t netorchestrator:latest .
+docker build -t netorchestrator:latest .
 
 print_status "Starting infrastructure services..."
-podman-compose -f docker-compose.monitoring.yml up -d postgres redis influxdb
+docker-compose -f docker-compose.monitoring.yml up -d postgres redis influxdb
 
 print_status "Waiting for databases to be ready..."
 sleep 10
@@ -70,7 +70,7 @@ sleep 10
 # Check PostgreSQL connection
 print_status "Verifying PostgreSQL connection..."
 for i in {1..30}; do
-    if podman exec netorchestrator_postgres_1 pg_isready -U netorchestrator -d netorchestrator &>/dev/null; then
+    if docker exec netorchestrator_postgres_1 pg_isready -U netorchestrator -d netorchestrator &>/dev/null; then
         print_success "PostgreSQL is ready"
         break
     fi
@@ -84,7 +84,7 @@ done
 # Check Redis connection
 print_status "Verifying Redis connection..."
 for i in {1..30}; do
-    if podman exec netorchestrator_redis_1 redis-cli ping &>/dev/null; then
+    if docker exec netorchestrator_redis_1 redis-cli ping &>/dev/null; then
         print_success "Redis is ready"
         break
     fi
@@ -96,19 +96,19 @@ for i in {1..30}; do
 done
 
 print_status "Starting monitoring services..."
-podman-compose -f docker-compose.monitoring.yml up -d prometheus alertmanager node-exporter cadvisor
+docker-compose -f docker-compose.monitoring.yml up -d prometheus alertmanager node-exporter cadvisor
 
 print_status "Waiting for monitoring services..."
 sleep 15
 
 print_status "Starting visualization services..."
-podman-compose -f docker-compose.monitoring.yml up -d grafana jaeger
+docker-compose -f docker-compose.monitoring.yml up -d grafana jaeger
 
 print_status "Starting NetOrchestrator application..."
-podman-compose -f docker-compose.monitoring.yml up -d netorchestrator
+docker-compose -f docker-compose.monitoring.yml up -d netorchestrator
 
 print_status "Starting reverse proxy..."
-podman-compose -f docker-compose.monitoring.yml up -d nginx
+docker-compose -f docker-compose.monitoring.yml up -d nginx
 
 print_status "Waiting for all services to be healthy..."
 sleep 20
@@ -184,8 +184,8 @@ echo "  • Warning: Capacity issues, minor performance (4hr response)"
 echo "  • Business: Revenue impact, customer satisfaction (2hr response)"
 echo ""
 
-print_status "To stop all services, run: podman-compose -f docker-compose.monitoring.yml down"
-print_status "To view logs, run: podman-compose -f docker-compose.monitoring.yml logs -f [service-name]"
+print_status "To stop all services, run: docker-compose -f docker-compose.monitoring.yml down"
+print_status "To view logs, run: docker-compose -f docker-compose.monitoring.yml logs -f [service-name]"
 print_status "To restart with clean data, run: $0 --clean"
 
 echo ""
