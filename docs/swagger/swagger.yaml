@@ -1,0 +1,198 @@
+swagger: "2.0"
+info:
+  description: "Enterprise Network-as-a-Service (NaaS) automation platform providing comprehensive network orchestration, monitoring, and management capabilities."
+  title: "NetOrchestrator API"
+  contact:
+    name: "NetOrchestrator Team"
+    url: "https://github.com/your-org/netorchestrator"
+    email: "support@netorchestrator.com"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+  version: "1.0.0"
+host: "localhost:8080"
+basePath: "/"
+schemes:
+  - "http"
+  - "https"
+paths:
+  /api/v1/health:
+    get:
+      description: "Check API health status and connectivity to all dependencies"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      tags:
+        - "health"
+      summary: "Health check endpoint"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              status:
+                type: "string"
+                example: "healthy"
+              timestamp:
+                type: "string"
+                example: "2024-01-01T12:00:00Z"
+              version:
+                type: "string"
+                example: "1.0.0"
+              dependencies:
+                type: "object"
+                properties:
+                  database:
+                    type: "string"
+                    example: "connected"
+                  redis:
+                    type: "string"
+                    example: "connected"
+                  influxdb:
+                    type: "string"
+                    example: "connected"
+        "503":
+          description: "Service Unavailable"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/v1/networks:
+    get:
+      description: "Retrieve all networks with optional filtering and pagination"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      tags:
+        - "networks"
+      summary: "List all networks"
+      parameters:
+        - type: "integer"
+          description: "Page number for pagination"
+          name: "page"
+          in: "query"
+        - type: "integer"
+          description: "Number of items per page"
+          name: "limit"
+          in: "query"
+        - type: "string"
+          description: "Filter by network status"
+          name: "status"
+          in: "query"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              networks:
+                type: "array"
+                items:
+                  $ref: "#/definitions/Network"
+              total:
+                type: "integer"
+                example: 100
+              page:
+                type: "integer"
+                example: 1
+              limit:
+                type: "integer"
+                example: 20
+        "500":
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      description: "Create a new network with specified configuration"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      tags:
+        - "networks"
+      summary: "Create a new network"
+      parameters:
+        - description: "Network configuration"
+          name: "network"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateNetworkRequest"
+      responses:
+        "201":
+          description: "Created"
+          schema:
+            $ref: "#/definitions/Network"
+        "400":
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  Network:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        example: 1
+      name:
+        type: "string"
+        example: "Production Network"
+      description:
+        type: "string"
+        example: "Main production network infrastructure"
+      type:
+        type: "string"
+        example: "vpc"
+      cidr:
+        type: "string"
+        example: "10.0.0.0/16"
+      status:
+        type: "string"
+        example: "active"
+      config:
+        type: "object"
+        additionalProperties: true
+      created_at:
+        type: "string"
+        example: "2024-01-01T12:00:00Z"
+      updated_at:
+        type: "string"
+        example: "2024-01-01T12:00:00Z"
+
+  CreateNetworkRequest:
+    type: "object"
+    required:
+      - "name"
+      - "type"
+    properties:
+      name:
+        type: "string"
+        example: "Development Network"
+      description:
+        type: "string"
+        example: "Network for development environment"
+      type:
+        type: "string"
+        example: "vpc"
+      cidr:
+        type: "string"
+        example: "10.0.0.0/16"
+      config:
+        type: "object"
+        additionalProperties: true
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      error:
+        type: "string"
+        example: "Error message"
+      code:
+        type: "string"
+        example: "ERROR_CODE"
+      details:
+        type: "object"
+        additionalProperties: true

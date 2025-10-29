@@ -1,0 +1,423 @@
+package automation
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/robfig/cron/v3"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+)
+
+// Scheduler manages scheduled workflow executions
+type Scheduler struct {
+	engine   *AutomationEngine
+	cron     *cron.Cron
+	logger   *zap.Logger
+	mu       sync.RWMutex
+	jobs     map[uint]cron.EntryID // workflow ID -> cron entry ID
+	running  bool
+	stopChan chan struct{}
+}
+
+// ScheduledExecution represents a scheduled execution
+type ScheduledExecution struct {
+	WorkflowID uint                   `json:"workflow_id"`
+	Schedule   string                 `json:"schedule"`
+	Variables  map[string]interface{} `json:"variables"`
+	NextRun    time.Time              `json:"next_run"`
+	LastRun    *time.Time             `json:"last_run,omitempty"`
+	Enabled    bool                   `json:"enabled"`
+}
+
+// NewScheduler creates a new workflow scheduler
+func NewScheduler(engine *AutomationEngine, logger *zap.Logger) *Scheduler {
+	return &Scheduler{
+		engine:   engine,
+		cron:     cron.New(cron.WithSeconds()),
+		logger:   logger,
+		jobs:     make(map[uint]cron.EntryID),
+		stopChan: make(chan struct{}),
+	}
+}
+
+// Start starts the scheduler
+func (s *Scheduler) Start() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.running {
+		return fmt.Errorf("scheduler is already running")
+	}
+
+	s.logger.Info("Starting workflow scheduler")
+
+	// Load existing scheduled workflows
+	if err := s.loadScheduledWorkflows(); err != nil {
+		return fmt.Errorf("failed to load scheduled workflows: %w", err)
+	}
+
+	s.cron.Start()
+	s.running = true
+
+	// Start monitoring goroutine
+	go s.monitor()
+
+	s.logger.Info("Workflow scheduler started")
+	return nil
+}
+
+// Stop stops the scheduler
+func (s *Scheduler) Stop() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if !s.running {
+		return fmt.Errorf("scheduler is not running")
+	}
+
+	s.logger.Info("Stopping workflow scheduler")
+
+	close(s.stopChan)
+	s.cron.Stop()
+	s.running = false
+
+	s.logger.Info("Workflow scheduler stopped")
+	return nil
+}
+
+// ScheduleWorkflow schedules a workflow for execution
+func (s *Scheduler) ScheduleWorkflow(workflowID uint, schedule string, variables map[string]interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Validate cron expression
+	if _, err := cron.ParseStandard(schedule); err != nil {
+		return fmt.Errorf("invalid cron expression: %w", err)
+	}
+
+	// Remove existing schedule if any
+	if entryID, exists := s.jobs[workflowID]; exists {
+		s.cron.Remove(entryID)
+		delete(s.jobs, workflowID)
+	}
+
+	// Add new schedule
+	entryID, err := s.cron.AddFunc(schedule, func() {
+		s.executeScheduledWorkflow(workflowID, variables)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to schedule workflow: %w", err)
+	}
+
+	s.jobs[workflowID] = entryID
+
+	s.logger.Info("Workflow scheduled",
+		zap.Uint("workflow_id", workflowID),
+		zap.String("schedule", schedule),
+	)
+
+	return nil
+}
+
+// UnscheduleWorkflow removes a workflow from the schedule
+func (s *Scheduler) UnscheduleWorkflow(workflowID uint) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	entryID, exists := s.jobs[workflowID]
+	if !exists {
+		return fmt.Errorf("workflow %d is not scheduled", workflowID)
+	}
+
+	s.cron.Remove(entryID)
+	delete(s.jobs, workflowID)
+
+	s.logger.Info("Workflow unscheduled", zap.Uint("workflow_id", workflowID))
+	return nil
+}
+
+// GetScheduledWorkflows returns all scheduled workflows
+func (s *Scheduler) GetScheduledWorkflows() ([]ScheduledExecution, error) {
+	var workflows []WorkflowDefinition
+	if err := s.engine.db.Where("schedule != '' AND enabled = ?", true).Find(&workflows).Error; err != nil {
+		return nil, err
+	}
+
+	scheduled := make([]ScheduledExecution, 0, len(workflows))
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, workflow := range workflows {
+		entryID, exists := s.jobs[workflow.ID]
+		if !exists {
+			continue
+		}
+
+		entry := s.cron.Entry(entryID)
+		scheduled = append(scheduled, ScheduledExecution{
+			WorkflowID: workflow.ID,
+			Schedule:   workflow.Schedule,
+			Variables:  workflow.Variables,
+			NextRun:    entry.Next,
+			Enabled:    workflow.Enabled,
+		})
+	}
+
+	return scheduled, nil
+}
+
+// GetWorkflowSchedule returns the schedule for a specific workflow
+func (s *Scheduler) GetWorkflowSchedule(workflowID uint) (*ScheduledExecution, error) {
+	var workflow WorkflowDefinition
+	if err := s.engine.db.First(&workflow, workflowID).Error; err != nil {
+		return nil, err
+	}
+
+	if workflow.Schedule == "" {
+		return nil, fmt.Errorf("workflow %d is not scheduled", workflowID)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	entryID, exists := s.jobs[workflowID]
+	if !exists {
+		return nil, fmt.Errorf("workflow %d schedule not found in cron", workflowID)
+	}
+
+	entry := s.cron.Entry(entryID)
+	return &ScheduledExecution{
+		WorkflowID: workflow.ID,
+		Schedule:   workflow.Schedule,
+		Variables:  workflow.Variables,
+		NextRun:    entry.Next,
+		Enabled:    workflow.Enabled,
+	}, nil
+}
+
+// UpdateWorkflowSchedule updates a workflow's schedule
+func (s *Scheduler) UpdateWorkflowSchedule(workflowID uint, schedule string, variables map[string]interface{}) error {
+	// Unschedule existing
+	if err := s.UnscheduleWorkflow(workflowID); err != nil {
+		// Ignore error if workflow wasn't scheduled
+		s.logger.Debug("Workflow was not previously scheduled", zap.Uint("workflow_id", workflowID))
+	}
+
+	// Schedule with new parameters
+	if schedule != "" {
+		return s.ScheduleWorkflow(workflowID, schedule, variables)
+	}
+
+	return nil
+}
+
+// loadScheduledWorkflows loads and schedules all enabled workflows with schedules
+func (s *Scheduler) loadScheduledWorkflows() error {
+	var workflows []WorkflowDefinition
+	if err := s.engine.db.Where("schedule != '' AND enabled = ?", true).Find(&workflows).Error; err != nil {
+		return err
+	}
+
+	for _, workflow := range workflows {
+		if err := s.ScheduleWorkflow(workflow.ID, workflow.Schedule, workflow.Variables); err != nil {
+			s.logger.Error("Failed to schedule workflow",
+				zap.Uint("workflow_id", workflow.ID),
+				zap.String("schedule", workflow.Schedule),
+				zap.Error(err),
+			)
+			continue
+		}
+	}
+
+	s.logger.Info("Loaded scheduled workflows", zap.Int("count", len(workflows)))
+	return nil
+}
+
+// executeScheduledWorkflow executes a workflow as part of a scheduled run
+func (s *Scheduler) executeScheduledWorkflow(workflowID uint, variables map[string]interface{}) {
+	s.logger.Info("Executing scheduled workflow", zap.Uint("workflow_id", workflowID))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	defer cancel()
+
+	execution, err := s.engine.ExecuteWorkflow(workflowID, variables)
+	if err != nil {
+		s.logger.Error("Failed to execute scheduled workflow",
+			zap.Uint("workflow_id", workflowID),
+			zap.Error(err),
+		)
+		return
+	}
+
+	// Wait for execution to complete or timeout
+	go s.waitForExecution(ctx, execution.ID)
+}
+
+// waitForExecution waits for a workflow execution to complete
+func (s *Scheduler) waitForExecution(ctx context.Context, executionID uint) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			s.logger.Warn("Scheduled workflow execution timed out",
+				zap.Uint("execution_id", executionID),
+			)
+			return
+		case <-ticker.C:
+			var execution WorkflowExecution
+			if err := s.engine.db.First(&execution, executionID).Error; err != nil {
+				s.logger.Error("Failed to check execution status",
+					zap.Uint("execution_id", executionID),
+					zap.Error(err),
+				)
+				return
+			}
+
+			switch execution.Status {
+			case "completed":
+				s.logger.Info("Scheduled workflow execution completed successfully",
+					zap.Uint("execution_id", executionID),
+					zap.Uint("workflow_id", execution.WorkflowID),
+				)
+				return
+			case "failed", "cancelled":
+				s.logger.Error("Scheduled workflow execution failed",
+					zap.Uint("execution_id", executionID),
+					zap.Uint("workflow_id", execution.WorkflowID),
+					zap.String("status", execution.Status),
+					zap.String("error", execution.ErrorMessage),
+				)
+				return
+			}
+		}
+	}
+}
+
+// monitor runs periodic maintenance tasks
+func (s *Scheduler) monitor() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-s.stopChan:
+			return
+		case <-ticker.C:
+			s.performMaintenance()
+		}
+	}
+}
+
+// performMaintenance performs periodic maintenance tasks
+func (s *Scheduler) performMaintenance() {
+	// Clean up old execution records
+	s.cleanupOldExecutions()
+
+	// Sync scheduled workflows with database
+	s.syncScheduledWorkflows()
+}
+
+// cleanupOldExecutions removes old execution records
+func (s *Scheduler) cleanupOldExecutions() {
+	cutoff := time.Now().AddDate(0, 0, -30) // Keep 30 days
+
+	result := s.engine.db.Where("created_at < ? AND status IN (?)", cutoff, []string{"completed", "failed", "cancelled"}).
+		Delete(&WorkflowExecution{})
+
+	if result.Error != nil {
+		s.logger.Error("Failed to cleanup old executions", zap.Error(result.Error))
+		return
+	}
+
+	if result.RowsAffected > 0 {
+		s.logger.Info("Cleaned up old executions", zap.Int64("count", result.RowsAffected))
+	}
+}
+
+// syncScheduledWorkflows synchronizes scheduled workflows with database
+func (s *Scheduler) syncScheduledWorkflows() {
+	var workflows []WorkflowDefinition
+	if err := s.engine.db.Where("schedule != ''").Find(&workflows).Error; err != nil {
+		s.logger.Error("Failed to sync scheduled workflows", zap.Error(err))
+		return
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Track which workflows should be scheduled
+	shouldBeScheduled := make(map[uint]WorkflowDefinition)
+	for _, workflow := range workflows {
+		if workflow.Enabled {
+			shouldBeScheduled[workflow.ID] = workflow
+		}
+	}
+
+	// Remove jobs that shouldn't be scheduled
+	for workflowID, entryID := range s.jobs {
+		if _, exists := shouldBeScheduled[workflowID]; !exists {
+			s.cron.Remove(entryID)
+			delete(s.jobs, workflowID)
+			s.logger.Info("Removed workflow from schedule", zap.Uint("workflow_id", workflowID))
+		}
+	}
+
+	// Add jobs that should be scheduled but aren't
+	for workflowID, workflow := range shouldBeScheduled {
+		if _, exists := s.jobs[workflowID]; !exists {
+			entryID, err := s.cron.AddFunc(workflow.Schedule, func() {
+				s.executeScheduledWorkflow(workflowID, workflow.Variables)
+			})
+			if err != nil {
+				s.logger.Error("Failed to schedule workflow during sync",
+					zap.Uint("workflow_id", workflowID),
+					zap.Error(err),
+				)
+				continue
+			}
+
+			s.jobs[workflowID] = entryID
+			s.logger.Info("Added workflow to schedule", zap.Uint("workflow_id", workflowID))
+		}
+	}
+}
+
+// GetSchedulerStats returns scheduler statistics
+func (s *Scheduler) GetSchedulerStats() map[string]interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	entries := s.cron.Entries()
+	nextRuns := make([]time.Time, 0, len(entries))
+	for _, entry := range entries {
+		nextRuns = append(nextRuns, entry.Next)
+	}
+
+	return map[string]interface{}{
+		"running":             s.running,
+		"scheduled_workflows": len(s.jobs),
+		"total_entries":       len(entries),
+		"next_runs":          nextRuns,
+	}
+}
+
+// ValidateCronExpression validates a cron expression
+func (s *Scheduler) ValidateCronExpression(expression string) error {
+	_, err := cron.ParseStandard(expression)
+	return err
+}
+
+// GetNextRunTime returns the next run time for a cron expression
+func (s *Scheduler) GetNextRunTime(expression string) (time.Time, error) {
+	schedule, err := cron.ParseStandard(expression)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return schedule.Next(time.Now()), nil
+}

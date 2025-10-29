@@ -1,0 +1,49 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "5s"
+      queryTimeout: "60s"
+      httpMethod: "POST"
+
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    database: metrics
+    user: admin
+    password: netorchestrator123
+    editable: true
+    jsonData:
+      version: 'Flux'
+      organization: 'netorchestrator'
+      defaultBucket: 'metrics'
+      tlsSkipVerify: true
+    secureJsonData:
+      token: 'netorchestrator-super-secret-token'
+
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: netorchestrator
+    user: netorchestrator
+    password: netorchestrator123
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      connMaxLifetime: 14400
+
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: true
