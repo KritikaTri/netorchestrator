@@ -80,6 +80,25 @@ func (s *NetworkService) ListAllNetworks(ctx context.Context) ([]models.Network,
 	return networks, nil
 }
 
+// GetUserByUsername retrieves a user UUID by username
+func (s *NetworkService) GetUserByUsername(ctx context.Context, username string) (uuid.UUID, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return uuid.Nil, fmt.Errorf("database not available")
+	}
+
+	var user models.User
+	if err := s.db.WithContext(ctx).Select("id").Where("username = ?", username).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return uuid.Nil, fmt.Errorf("user not found: %s", username)
+		}
+		s.logger.Error("Failed to get user by username", zap.String("username", username), zap.Error(err))
+		return uuid.Nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return user.ID, nil
+}
+
 // UpdateNetwork updates an existing network
 func (s *NetworkService) UpdateNetwork(ctx context.Context, network *models.Network) error {
 	if err := s.db.WithContext(ctx).Save(network).Error; err != nil {

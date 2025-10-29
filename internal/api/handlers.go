@@ -172,34 +172,60 @@ func (h *Handlers) ListNetworks(c *gin.Context) {
 		return
 	}
 
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		// Handle hardcoded demo IDs that aren't valid UUIDs
-		if userIDStr == "admin-uuid" || userIDStr == "user-uuid" {
-			// For demo users, get all networks (admin can see all)
-			networks, err := h.networkService.ListAllNetworks(c.Request.Context())
-			if err != nil {
-				h.logger.Error("Failed to list networks", zap.Error(err))
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error":   "Failed to list networks",
-					"code":    "NETWORK_LIST_ERROR",
-					"details": "Unable to retrieve networks from database",
-				})
-				return
-			}
+	// Handle demo users with hardcoded IDs by looking up actual UUIDs from database
+	var userID uuid.UUID
+	if userIDStr == "admin-uuid" {
+		// Look up the admin user's actual UUID from database
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
+		if err != nil {
+			h.logger.Error("Failed to get admin user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve admin user",
+				"details": err.Error(),
+			})
+			return
+		}
+		userID = resolvedUUID
 
-			c.JSON(http.StatusOK, gin.H{
-				"networks": networks,
-				"count":    len(networks),
-				"status":   "success",
+		// Admin can see all networks
+		networks, err := h.networkService.ListAllNetworks(c.Request.Context())
+		if err != nil {
+			h.logger.Error("Failed to list networks", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to list networks",
+				"code":    "NETWORK_LIST_ERROR",
+				"details": "Unable to retrieve networks from database",
 			})
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user ID format",
+		c.JSON(http.StatusOK, gin.H{
+			"networks": networks,
+			"count":    len(networks),
+			"status":   "success",
 		})
 		return
+	} else if userIDStr == "user-uuid" {
+		// Look up the regular user's actual UUID from database
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "user")
+		if err != nil {
+			h.logger.Error("Failed to get user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve user",
+				"details": err.Error(),
+			})
+			return
+		}
+		userID = resolvedUUID
+	} else {
+		parsedUserID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid user ID format",
+			})
+			return
+		}
+		userID = parsedUserID
 	}
 
 	networks, err := h.networkService.ListNetworks(c.Request.Context(), userID)
@@ -239,14 +265,30 @@ func (h *Handlers) CreateNetwork(c *gin.Context) {
 		return
 	}
 
-	// Handle demo users with hardcoded IDs
+	// Handle demo users with hardcoded IDs by looking up actual UUIDs from database
 	if userIDStr == "admin-uuid" {
-		// Use the admin user's actual UUID from database
-		adminUUID, _ := uuid.Parse("c908165f-b5f6-4869-a1b1-ce720e8e626d")
+		// Look up the admin user's actual UUID from database
+		adminUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
+		if err != nil {
+			h.logger.Error("Failed to get admin user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve admin user",
+				"details": err.Error(),
+			})
+			return
+		}
 		network.UserID = adminUUID
 	} else if userIDStr == "user-uuid" {
-		// Use the regular user's actual UUID from database
-		userUUID, _ := uuid.Parse("60c52e9f-b2dc-4813-822b-f279d41496f0")
+		// Look up the regular user's actual UUID from database
+		userUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "user")
+		if err != nil {
+			h.logger.Error("Failed to get user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve user",
+				"details": err.Error(),
+			})
+			return
+		}
 		network.UserID = userUUID
 	} else {
 		userID, err := uuid.Parse(userIDStr)
