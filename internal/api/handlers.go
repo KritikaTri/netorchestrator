@@ -175,8 +175,8 @@ func (h *Handlers) ListNetworks(c *gin.Context) {
 	// Handle demo users with hardcoded IDs by looking up actual UUIDs from database
 	var userID uuid.UUID
 	if userIDStr == "admin-uuid" {
-		// Look up the admin user's actual UUID from database
-		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
+		// Verify the admin user exists in database
+		_, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
 		if err != nil {
 			h.logger.Error("Failed to get admin user UUID", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -185,7 +185,6 @@ func (h *Handlers) ListNetworks(c *gin.Context) {
 			})
 			return
 		}
-		userID = resolvedUUID
 
 		// Admin can see all networks
 		networks, err := h.networkService.ListAllNetworks(c.Request.Context())
@@ -516,6 +515,94 @@ func (h *Handlers) ListNodes(c *gin.Context) {
 	})
 }
 
+// ListAllNodes handles listing all nodes across all networks
+// @Summary List all nodes
+// @Description Get all nodes across all networks
+// @Tags Nodes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "List of all nodes"
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /nodes [get]
+func (h *Handlers) ListAllNodes(c *gin.Context) {
+	// Get user ID from JWT token (set by authentication middleware)
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User ID not found in token",
+		})
+		return
+	}
+
+	// Handle demo users with hardcoded IDs by looking up actual UUIDs from database
+	var userID uuid.UUID
+	if userIDStr == "admin-uuid" {
+		// Look up the admin user's actual UUID from database
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
+		if err != nil {
+			h.logger.Error("Failed to get admin user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve admin user",
+				"details": err.Error(),
+			})
+			return
+		}
+		userID = resolvedUUID
+	} else if userIDStr == "user-uuid" {
+		// Look up the regular user's actual UUID from database
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "user")
+		if err != nil {
+			h.logger.Error("Failed to get user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve user",
+				"details": err.Error(),
+			})
+			return
+		}
+		userID = resolvedUUID
+	} else {
+		parsedUserID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid user ID format",
+			})
+			return
+		}
+		userID = parsedUserID
+	}
+
+	// Get all nodes
+	nodes, err := h.networkService.ListAllNodes(c.Request.Context())
+	if err != nil {
+		h.logger.Error("Failed to list all nodes", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to list nodes",
+			"code":    "NODES_LIST_ERROR",
+			"details": "Unable to retrieve nodes from database",
+		})
+		return
+	}
+
+	// For non-admin users, filter nodes to only show nodes from their networks
+	if userIDStr != "admin-uuid" {
+		var filteredNodes []models.Node
+		for _, node := range nodes {
+			if node.Network.UserID == userID {
+				filteredNodes = append(filteredNodes, node)
+			}
+		}
+		nodes = filteredNodes
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"nodes":  nodes,
+		"count":  len(nodes),
+		"status": "success",
+	})
+}
+
 // CreateNode handles creating a node
 func (h *Handlers) CreateNode(c *gin.Context) {
 	networkIDStr := c.Param("id")
@@ -556,6 +643,133 @@ func (h *Handlers) CreateNode(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"node": node,
+	})
+}
+
+// CreateNodeDirect handles creating a node directly (for POST /api/v1/nodes)
+// @Summary Create a new node
+// @Description Create a new node in a specified network
+// @Tags Nodes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param node body models.Node true "Node object to create"
+// @Success 201 {object} map[string]interface{} "Created node"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /nodes [post]
+func (h *Handlers) CreateNodeDirect(c *gin.Context) {
+	// Get user ID from JWT token (set by authentication middleware)
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User ID not found in token",
+		})
+		return
+	}
+
+	var node models.Node
+	if err := c.ShouldBindJSON(&node); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate that network_id is provided
+	if node.NetworkID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "network_id is required",
+		})
+		return
+	}
+
+	// Handle demo users with hardcoded IDs by looking up actual UUIDs from database
+	var userID uuid.UUID
+	if userIDStr == "admin-uuid" {
+		// Look up the admin user's actual UUID from database
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
+		if err != nil {
+			h.logger.Error("Failed to get admin user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve admin user",
+				"details": err.Error(),
+			})
+			return
+		}
+		userID = resolvedUUID
+	} else if userIDStr == "user-uuid" {
+		// Look up the regular user's actual UUID from database
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "user")
+		if err != nil {
+			h.logger.Error("Failed to get user UUID", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to resolve user",
+				"details": err.Error(),
+			})
+			return
+		}
+		userID = resolvedUUID
+	} else {
+		parsedUserID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid user ID format",
+			})
+			return
+		}
+		userID = parsedUserID
+	}
+
+	// Verify that the network exists and belongs to the user (unless admin)
+	network, err := h.networkService.GetNetwork(c.Request.Context(), node.NetworkID)
+	if err != nil {
+		if err.Error() == "network not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Network not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to get network", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to validate network",
+		})
+		return
+	}
+
+	// Check if user has permission to create nodes in this network
+	if userIDStr != "admin-uuid" && network.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You don't have permission to create nodes in this network",
+		})
+		return
+	}
+
+	// Validate node
+	if err := h.validationService.ValidateNode(c.Request.Context(), &node); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Validation failed",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Create node
+	if err := h.networkService.CreateNode(c.Request.Context(), &node); err != nil {
+		h.logger.Error("Failed to create node", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to create node",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"node":    node,
+		"status":  "success",
+		"message": "Node created successfully",
 	})
 }
 
@@ -893,7 +1107,7 @@ func (h *Handlers) DeleteLink(c *gin.Context) {
 
 // ListPolicies handles listing policies in a network
 func (h *Handlers) ListPolicies(c *gin.Context) {
-	networkIDStr := c.Param("network_id")
+	networkIDStr := c.Param("id")
 	networkID, err := uuid.Parse(networkIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -918,7 +1132,7 @@ func (h *Handlers) ListPolicies(c *gin.Context) {
 
 // CreatePolicy handles creating a policy
 func (h *Handlers) CreatePolicy(c *gin.Context) {
-	networkIDStr := c.Param("network_id")
+	networkIDStr := c.Param("id")
 	networkID, err := uuid.Parse(networkIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

@@ -140,7 +140,7 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		logger.Info("Starting server", 
+		logger.Info("Starting server",
 			zap.String("host", cfg.Server.Host),
 			zap.String("port", cfg.Server.Port),
 		)
@@ -241,7 +241,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 			// Try JWT first, then API key
 			authHeader := c.GetHeader("Authorization")
 			apiKey := c.GetHeader("X-API-Key")
-			
+
 			if authHeader != "" {
 				securityManager.JWTAuthMiddleware()(c)
 			} else if apiKey != "" {
@@ -264,7 +264,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				networks.POST("/:id/start", handlers.StartNetwork)
 				networks.POST("/:id/stop", handlers.StopNetwork)
 				networks.POST("/:id/restart", handlers.RestartNetwork)
-				
+
 				// Nested network resource routes
 				networks.GET("/:id/nodes", handlers.ListNodes)
 				networks.POST("/:id/nodes", handlers.CreateNode)
@@ -277,6 +277,8 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 			// Node management (direct node access)
 			nodes := protected.Group("/nodes")
 			{
+				nodes.GET("", handlers.ListAllNodes)      // List all nodes
+				nodes.POST("", handlers.CreateNodeDirect) // Create node directly
 				nodes.GET("/:id", handlers.GetNode)
 				nodes.PUT("/:id", handlers.UpdateNode)
 				nodes.DELETE("/:id", handlers.DeleteNode)
@@ -326,9 +328,9 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 			{
 				users.GET("/profile", handlers.GetProfile)
 				users.PUT("/profile", handlers.UpdateProfile)
-				users.GET("", handlers.ListUsers) // Admin only
-				users.POST("", handlers.CreateUser) // Admin only
-				users.PUT("/:id", handlers.UpdateUser) // Admin only
+				users.GET("", handlers.ListUsers)         // Admin only
+				users.POST("", handlers.CreateUser)       // Admin only
+				users.PUT("/:id", handlers.UpdateUser)    // Admin only
 				users.DELETE("/:id", handlers.DeleteUser) // Admin only
 			}
 

@@ -157,6 +157,22 @@ func (s *NetworkService) ListNodes(ctx context.Context, networkID uuid.UUID) ([]
 	return nodes, nil
 }
 
+// ListAllNodes retrieves all nodes across all networks
+func (s *NetworkService) ListAllNodes(ctx context.Context) ([]models.Node, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return nil, fmt.Errorf("database not available")
+	}
+
+	var nodes []models.Node
+	if err := s.db.WithContext(ctx).Preload("Network").Find(&nodes).Error; err != nil {
+		s.logger.Error("Failed to list all nodes", zap.Error(err))
+		return nil, fmt.Errorf("failed to list all nodes: %w", err)
+	}
+
+	return nodes, nil
+}
+
 // UpdateNode updates an existing node
 func (s *NetworkService) UpdateNode(ctx context.Context, node *models.Node) error {
 	if err := s.db.WithContext(ctx).Save(node).Error; err != nil {
