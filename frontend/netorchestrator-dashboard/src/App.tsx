@@ -1,9 +1,12 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
-import Dashboard from './components/Dashboard';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ApiProvider } from './contexts/ApiContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import LoginForm from './components/LoginForm';
+import Dashboard from './components/Dashboard';
 
 const darkTheme = createTheme({
   palette: {
@@ -43,21 +46,58 @@ const darkTheme = createTheme({
   },
 });
 
+// Protected Route wrapper
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <Box>Loading...</Box>;
+  }
+  
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+// Main App Content
+const AppContent: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  
+  return (
+    <Box sx={{ 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0e27 0%, #1a1d36 50%, #2d1b69 100%)',
+      backgroundAttachment: 'fixed',
+    }}>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginForm />} 
+        />
+        <Route 
+          path="/*" 
+          element={
+            <ProtectedRoute>
+              <ApiProvider>
+                <WebSocketProvider>
+                  <Dashboard />
+                </WebSocketProvider>
+              </ApiProvider>
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </Box>
+  );
+};
+
 function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <ApiProvider>
-        <WebSocketProvider>
-          <Box sx={{ 
-            minHeight: '100vh',
-            background: 'linear-gradient(135deg, #0a0e27 0%, #1a1d36 50%, #2d1b69 100%)',
-            backgroundAttachment: 'fixed',
-          }}>
-            <Dashboard />
-          </Box>
-        </WebSocketProvider>
-      </ApiProvider>
+      <Router>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </Router>
     </ThemeProvider>
   );
 }

@@ -298,6 +298,8 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 			// Policy management (direct policy access)
 			policies := protected.Group("/policies")
 			{
+				policies.GET("", handlers.ListAllPolicies)
+				policies.POST("", handlers.CreateGlobalPolicy)
 				policies.GET("/:id", handlers.GetPolicy)
 				policies.PUT("/:id", handlers.UpdatePolicy)
 				policies.DELETE("/:id", handlers.DeletePolicy)

@@ -1269,6 +1269,67 @@ func (h *Handlers) DeletePolicy(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
+// ListAllPolicies handles listing all policies across all networks
+func (h *Handlers) ListAllPolicies(c *gin.Context) {
+	// Get user ID from JWT token
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User ID not found in token",
+		})
+		return
+	}
+
+	policies, err := h.networkService.ListAllPolicies(c.Request.Context())
+	if err != nil {
+		h.logger.Error("Failed to list all policies", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to list policies",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"policies": policies,
+		"count":    len(policies),
+		"status":   "success",
+	})
+}
+
+// CreateGlobalPolicy handles creating a global policy
+func (h *Handlers) CreateGlobalPolicy(c *gin.Context) {
+	var policy models.Policy
+	if err := c.ShouldBindJSON(&policy); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	// For global policies, network_id might be null or require special handling
+	// Validate policy
+	if err := h.validationService.ValidatePolicy(c.Request.Context(), &policy); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Create policy
+	if err := h.networkService.CreatePolicy(c.Request.Context(), &policy); err != nil {
+		h.logger.Error("Failed to create global policy", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create policy",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"policy": policy,
+		"status": "success",
+	})
+}
+
 // GetNetworkMetrics handles getting network metrics
 func (h *Handlers) GetNetworkMetrics(c *gin.Context) {
 	idStr := c.Param("id")

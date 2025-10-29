@@ -1,71 +1,64 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
 
 interface WebSocketContextType {
-  socket: Socket | null;
+  socket: WebSocket | null;
   connected: boolean;
   lastMessage: any;
-  sendMessage: (event: string, data: any) => void;
+  sendMessage: (data: any) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
-const WS_URL = process.env.REACT_APP_WS_URL || 'http://localhost:8080';
+const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws';
 
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<any>(null);
 
   useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io(WS_URL, {
-      transports: ['websocket', 'polling'],
-      autoConnect: true,
-    });
+    // Initialize WebSocket connection
+    const newSocket = new WebSocket(WS_URL);
 
-    newSocket.on('connect', () => {
+    newSocket.onopen = () => {
       console.log('WebSocket connected');
       setConnected(true);
-    });
+    };
 
-    newSocket.on('disconnect', () => {
+    newSocket.onclose = () => {
       console.log('WebSocket disconnected');
       setConnected(false);
-    });
+    };
 
-    newSocket.on('network_update', (data) => {
-      console.log('Network update received:', data);
-      setLastMessage({ type: 'network_update', data });
-    });
+    newSocket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setConnected(false);
+    };
 
-    newSocket.on('metric_update', (data) => {
-      console.log('Metric update received:', data);
-      setLastMessage({ type: 'metric_update', data });
-    });
-
-    newSocket.on('alert', (data) => {
-      console.log('Alert received:', data);
-      setLastMessage({ type: 'alert', data });
-    });
-
-    newSocket.on('node_status', (data) => {
-      console.log('Node status update:', data);
-      setLastMessage({ type: 'node_status', data });
-    });
+    newSocket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log('WebSocket message received:', message);
+        setLastMessage(message);
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+      }
+    };
 
     setSocket(newSocket);
 
     return () => {
-      newSocket.close();
+      if (newSocket.readyState === WebSocket.OPEN) {
+        newSocket.close();
+      }
     };
   }, []);
 
-  const sendMessage = (event: string, data: any) => {
-    if (socket && connected) {
-      socket.emit(event, data);
+  const sendMessage = (data: any) => {
+    if (socket && connected && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(data));
     } else {
-      console.warn('Socket not connected, cannot send message');
+      console.warn('WebSocket not connected, cannot send message');
     }
   };
 

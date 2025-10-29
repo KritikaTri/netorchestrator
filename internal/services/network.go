@@ -289,6 +289,17 @@ func (s *NetworkService) ListPolicies(ctx context.Context, networkID uuid.UUID) 
 	return policies, nil
 }
 
+// ListAllPolicies retrieves all policies across all networks
+func (s *NetworkService) ListAllPolicies(ctx context.Context) ([]models.Policy, error) {
+	var policies []models.Policy
+	if err := s.db.WithContext(ctx).Preload("Network").Find(&policies).Error; err != nil {
+		s.logger.Error("Failed to list all policies", zap.Error(err))
+		return nil, fmt.Errorf("failed to list all policies: %w", err)
+	}
+
+	return policies, nil
+}
+
 // UpdatePolicy updates an existing policy
 func (s *NetworkService) UpdatePolicy(ctx context.Context, policy *models.Policy) error {
 	if err := s.db.WithContext(ctx).Save(policy).Error; err != nil {
