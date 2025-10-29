@@ -1,6 +1,9 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -400,3 +403,120 @@ const (
 	UserStatusInactive UserStatus = "inactive"
 	UserStatusSuspended UserStatus = "suspended"
 )
+
+// GORM JSONB Scanner/Valuer implementations for PostgreSQL compatibility
+
+// NetworkConfig JSONB methods
+func (nc NetworkConfig) Value() (driver.Value, error) {
+	return json.Marshal(nc)
+}
+
+func (nc *NetworkConfig) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan NetworkConfig from non-bytes/string")
+	}
+	
+	return json.Unmarshal(bytes, nc)
+}
+
+// NodeConfig JSONB methods
+func (nc NodeConfig) Value() (driver.Value, error) {
+	return json.Marshal(nc)
+}
+
+func (nc *NodeConfig) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan NodeConfig from non-bytes/string")
+	}
+	
+	return json.Unmarshal(bytes, nc)
+}
+
+// LinkConfig JSONB methods
+func (lc LinkConfig) Value() (driver.Value, error) {
+	return json.Marshal(lc)
+}
+
+func (lc *LinkConfig) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan LinkConfig from non-bytes/string")
+	}
+	
+	return json.Unmarshal(bytes, lc)
+}
+
+// PolicyConfig JSONB methods
+func (pc PolicyConfig) Value() (driver.Value, error) {
+	return json.Marshal(pc)
+}
+
+func (pc *PolicyConfig) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan PolicyConfig from non-bytes/string")
+	}
+	
+	return json.Unmarshal(bytes, pc)
+}
+
+// Position JSONB methods
+func (p Position) Value() (driver.Value, error) {
+	return json.Marshal(p)
+}
+
+func (p *Position) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan Position from non-bytes/string")
+	}
+	
+	return json.Unmarshal(bytes, p)
+}

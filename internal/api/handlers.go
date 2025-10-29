@@ -451,7 +451,7 @@ func (h *Handlers) RestartNetwork(c *gin.Context) {
 
 // ListNodes handles listing nodes in a network
 func (h *Handlers) ListNodes(c *gin.Context) {
-	networkIDStr := c.Param("network_id")
+	networkIDStr := c.Param("id")
 	networkID, err := uuid.Parse(networkIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -476,7 +476,7 @@ func (h *Handlers) ListNodes(c *gin.Context) {
 
 // CreateNode handles creating a node
 func (h *Handlers) CreateNode(c *gin.Context) {
-	networkIDStr := c.Param("network_id")
+	networkIDStr := c.Param("id")
 	networkID, err := uuid.Parse(networkIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -687,7 +687,7 @@ func (h *Handlers) RestartNode(c *gin.Context) {
 
 // ListLinks handles listing links in a network
 func (h *Handlers) ListLinks(c *gin.Context) {
-	networkIDStr := c.Param("network_id")
+	networkIDStr := c.Param("id")
 	networkID, err := uuid.Parse(networkIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -712,7 +712,7 @@ func (h *Handlers) ListLinks(c *gin.Context) {
 
 // CreateLink handles creating a link
 func (h *Handlers) CreateLink(c *gin.Context) {
-	networkIDStr := c.Param("network_id")
+	networkIDStr := c.Param("id")
 	networkID, err := uuid.Parse(networkIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
