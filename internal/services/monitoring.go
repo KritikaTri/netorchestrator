@@ -55,14 +55,14 @@ func (s *MonitoringService) GetNetworkMetrics(ctx context.Context, networkID uui
 
 	// Calculate basic metrics
 	metrics := map[string]interface{}{
-		"network_id":    networkID.String(),
-		"network_name":  network.Name,
-		"status":        network.Status,
-		"node_count":    len(network.Nodes),
-		"link_count":    len(network.Links),
-		"created_at":    network.CreatedAt,
-		"updated_at":    network.UpdatedAt,
-		"timestamp":     time.Now(),
+		"network_id":   networkID.String(),
+		"network_name": network.Name,
+		"status":       network.Status,
+		"node_count":   len(network.Nodes),
+		"link_count":   len(network.Links),
+		"created_at":   network.CreatedAt,
+		"updated_at":   network.UpdatedAt,
+		"timestamp":    time.Now(),
 	}
 
 	// Add node status breakdown
@@ -171,17 +171,17 @@ func (s *MonitoringService) GetNodeMetrics(ctx context.Context, nodeID uuid.UUID
 
 	// Calculate node metrics
 	metrics := map[string]interface{}{
-		"node_id":      nodeID.String(),
-		"node_name":    node.Name,
-		"node_type":    node.Type,
-		"status":       node.Status,
-		"ip_address":   node.IPAddress,
-		"mac_address":  node.MACAddress,
-		"network_id":   node.NetworkID.String(),
-		"created_at":   node.CreatedAt,
-		"updated_at":   node.UpdatedAt,
-		"timestamp":    time.Now(),
-		"link_count":   len(node.Links),
+		"node_id":     nodeID.String(),
+		"node_name":   node.Name,
+		"node_type":   node.Type,
+		"status":      node.Status,
+		"ip_address":  node.IPAddress,
+		"mac_address": node.MACAddress,
+		"network_id":  node.NetworkID.String(),
+		"created_at":  node.CreatedAt,
+		"updated_at":  node.UpdatedAt,
+		"timestamp":   time.Now(),
+		"link_count":  len(node.Links),
 	}
 
 	// Add configuration metrics
@@ -243,5 +243,178 @@ func (s *MonitoringService) ListAlerts(ctx context.Context) ([]map[string]interf
 func (s *MonitoringService) AcknowledgeAlert(ctx context.Context, alertID uuid.UUID) error {
 	// In a real implementation, this would update an alerts table
 	s.logger.Info("Alert acknowledged", zap.String("alert_id", alertID.String()))
+	return nil
+}
+
+// ResolveAlert resolves an alert
+func (s *MonitoringService) ResolveAlert(ctx context.Context, alertID uuid.UUID) error {
+	// In a real implementation, this would update an alerts table to mark as resolved
+	s.logger.Info("Alert resolved", zap.String("alert_id", alertID.String()))
+	return nil
+}
+
+// ListAlertRules retrieves all alert rules
+func (s *MonitoringService) ListAlertRules(ctx context.Context) ([]models.AlertRule, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return []models.AlertRule{}, nil
+	}
+
+	var alertRules []models.AlertRule
+	if err := s.db.WithContext(ctx).Find(&alertRules).Error; err != nil {
+		s.logger.Error("Failed to list alert rules", zap.Error(err))
+		return nil, fmt.Errorf("failed to list alert rules: %w", err)
+	}
+
+	return alertRules, nil
+}
+
+// CreateAlertRule creates a new alert rule
+func (s *MonitoringService) CreateAlertRule(ctx context.Context, alertRule *models.AlertRule) error {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return fmt.Errorf("database not available")
+	}
+
+	if err := s.db.WithContext(ctx).Create(alertRule).Error; err != nil {
+		s.logger.Error("Failed to create alert rule", zap.Error(err))
+		return fmt.Errorf("failed to create alert rule: %w", err)
+	}
+
+	s.logger.Info("Alert rule created successfully", zap.String("alert_rule_id", alertRule.ID.String()))
+	return nil
+}
+
+// GetAlertRule retrieves an alert rule by ID
+func (s *MonitoringService) GetAlertRule(ctx context.Context, id uuid.UUID) (*models.AlertRule, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return nil, fmt.Errorf("database not available")
+	}
+
+	var alertRule models.AlertRule
+	if err := s.db.WithContext(ctx).First(&alertRule, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("alert rule not found")
+		}
+		s.logger.Error("Failed to get alert rule", zap.Error(err))
+		return nil, fmt.Errorf("failed to get alert rule: %w", err)
+	}
+
+	return &alertRule, nil
+}
+
+// UpdateAlertRule updates an existing alert rule
+func (s *MonitoringService) UpdateAlertRule(ctx context.Context, alertRule *models.AlertRule) error {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return fmt.Errorf("database not available")
+	}
+
+	if err := s.db.WithContext(ctx).Save(alertRule).Error; err != nil {
+		s.logger.Error("Failed to update alert rule", zap.Error(err))
+		return fmt.Errorf("failed to update alert rule: %w", err)
+	}
+
+	s.logger.Info("Alert rule updated successfully", zap.String("alert_rule_id", alertRule.ID.String()))
+	return nil
+}
+
+// DeleteAlertRule deletes an alert rule
+func (s *MonitoringService) DeleteAlertRule(ctx context.Context, id uuid.UUID) error {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return fmt.Errorf("database not available")
+	}
+
+	if err := s.db.WithContext(ctx).Delete(&models.AlertRule{}, "id = ?", id).Error; err != nil {
+		s.logger.Error("Failed to delete alert rule", zap.Error(err))
+		return fmt.Errorf("failed to delete alert rule: %w", err)
+	}
+
+	s.logger.Info("Alert rule deleted successfully", zap.String("alert_rule_id", id.String()))
+	return nil
+}
+
+// ListNotificationChannels retrieves all notification channels
+func (s *MonitoringService) ListNotificationChannels(ctx context.Context) ([]models.NotificationChannel, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return []models.NotificationChannel{}, nil
+	}
+
+	var channels []models.NotificationChannel
+	if err := s.db.WithContext(ctx).Find(&channels).Error; err != nil {
+		s.logger.Error("Failed to list notification channels", zap.Error(err))
+		return nil, fmt.Errorf("failed to list notification channels: %w", err)
+	}
+
+	return channels, nil
+}
+
+// CreateNotificationChannel creates a new notification channel
+func (s *MonitoringService) CreateNotificationChannel(ctx context.Context, channel *models.NotificationChannel) error {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return fmt.Errorf("database not available")
+	}
+
+	if err := s.db.WithContext(ctx).Create(channel).Error; err != nil {
+		s.logger.Error("Failed to create notification channel", zap.Error(err))
+		return fmt.Errorf("failed to create notification channel: %w", err)
+	}
+
+	s.logger.Info("Notification channel created successfully", zap.String("channel_id", channel.ID.String()))
+	return nil
+}
+
+// GetNotificationChannel retrieves a notification channel by ID
+func (s *MonitoringService) GetNotificationChannel(ctx context.Context, id uuid.UUID) (*models.NotificationChannel, error) {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return nil, fmt.Errorf("database not available")
+	}
+
+	var channel models.NotificationChannel
+	if err := s.db.WithContext(ctx).First(&channel, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("notification channel not found")
+		}
+		s.logger.Error("Failed to get notification channel", zap.Error(err))
+		return nil, fmt.Errorf("failed to get notification channel: %w", err)
+	}
+
+	return &channel, nil
+}
+
+// UpdateNotificationChannel updates an existing notification channel
+func (s *MonitoringService) UpdateNotificationChannel(ctx context.Context, channel *models.NotificationChannel) error {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return fmt.Errorf("database not available")
+	}
+
+	if err := s.db.WithContext(ctx).Save(channel).Error; err != nil {
+		s.logger.Error("Failed to update notification channel", zap.Error(err))
+		return fmt.Errorf("failed to update notification channel: %w", err)
+	}
+
+	s.logger.Info("Notification channel updated successfully", zap.String("channel_id", channel.ID.String()))
+	return nil
+}
+
+// DeleteNotificationChannel deletes a notification channel
+func (s *MonitoringService) DeleteNotificationChannel(ctx context.Context, id uuid.UUID) error {
+	if s.db == nil {
+		s.logger.Warn("Database not available - running in simple mode")
+		return fmt.Errorf("database not available")
+	}
+
+	if err := s.db.WithContext(ctx).Delete(&models.NotificationChannel{}, "id = ?", id).Error; err != nil {
+		s.logger.Error("Failed to delete notification channel", zap.Error(err))
+		return fmt.Errorf("failed to delete notification channel: %w", err)
+	}
+
+	s.logger.Info("Notification channel deleted successfully", zap.String("channel_id", id.String()))
 	return nil
 }

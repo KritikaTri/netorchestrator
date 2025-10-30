@@ -96,48 +96,474 @@ func (h *Handlers) Logout(c *gin.Context) {
 }
 
 // ResolveAlert resolves an alert
+// @Summary Resolve an alert
+// @Description Resolve an alert by ID
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Alert ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/alerts/{id}/resolve [post]
 func (h *Handlers) ResolveAlert(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "resolve alert not implemented yet"})
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid alert ID",
+		})
+		return
+	}
+
+	if err := h.monitoringService.ResolveAlert(c.Request.Context(), id); err != nil {
+		h.logger.Error("Failed to resolve alert", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to resolve alert",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Alert resolved",
+	})
 }
 
 // ListAlertRules lists alert rules
+// @Summary List alert rules
+// @Description Get all alert rules
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "List of alert rules"
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/alert-rules [get]
 func (h *Handlers) ListAlertRules(c *gin.Context) {
-	c.JSON(http.StatusOK, []interface{}{})
+	alertRules, err := h.monitoringService.ListAlertRules(c.Request.Context())
+	if err != nil {
+		h.logger.Error("Failed to list alert rules", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to list alert rules",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"alert_rules": alertRules,
+		"count":       len(alertRules),
+		"status":      "success",
+	})
 }
 
 // CreateAlertRule creates an alert rule
+// @Summary Create alert rule
+// @Description Create a new alert rule
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param alert_rule body models.AlertRule true "Alert rule to create"
+// @Success 201 {object} map[string]interface{} "Created alert rule"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/alert-rules [post]
 func (h *Handlers) CreateAlertRule(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "create alert rule not implemented yet"})
+	var alertRule models.AlertRule
+	if err := c.ShouldBindJSON(&alertRule); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate alert rule
+	if alertRule.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Alert rule name is required",
+		})
+		return
+	}
+
+	if alertRule.Condition.Metric == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Alert rule condition metric is required",
+		})
+		return
+	}
+
+	// Create alert rule
+	if err := h.monitoringService.CreateAlertRule(c.Request.Context(), &alertRule); err != nil {
+		h.logger.Error("Failed to create alert rule", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create alert rule",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"alert_rule": alertRule,
+		"status":     "success",
+	})
 }
 
 // UpdateAlertRule updates an alert rule
+// @Summary Update alert rule
+// @Description Update an existing alert rule
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Alert Rule ID"
+// @Param alert_rule body models.AlertRule true "Updated alert rule"
+// @Success 200 {object} map[string]interface{} "Updated alert rule"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/alert-rules/{id} [put]
 func (h *Handlers) UpdateAlertRule(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "update alert rule not implemented yet"})
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid alert rule ID",
+		})
+		return
+	}
+
+	// Get existing alert rule first
+	existingAlertRule, err := h.monitoringService.GetAlertRule(c.Request.Context(), id)
+	if err != nil {
+		if err.Error() == "alert rule not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Alert rule not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to get alert rule", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get alert rule",
+		})
+		return
+	}
+
+	// Create update request struct for partial updates
+	var updateRequest struct {
+		Name        *string                    `json:"name,omitempty"`
+		Description *string                    `json:"description,omitempty"`
+		Condition   *models.AlertRuleCondition `json:"condition,omitempty"`
+		Actions     *models.AlertRuleActions   `json:"actions,omitempty"`
+		Severity    *models.AlertSeverity      `json:"severity,omitempty"`
+		Status      *models.AlertRuleStatus    `json:"status,omitempty"`
+		Tags        *models.StringSlice        `json:"tags,omitempty"`
+	}
+
+	if err := c.ShouldBindJSON(&updateRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Apply updates to existing alert rule
+	if updateRequest.Name != nil {
+		existingAlertRule.Name = *updateRequest.Name
+	}
+	if updateRequest.Description != nil {
+		existingAlertRule.Description = *updateRequest.Description
+	}
+	if updateRequest.Condition != nil {
+		existingAlertRule.Condition = *updateRequest.Condition
+	}
+	if updateRequest.Actions != nil {
+		existingAlertRule.Actions = *updateRequest.Actions
+	}
+	if updateRequest.Severity != nil {
+		existingAlertRule.Severity = *updateRequest.Severity
+	}
+	if updateRequest.Status != nil {
+		existingAlertRule.Status = *updateRequest.Status
+	}
+	if updateRequest.Tags != nil {
+		existingAlertRule.Tags = *updateRequest.Tags
+	}
+
+	// Update alert rule
+	if err := h.monitoringService.UpdateAlertRule(c.Request.Context(), existingAlertRule); err != nil {
+		h.logger.Error("Failed to update alert rule", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update alert rule",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"alert_rule": existingAlertRule,
+		"status":     "success",
+	})
 }
 
 // DeleteAlertRule deletes an alert rule
+// @Summary Delete alert rule
+// @Description Delete an alert rule by ID
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Alert Rule ID"
+// @Success 204 "Alert rule deleted"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/alert-rules/{id} [delete]
 func (h *Handlers) DeleteAlertRule(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "delete alert rule not implemented yet"})
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid alert rule ID",
+		})
+		return
+	}
+
+	if err := h.monitoringService.DeleteAlertRule(c.Request.Context(), id); err != nil {
+		if err.Error() == "alert rule not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Alert rule not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to delete alert rule", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete alert rule",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // ListNotificationChannels lists notification channels
+// @Summary List notification channels
+// @Description Get all notification channels
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "List of notification channels"
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/notification-channels [get]
 func (h *Handlers) ListNotificationChannels(c *gin.Context) {
-	c.JSON(http.StatusOK, []interface{}{})
+	channels, err := h.monitoringService.ListNotificationChannels(c.Request.Context())
+	if err != nil {
+		h.logger.Error("Failed to list notification channels", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to list notification channels",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"notification_channels": channels,
+		"count":                 len(channels),
+		"status":                "success",
+	})
 }
 
 // CreateNotificationChannel creates a notification channel
+// @Summary Create notification channel
+// @Description Create a new notification channel
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param channel body models.NotificationChannel true "Notification channel to create"
+// @Success 201 {object} map[string]interface{} "Created notification channel"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/notification-channels [post]
 func (h *Handlers) CreateNotificationChannel(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "create notification channel not implemented yet"})
+	var channel models.NotificationChannel
+	if err := c.ShouldBindJSON(&channel); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate notification channel
+	if channel.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Notification channel name is required",
+		})
+		return
+	}
+
+	if channel.Type == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Notification channel type is required",
+		})
+		return
+	}
+
+	// Create notification channel
+	if err := h.monitoringService.CreateNotificationChannel(c.Request.Context(), &channel); err != nil {
+		h.logger.Error("Failed to create notification channel", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create notification channel",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"notification_channel": channel,
+		"status":               "success",
+	})
 }
 
 // UpdateNotificationChannel updates a notification channel
+// @Summary Update notification channel
+// @Description Update an existing notification channel
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Notification Channel ID"
+// @Param channel body models.NotificationChannel true "Updated notification channel"
+// @Success 200 {object} map[string]interface{} "Updated notification channel"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/notification-channels/{id} [put]
 func (h *Handlers) UpdateNotificationChannel(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "update notification channel not implemented yet"})
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid notification channel ID",
+		})
+		return
+	}
+
+	// Get existing notification channel first
+	existingChannel, err := h.monitoringService.GetNotificationChannel(c.Request.Context(), id)
+	if err != nil {
+		if err.Error() == "notification channel not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Notification channel not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to get notification channel", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get notification channel",
+		})
+		return
+	}
+
+	// Create update request struct for partial updates
+	var updateRequest struct {
+		Name        *string                           `json:"name,omitempty"`
+		Description *string                           `json:"description,omitempty"`
+		Type        *models.NotificationChannelType   `json:"type,omitempty"`
+		Config      *models.NotificationChannelConfig `json:"config,omitempty"`
+		Status      *models.NotificationChannelStatus `json:"status,omitempty"`
+		Tags        *models.StringSlice               `json:"tags,omitempty"`
+	}
+
+	if err := c.ShouldBindJSON(&updateRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Apply updates to existing notification channel
+	if updateRequest.Name != nil {
+		existingChannel.Name = *updateRequest.Name
+	}
+	if updateRequest.Description != nil {
+		existingChannel.Description = *updateRequest.Description
+	}
+	if updateRequest.Type != nil {
+		existingChannel.Type = *updateRequest.Type
+	}
+	if updateRequest.Config != nil {
+		existingChannel.Config = *updateRequest.Config
+	}
+	if updateRequest.Status != nil {
+		existingChannel.Status = *updateRequest.Status
+	}
+	if updateRequest.Tags != nil {
+		existingChannel.Tags = *updateRequest.Tags
+	}
+
+	// Update notification channel
+	if err := h.monitoringService.UpdateNotificationChannel(c.Request.Context(), existingChannel); err != nil {
+		h.logger.Error("Failed to update notification channel", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update notification channel",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"notification_channel": existingChannel,
+		"status":               "success",
+	})
 }
 
 // DeleteNotificationChannel deletes a notification channel
+// @Summary Delete notification channel
+// @Description Delete a notification channel by ID
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Notification Channel ID"
+// @Success 204 "Notification channel deleted"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /monitoring/notification-channels/{id} [delete]
 func (h *Handlers) DeleteNotificationChannel(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "delete notification channel not implemented yet"})
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid notification channel ID",
+		})
+		return
+	}
+
+	if err := h.monitoringService.DeleteNotificationChannel(c.Request.Context(), id); err != nil {
+		if err.Error() == "notification channel not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Notification channel not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to delete notification channel", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete notification channel",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // AuthMiddleware returns authentication middleware
@@ -1051,18 +1477,46 @@ func (h *Handlers) UpdateLink(c *gin.Context) {
 		return
 	}
 
-	var link models.Link
-	if err := c.ShouldBindJSON(&link); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body",
+	// Get existing link first
+	existingLink, err := h.networkService.GetLink(c.Request.Context(), id)
+	if err != nil {
+		if err.Error() == "link not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Link not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to get link", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get link",
 		})
 		return
 	}
 
-	link.ID = id
+	// Create update request struct for partial updates
+	var updateRequest struct {
+		Status *models.LinkStatus `json:"status,omitempty"`
+		Config *models.LinkConfig `json:"config,omitempty"`
+	}
 
-	// Validate link
-	if err := h.validationService.ValidateLink(c.Request.Context(), &link); err != nil {
+	if err := c.ShouldBindJSON(&updateRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Apply updates to existing link
+	if updateRequest.Status != nil {
+		existingLink.Status = *updateRequest.Status
+	}
+	if updateRequest.Config != nil {
+		existingLink.Config = *updateRequest.Config
+	}
+
+	// Validate updated link (this will check source/target node validity)
+	if err := h.validationService.ValidateLink(c.Request.Context(), existingLink); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -1070,7 +1524,7 @@ func (h *Handlers) UpdateLink(c *gin.Context) {
 	}
 
 	// Update link
-	if err := h.networkService.UpdateLink(c.Request.Context(), &link); err != nil {
+	if err := h.networkService.UpdateLink(c.Request.Context(), existingLink); err != nil {
 		h.logger.Error("Failed to update link", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to update link",
@@ -1079,7 +1533,7 @@ func (h *Handlers) UpdateLink(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"link": link,
+		"link": existingLink,
 	})
 }
 
@@ -1215,18 +1669,54 @@ func (h *Handlers) UpdatePolicy(c *gin.Context) {
 		return
 	}
 
-	var policy models.Policy
-	if err := c.ShouldBindJSON(&policy); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body",
+	// Get existing policy first
+	existingPolicy, err := h.networkService.GetPolicy(c.Request.Context(), id)
+	if err != nil {
+		if err.Error() == "policy not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Policy not found",
+			})
+			return
+		}
+		h.logger.Error("Failed to get policy", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get policy",
 		})
 		return
 	}
 
-	policy.ID = id
+	// Create update request struct for partial updates
+	var updateRequest struct {
+		Name   *string              `json:"name,omitempty"`
+		Type   *models.PolicyType   `json:"type,omitempty"`
+		Status *models.PolicyStatus `json:"status,omitempty"`
+		Config *models.PolicyConfig `json:"config,omitempty"`
+	}
 
-	// Validate policy
-	if err := h.validationService.ValidatePolicy(c.Request.Context(), &policy); err != nil {
+	if err := c.ShouldBindJSON(&updateRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Apply updates to existing policy
+	if updateRequest.Name != nil {
+		existingPolicy.Name = *updateRequest.Name
+	}
+	if updateRequest.Type != nil {
+		existingPolicy.Type = *updateRequest.Type
+	}
+	if updateRequest.Status != nil {
+		existingPolicy.Status = *updateRequest.Status
+	}
+	if updateRequest.Config != nil {
+		existingPolicy.Config = *updateRequest.Config
+	}
+
+	// Validate updated policy
+	if err := h.validationService.ValidatePolicy(c.Request.Context(), existingPolicy); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -1234,7 +1724,7 @@ func (h *Handlers) UpdatePolicy(c *gin.Context) {
 	}
 
 	// Update policy
-	if err := h.networkService.UpdatePolicy(c.Request.Context(), &policy); err != nil {
+	if err := h.networkService.UpdatePolicy(c.Request.Context(), existingPolicy); err != nil {
 		h.logger.Error("Failed to update policy", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to update policy",
@@ -1243,7 +1733,7 @@ func (h *Handlers) UpdatePolicy(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"policy": policy,
+		"policy": existingPolicy,
 	})
 }
 
