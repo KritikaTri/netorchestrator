@@ -1,0 +1,10 @@
+FROM alpine:3.19
+WORKDIR /app
+
+# Expect a prebuilt binary at ./bin/api
+COPY ./bin/api /app/api
+COPY config.yaml /app/config.yaml
+
+EXPOSE 8080
+ENTRYPOINT ["/app/api"]
+

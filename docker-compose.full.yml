@@ -40,6 +40,32 @@ services:
       - "8080:8080"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
+    profiles: ["standard"]
+
+  # Optional local dev variant that uses a prebuilt local binary (make build-local)
+  api-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: api-gateway-full-local
+    command: ["/app/api"]
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: netorchestrator
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: netorchestrator
+      REDIS_ADDR: redis:6379
+      JWT_SECRET: development-secret
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./bin/api:/app/api:ro
+    profiles: ["local"]
 
   prometheus:
     image: prom/prometheus:v2.52.0
@@ -51,6 +77,7 @@ services:
       - "9090:9090"
     depends_on:
       - api
+      - api-local
 
   grafana:
     image: grafana/grafana:10.4.2
