@@ -2,15 +2,9 @@ package pipeline
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/json"
 	"fmt"
-	"io"
-	"math"
-	"sort"
-	"strings"
+	"math/rand"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
@@ -1109,25 +1103,31 @@ type CacheConfig struct{}
 type DataRouter struct{}
 type TransformEngine struct{}
 type ConnectorManager struct{}
-type PipelineScheduler struct{ func (ps *PipelineScheduler) Start(ctx context.Context) error { return nil }}
+type PipelineScheduler struct{}
+func (ps *PipelineScheduler) Start(ctx context.Context) error { return nil }
 type DataValidator struct{}
 type DataGovernance struct{}
 type DataCatalog struct{}
 type DataSecurity struct{}
 type StreamTopology struct{}
 type StreamState struct{}
-type CheckpointManager struct{ func (cm *CheckpointManager) Start(ctx context.Context) {}}
-type BackpressureManager struct{ func (bm *BackpressureManager) Start(ctx context.Context) {}}
+type CheckpointManager struct{}
+func (cm *CheckpointManager) Start(ctx context.Context) {}
+type BackpressureManager struct{}
+func (bm *BackpressureManager) Start(ctx context.Context) {}
 type ParallelismManager struct{}
-type WatermarkManager struct{ func (wm *WatermarkManager) Start(ctx context.Context) {}}
+type WatermarkManager struct{}
+func (wm *WatermarkManager) Start(ctx context.Context) {}
 type StreamFilter struct{}
 type StreamTransformer struct{}
 type DataExtractor struct{}
 type DataTransformer struct{}
 type DataLoader struct{}
-type ETLScheduler struct{ func (es *ETLScheduler) Start(ctx context.Context) {}}
+type ETLScheduler struct{}
+func (es *ETLScheduler) Start(ctx context.Context) {}
 type DependencyGraph struct{}
-type ETLMonitor struct{ func (em *ETLMonitor) Start(ctx context.Context) error { return nil }}
+type ETLMonitor struct{}
+func (em *ETLMonitor) Start(ctx context.Context) error { return nil }
 type ETLRecovery struct{}
 type ETLCache struct{}
 type ETLMetadata struct{}

@@ -1,16 +1,12 @@
 package microservices
 
 import (
-	"context"
-	"crypto/sha256"
-	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"hash/crc32"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
+	"crypto/tls"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -181,6 +177,7 @@ type LeastConnectionsStrategy struct {
 // ConsistentHashStrategy implements consistent hashing load balancing
 type ConsistentHashStrategy struct {
 	hashRing *ConsistentHashRing
+	mu       sync.Mutex
 }
 
 // ConsistentHashRing is a simple consistent hash ring implementation

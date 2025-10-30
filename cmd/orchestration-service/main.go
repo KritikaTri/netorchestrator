@@ -1,3 +1,4 @@
+//go:build demo
 package main
 
 import (

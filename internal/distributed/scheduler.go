@@ -2,11 +2,9 @@ package distributed
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"math/rand"
-	"runtime"
 	"sort"
 	"sync"
 	"sync/atomic"

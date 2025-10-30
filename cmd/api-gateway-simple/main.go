@@ -15,7 +15,11 @@ import (
 	"go.uber.org/zap"
 
 	"netorchestrator/internal/api"
+	"netorchestrator/internal/ai"
+	"netorchestrator/internal/automation"
 	"netorchestrator/internal/config"
+	"netorchestrator/internal/events"
+	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/services"
 	"netorchestrator/pkg/monitoring"
 )
@@ -48,12 +52,21 @@ func main() {
 	orchestrationService := services.NewOrchestrationService(nil, nil, logger)
 	validationService := services.NewValidationService(nil, nil, logger)
 
+	// Initialize automation and intelligence (minimal in-memory)
+	automationHandler := automation.NewHandler(nil, logger)
+	aiEngine := ai.NewAIEngine()
+	eventStore := events.NewEventStore()
+	intelligenceService := intelligence.NewNetworkIntelligenceService(aiEngine, eventStore)
+	intelligenceHandlers := intelligence.NewIntelligenceHandlers(intelligenceService)
+
 	// Initialize API handlers
 	apiHandlers := api.NewHandlers(
 		networkService,
 		monitoringService,
 		orchestrationService,
 		validationService,
+		automationHandler,
+		intelligenceHandlers,
 		logger,
 	)
 

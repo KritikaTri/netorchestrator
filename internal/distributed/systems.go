@@ -2,7 +2,6 @@ package distributed
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"

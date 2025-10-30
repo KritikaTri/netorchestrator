@@ -14,11 +14,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
+	"netorchestrator/internal/ai"
 	"netorchestrator/internal/api"
+	"netorchestrator/internal/automation"
 	"netorchestrator/internal/config"
+	"netorchestrator/internal/events"
+	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/services"
-	"netorchestrator/pkg/database"
 	"netorchestrator/pkg/cache"
+	"netorchestrator/pkg/database"
 	"netorchestrator/pkg/monitoring"
 )
 
@@ -64,12 +68,21 @@ func main() {
 	orchestrationService := services.NewOrchestrationService(db.GetDB(), cacheClient.Client, logger)
 	validationService := services.NewValidationService(db.GetDB(), cacheClient.Client, logger)
 
+	// Initialize automation and intelligence
+	automationHandler := automation.NewHandler(db.GetDB(), logger)
+	aiEngine := ai.NewAIEngine()
+	eventStore := events.NewEventStore()
+	intelligenceService := intelligence.NewNetworkIntelligenceService(aiEngine, eventStore)
+	intelligenceHandlers := intelligence.NewIntelligenceHandlers(intelligenceService)
+
 	// Initialize API handlers
 	apiHandlers := api.NewHandlers(
 		networkService,
 		monitoringService,
 		orchestrationService,
 		validationService,
+		automationHandler,
+		intelligenceHandlers,
 		logger,
 	)
 
@@ -87,7 +100,7 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		logger.Info("Starting server", 
+		logger.Info("Starting server",
 			zap.String("host", cfg.Server.Host),
 			zap.String("port", cfg.Server.Port),
 		)
@@ -218,9 +231,9 @@ func setupRouter(handlers *api.Handlers, monitor *monitoring.Prometheus) *gin.En
 			{
 				users.GET("/profile", handlers.GetProfile)
 				users.PUT("/profile", handlers.UpdateProfile)
-				users.GET("", handlers.ListUsers) // Admin only
-				users.POST("", handlers.CreateUser) // Admin only
-				users.PUT("/:id", handlers.UpdateUser) // Admin only
+				users.GET("", handlers.ListUsers)         // Admin only
+				users.POST("", handlers.CreateUser)       // Admin only
+				users.PUT("/:id", handlers.UpdateUser)    // Admin only
 				users.DELETE("/:id", handlers.DeleteUser) // Admin only
 			}
 		}
