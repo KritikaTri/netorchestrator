@@ -17,6 +17,7 @@ type NetworkService struct {
 	db     *gorm.DB
 	cache  *redis.Client
 	logger *zap.Logger
+    event  *EventService
 }
 
 // NewNetworkService creates a new network service
@@ -27,6 +28,9 @@ func NewNetworkService(db *gorm.DB, cache *redis.Client, logger *zap.Logger) *Ne
 		logger: logger,
 	}
 }
+
+// SetEventService attaches the websocket event broadcaster
+func (s *NetworkService) SetEventService(event *EventService) { s.event = event }
 
 // CreateNetwork creates a new network
 func (s *NetworkService) CreateNetwork(ctx context.Context, network *models.Network) error {
@@ -41,6 +45,9 @@ func (s *NetworkService) CreateNetwork(ctx context.Context, network *models.Netw
 	}
 
 	s.logger.Info("Network created successfully", zap.String("network_id", network.ID.String()))
+    if s.event != nil {
+        s.event.BroadcastTopologyUpdate(network.ID.String(), "network_created", map[string]interface{}{"name": network.Name})
+    }
 	return nil
 }
 
@@ -129,6 +136,9 @@ func (s *NetworkService) CreateNode(ctx context.Context, node *models.Node) erro
 	}
 
 	s.logger.Info("Node created successfully", zap.String("node_id", node.ID.String()))
+    if s.event != nil {
+        s.event.BroadcastTopologyUpdate(node.NetworkID.String(), "node_created", map[string]interface{}{"node_id": node.ID.String(), "name": node.Name})
+    }
 	return nil
 }
 

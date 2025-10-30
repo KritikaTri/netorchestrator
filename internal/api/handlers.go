@@ -2101,3 +2101,39 @@ func (h *Handlers) DeleteUser(c *gin.Context) {
 		"error": "user deletion not implemented yet",
 	})
 }
+
+// GetNodeLogs returns recent logs for a node's container
+func (h *Handlers) GetNodeLogs(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node id"})
+		return
+	}
+	logs, err := h.orchestrationService.GetNodeLogs(c.Request.Context(), id)
+	if err != nil {
+		h.logger.Error("get node logs failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get logs", "details": err.Error()})
+		return
+	}
+	c.Header("Content-Type", "text/plain; charset=utf-8")
+	c.String(http.StatusOK, "%s", logs)
+}
+
+// InspectNode returns container inspect JSON for a node
+func (h *Handlers) InspectNode(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node id"})
+		return
+	}
+	inspect, err := h.orchestrationService.InspectNode(c.Request.Context(), id)
+	if err != nil {
+		h.logger.Error("inspect node failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to inspect", "details": err.Error()})
+		return
+	}
+	c.Header("Content-Type", "application/json")
+	c.String(http.StatusOK, "%s", inspect)
+}

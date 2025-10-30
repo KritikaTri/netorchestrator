@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"time"
+    "bytes"
+    "os/exec"
+    "strings"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -18,6 +21,7 @@ type OrchestrationService struct {
 	db     *gorm.DB
 	cache  *redis.Client
 	logger *zap.Logger
+    event  *EventService
 }
 
 // NewOrchestrationService creates a new orchestration service
@@ -28,6 +32,9 @@ func NewOrchestrationService(db *gorm.DB, cache *redis.Client, logger *zap.Logge
 		logger: logger,
 	}
 }
+
+// SetEventService attaches the websocket event broadcaster
+func (s *OrchestrationService) SetEventService(event *EventService) { s.event = event }
 
 // StartNetwork starts a network (provisions all nodes and links)
 func (s *OrchestrationService) StartNetwork(ctx context.Context, networkID uuid.UUID) error {
@@ -190,6 +197,41 @@ func (s *OrchestrationService) RestartNode(ctx context.Context, nodeID uuid.UUID
 	return nil
 }
 
+// GetNodeLogs returns recent container logs for a node (Podman)
+func (s *OrchestrationService) GetNodeLogs(ctx context.Context, nodeID uuid.UUID) (string, error) {
+    container, err := s.findContainerByNode(nodeID)
+    if err != nil { return "", err }
+    cmd := exec.CommandContext(ctx, "podman", "logs", "--since", "10m", container)
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    cmd.Stderr = &out
+    if err := cmd.Run(); err != nil { return "", fmt.Errorf("podman logs failed: %w: %s", err, out.String()) }
+    return out.String(), nil
+}
+
+// InspectNode returns container inspect JSON for a node (Podman)
+func (s *OrchestrationService) InspectNode(ctx context.Context, nodeID uuid.UUID) (string, error) {
+    container, err := s.findContainerByNode(nodeID)
+    if err != nil { return "", err }
+    cmd := exec.CommandContext(ctx, "podman", "inspect", container)
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    cmd.Stderr = &out
+    if err := cmd.Run(); err != nil { return "", fmt.Errorf("podman inspect failed: %w: %s", err, out.String()) }
+    return out.String(), nil
+}
+
+func (s *OrchestrationService) findContainerByNode(nodeID uuid.UUID) (string, error) {
+    // Query by label set during start
+    cmd := exec.Command("podman", "ps", "-a", "--filter", fmt.Sprintf("label=node_id=%s", nodeID.String()), "--format", "{{.Names}}")
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    if err := cmd.Run(); err != nil { return "", fmt.Errorf("podman ps failed: %w", err) }
+    name := strings.TrimSpace(out.String())
+    if name == "" { return "", fmt.Errorf("container not found for node %s", nodeID.String()) }
+    return name, nil
+}
+
 // simulateNetworkProvisioning simulates the network provisioning process
 func (s *OrchestrationService) simulateNetworkProvisioning(ctx context.Context, network *models.Network) {
 	s.logger.Info("Simulating network provisioning", zap.String("network_id", network.ID.String()))
@@ -210,6 +252,9 @@ func (s *OrchestrationService) simulateNetworkProvisioning(ctx context.Context, 
 		if err := s.db.WithContext(ctx).Save(&network.Nodes[i]).Error; err != nil {
 			s.logger.Error("Failed to update node status", zap.Error(err))
 		}
+        if s.event != nil {
+            s.event.BroadcastNodeStatusUpdate(network.Nodes[i].ID.String(), network.ID.String(), string(network.Nodes[i].Status), nil)
+        }
 	}
 
 	// Update all links to active
@@ -221,6 +266,9 @@ func (s *OrchestrationService) simulateNetworkProvisioning(ctx context.Context, 
 	}
 
 	s.logger.Info("Network provisioning completed", zap.String("network_id", network.ID.String()))
+    if s.event != nil {
+        s.event.BroadcastNetworkUpdate(network.ID.String(), string(network.Status), nil)
+    }
 }
 
 // simulateNodeProvisioning simulates the node provisioning process
@@ -238,4 +286,7 @@ func (s *OrchestrationService) simulateNodeProvisioning(ctx context.Context, nod
 	}
 
 	s.logger.Info("Node provisioning completed", zap.String("node_id", node.ID.String()))
+    if s.event != nil {
+        s.event.BroadcastNodeStatusUpdate(node.ID.String(), node.NetworkID.String(), string(node.Status), nil)
+    }
 }

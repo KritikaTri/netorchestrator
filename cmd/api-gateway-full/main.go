@@ -79,6 +79,7 @@ func main() {
 	go wsHub.Run()
 	eventService := services.NewEventService(wsHub, logger)
 	monitoringService.SetEventService(eventService)
+	networkService.SetEventService(eventService)
 
 	// Initialize automation and intelligence
 	automationHandler := automation.NewHandler(db.GetDB(), logger)
@@ -219,6 +220,8 @@ func setupRouter(handlers *api.Handlers, monitor *monitoring.Prometheus) *gin.En
 			protected.POST("/nodes/:id/start", handlers.StartNode)
 			protected.POST("/nodes/:id/stop", handlers.StopNode)
 			protected.POST("/nodes/:id/restart", handlers.RestartNode)
+			protected.GET("/nodes/:id/logs", handlers.GetNodeLogs)
+			protected.GET("/nodes/:id/inspect", handlers.InspectNode)
 
 			// Link management
 			protected.GET("/links", handlers.ListLinks)
