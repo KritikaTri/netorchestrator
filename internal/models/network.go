@@ -148,7 +148,6 @@ type Link struct {
 	NetworkID    uuid.UUID      `json:"network_id" gorm:"type:uuid;not null"`
 	SourceNodeID uuid.UUID      `json:"source_node_id" gorm:"type:uuid;not null"`
 	TargetNodeID uuid.UUID      `json:"target_node_id" gorm:"type:uuid;not null"`
-	Name         string         `json:"name"`
 	Status       LinkStatus     `json:"status" gorm:"type:varchar(20);default:'pending'"`
 	Config       LinkConfig     `json:"config" gorm:"type:jsonb"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -370,6 +369,63 @@ type PolicyRule struct {
 	CustomAttrs map[string]string `json:"custom_attrs"`
 }
 
+// AlertRule represents an alert rule configuration
+type AlertRule struct {
+	ID          uuid.UUID          `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name        string             `json:"name" gorm:"not null"`
+	Description string             `json:"description"`
+	Condition   AlertRuleCondition `json:"condition" gorm:"type:jsonb"`
+	Actions     AlertRuleActions   `json:"actions" gorm:"type:jsonb"`
+	Severity    AlertSeverity      `json:"severity" gorm:"type:varchar(20);default:'warning'"`
+	Status      AlertRuleStatus    `json:"status" gorm:"type:varchar(20);default:'active'"`
+	Tags        StringSlice        `json:"tags" gorm:"type:jsonb"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt     `json:"deleted_at" gorm:"index"`
+}
+
+// AlertRuleCondition defines when an alert should trigger
+type AlertRuleCondition struct {
+	Metric     string            `json:"metric"`              // cpu_usage, memory_usage, network_latency, etc.
+	Operator   string            `json:"operator"`            // >, <, >=, <=, ==, !=
+	Threshold  float64           `json:"threshold"`           // threshold value (renamed from Value to avoid conflict)
+	Duration   string            `json:"duration"`            // how long condition must be true (e.g., "5m")
+	EntityType string            `json:"entity_type"`         // network, node, link
+	EntityID   *uuid.UUID        `json:"entity_id,omitempty"` // specific entity or null for all
+	Labels     map[string]string `json:"labels"`              // additional label filters
+}
+
+// AlertRuleAction defines what to do when an alert triggers
+type AlertRuleAction struct {
+	Type       string            `json:"type"`       // email, webhook, slack, etc.
+	Target     string            `json:"target"`     // email address, webhook URL, etc.
+	Template   string            `json:"template"`   // message template
+	Parameters map[string]string `json:"parameters"` // additional action parameters
+}
+
+// AlertRuleActions is a wrapper type for []AlertRuleAction to implement Scanner/Valuer
+type AlertRuleActions []AlertRuleAction
+
+// AlertSeverity represents alert severity levels
+type AlertSeverity string
+
+const (
+	AlertSeverityDebug    AlertSeverity = "debug"
+	AlertSeverityInfo     AlertSeverity = "info"
+	AlertSeverityWarning  AlertSeverity = "warning"
+	AlertSeverityError    AlertSeverity = "error"
+	AlertSeverityCritical AlertSeverity = "critical"
+)
+
+// AlertRuleStatus represents the status of an alert rule
+type AlertRuleStatus string
+
+const (
+	AlertRuleStatusActive   AlertRuleStatus = "active"
+	AlertRuleStatusInactive AlertRuleStatus = "inactive"
+	AlertRuleStatusPaused   AlertRuleStatus = "paused"
+)
+
 // User represents a system user
 type User struct {
 	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
@@ -519,4 +575,175 @@ func (p *Position) Scan(value interface{}) error {
 	}
 
 	return json.Unmarshal(bytes, p)
+}
+
+// AlertRuleCondition JSONB methods
+func (arc AlertRuleCondition) Value() (driver.Value, error) {
+	return json.Marshal(arc)
+}
+
+func (arc *AlertRuleCondition) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan AlertRuleCondition from non-bytes/string")
+	}
+
+	return json.Unmarshal(bytes, arc)
+}
+
+// AlertRuleActions JSONB methods
+func (ara AlertRuleActions) Value() (driver.Value, error) {
+	return json.Marshal(ara)
+}
+
+func (ara *AlertRuleActions) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan AlertRuleActions from non-bytes/string")
+	}
+
+	return json.Unmarshal(bytes, ara)
+}
+
+// NotificationChannel represents a notification channel configuration
+type NotificationChannel struct {
+	ID          uuid.UUID                 `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name        string                    `json:"name" gorm:"not null"`
+	Description string                    `json:"description"`
+	Type        NotificationChannelType   `json:"type" gorm:"type:varchar(20);not null"`
+	Config      NotificationChannelConfig `json:"config" gorm:"type:jsonb"`
+	Status      NotificationChannelStatus `json:"status" gorm:"type:varchar(20);default:'active'"`
+	Tags        StringSlice               `json:"tags" gorm:"type:jsonb"`
+	CreatedAt   time.Time                 `json:"created_at"`
+	UpdatedAt   time.Time                 `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt            `json:"deleted_at" gorm:"index"`
+}
+
+// NotificationChannelType represents the type of notification channel
+type NotificationChannelType string
+
+const (
+	NotificationChannelTypeEmail     NotificationChannelType = "email"
+	NotificationChannelTypeSlack     NotificationChannelType = "slack"
+	NotificationChannelTypeWebhook   NotificationChannelType = "webhook"
+	NotificationChannelTypePagerDuty NotificationChannelType = "pagerduty"
+	NotificationChannelTypeSMS       NotificationChannelType = "sms"
+	NotificationChannelTypeTeams     NotificationChannelType = "teams"
+	NotificationChannelTypeDiscord   NotificationChannelType = "discord"
+)
+
+// NotificationChannelStatus represents the status of a notification channel
+type NotificationChannelStatus string
+
+const (
+	NotificationChannelStatusActive   NotificationChannelStatus = "active"
+	NotificationChannelStatusInactive NotificationChannelStatus = "inactive"
+	NotificationChannelStatusError    NotificationChannelStatus = "error"
+)
+
+// NotificationChannelConfig holds channel-specific configuration
+type NotificationChannelConfig struct {
+	// Email configuration
+	EmailTo      []string `json:"email_to,omitempty"`
+	EmailFrom    string   `json:"email_from,omitempty"`
+	SMTPServer   string   `json:"smtp_server,omitempty"`
+	SMTPPort     int      `json:"smtp_port,omitempty"`
+	SMTPUsername string   `json:"smtp_username,omitempty"`
+	SMTPPassword string   `json:"smtp_password,omitempty"`
+
+	// Slack configuration
+	SlackWebhookURL string `json:"slack_webhook_url,omitempty"`
+	SlackChannel    string `json:"slack_channel,omitempty"`
+	SlackUsername   string `json:"slack_username,omitempty"`
+
+	// Webhook configuration
+	WebhookURL     string            `json:"webhook_url,omitempty"`
+	WebhookHeaders map[string]string `json:"webhook_headers,omitempty"`
+	WebhookMethod  string            `json:"webhook_method,omitempty"`
+
+	// PagerDuty configuration
+	PagerDutyIntegrationKey string `json:"pagerduty_integration_key,omitempty"`
+	PagerDutyServiceKey     string `json:"pagerduty_service_key,omitempty"`
+
+	// SMS configuration
+	SMSProvider string   `json:"sms_provider,omitempty"`
+	SMSTo       []string `json:"sms_to,omitempty"`
+	SMSFrom     string   `json:"sms_from,omitempty"`
+
+	// Teams configuration
+	TeamsWebhookURL string `json:"teams_webhook_url,omitempty"`
+
+	// Discord configuration
+	DiscordWebhookURL string `json:"discord_webhook_url,omitempty"`
+
+	// Generic configuration
+	CustomAttrs map[string]string `json:"custom_attrs,omitempty"`
+}
+
+// StringSlice represents a []string with JSONB support
+type StringSlice []string
+
+// Value implements driver.Valuer for StringSlice
+func (ss StringSlice) Value() (driver.Value, error) {
+	return json.Marshal(ss)
+}
+
+// Scan implements sql.Scanner for StringSlice
+func (ss *StringSlice) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan StringSlice from non-bytes/string")
+	}
+
+	return json.Unmarshal(bytes, ss)
+}
+
+// NotificationChannelConfig JSONB methods
+func (ncc NotificationChannelConfig) Value() (driver.Value, error) {
+	return json.Marshal(ncc)
+}
+
+func (ncc *NotificationChannelConfig) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan NotificationChannelConfig from non-bytes/string")
+	}
+
+	return json.Unmarshal(bytes, ncc)
 }

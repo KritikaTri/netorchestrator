@@ -2,10 +2,11 @@ package api
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	
+
 	"netorchestrator/internal/models"
 )
 
@@ -112,7 +113,7 @@ func (h *Handlers) GetNetworkStats(c *gin.Context) {
 		},
 		"health": gin.H{
 			"node_health_ratio": float64(activeNodes) / float64(len(nodes)) * 100,
-			"status":           "healthy", // TODO: Calculate based on actual health checks
+			"status":            "healthy", // TODO: Calculate based on actual health checks
 		},
 	}
 
@@ -157,7 +158,6 @@ func formatLinksForViz(links []models.Link) []gin.H {
 			"id":        link.ID,
 			"source":    link.SourceNodeID,
 			"target":    link.TargetNodeID,
-			"name":      link.Name,
 			"status":    link.Status,
 			"bandwidth": link.Config.Bandwidth,
 			"latency":   link.Config.Latency,

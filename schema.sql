@@ -122,6 +122,35 @@ CREATE TABLE IF NOT EXISTS alerts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Alert Rules table - alert rule configurations
+CREATE TABLE IF NOT EXISTS alert_rules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    condition JSONB NOT NULL,
+    actions JSONB NOT NULL DEFAULT '[]',
+    severity VARCHAR(20) DEFAULT 'warning',
+    status VARCHAR(20) DEFAULT 'active',
+    tags JSONB DEFAULT '[]',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+-- Notification Channels table - notification channel configurations
+CREATE TABLE IF NOT EXISTS notification_channels (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    type VARCHAR(20) NOT NULL,
+    config JSONB NOT NULL DEFAULT '{}',
+    status VARCHAR(20) DEFAULT 'active',
+    tags JSONB DEFAULT '[]',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
 -- Workflow definitions table - automation workflows
 CREATE TABLE IF NOT EXISTS workflow_definitions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -173,6 +202,10 @@ CREATE INDEX IF NOT EXISTS idx_events_entity ON events(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
 CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
 CREATE INDEX IF NOT EXISTS idx_alerts_severity ON alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_alert_rules_status ON alert_rules(status);
+CREATE INDEX IF NOT EXISTS idx_alert_rules_severity ON alert_rules(severity);
+CREATE INDEX IF NOT EXISTS idx_notification_channels_type ON notification_channels(type);
+CREATE INDEX IF NOT EXISTS idx_notification_channels_status ON notification_channels(status);
 CREATE INDEX IF NOT EXISTS idx_workflow_definitions_name ON workflow_definitions(name);
 CREATE INDEX IF NOT EXISTS idx_workflow_executions_workflow_id ON workflow_executions(workflow_id);
 CREATE INDEX IF NOT EXISTS idx_workflow_executions_status ON workflow_executions(status);
