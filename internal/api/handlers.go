@@ -25,6 +25,76 @@ type Handlers struct {
 	logger               *zap.Logger
 }
 
+// SeedDemo creates a demo network with a couple of nodes for testing
+func (h *Handlers) SeedDemo(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// Create network
+	netReq := models.Network{
+		Name:        "Demo Network",
+		Description: "Auto-seeded demo network",
+		Status:      models.NetworkStatusProvisioning,
+		Config: models.NetworkConfig{
+			Topology: "star",
+			Subnet:   "192.168.50.0/24",
+			Gateway:  "192.168.50.1",
+		},
+	}
+	if err := h.networkService.CreateNetwork(ctx, &netReq); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create network", "details": err.Error()})
+		return
+	}
+
+	// Create nodes
+	node1 := models.Node{
+		NetworkID: netReq.ID,
+		Name:      "web-1",
+		Type:      models.NodeTypeHost,
+		IPAddress: "192.168.50.10",
+		Config: models.NodeConfig{
+			CPU:    1,
+			Memory: 256,
+			Image:  "nginx:alpine",
+			Services: []models.ServiceConfig{{
+				Name:     "http",
+				Type:     "http",
+				Port:     80,
+				Protocol: "tcp",
+				HealthCheck: models.HealthCheckConfig{Enabled: true, Type: "http", Path: "/", Interval: 30, Timeout: 3},
+			}},
+		},
+	}
+	if err := h.networkService.CreateNode(ctx, &node1); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create node1", "details": err.Error()})
+		return
+	}
+
+	node2 := models.Node{
+		NetworkID: netReq.ID,
+		Name:      "db-1",
+		Type:      models.NodeTypeHost,
+		IPAddress: "192.168.50.20",
+		Config: models.NodeConfig{
+			CPU:    1,
+			Memory: 512,
+			Image:  "postgres:15",
+			Services: []models.ServiceConfig{{
+				Name:     "db",
+				Type:     "tcp",
+				Port:     5432,
+				Protocol: "tcp",
+				HealthCheck: models.HealthCheckConfig{Enabled: true, Type: "tcp", Interval: 30, Timeout: 3},
+			}},
+		},
+	}
+	if err := h.networkService.CreateNode(ctx, &node2); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create node2", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"network_id": netReq.ID.String(), "message": "demo network seeded"})
+}
+
 // NewHandlers creates a new handlers instance
 func NewHandlers(
 	networkService *services.NetworkService,

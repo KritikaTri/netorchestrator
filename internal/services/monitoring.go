@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,6 +20,61 @@ type MonitoringService struct {
 	db     *gorm.DB
 	cache  *redis.Client
 	logger *zap.Logger
+}
+
+// StartActiveHealthChecks launches a periodic loop that checks node services according to HealthCheckConfig
+func (s *MonitoringService) StartActiveHealthChecks() {
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				s.runHealthChecks()
+			}
+		}
+	}()
+}
+
+func (s *MonitoringService) runHealthChecks() {
+	var nodes []models.Node
+	if err := s.db.Preload("Network").Find(&nodes).Error; err != nil {
+		s.logger.Error("health checks: list nodes failed", zap.Error(err))
+		return
+	}
+	for _, node := range nodes {
+		for _, svc := range node.Config.Services {
+			if !svc.HealthCheck.Enabled {
+				continue
+			}
+			s.checkService(node, svc)
+		}
+	}
+}
+
+func (s *MonitoringService) checkService(node models.Node, svc models.ServiceConfig) {
+	newStatus := models.NodeStatusActive
+	switch svc.HealthCheck.Type {
+	case "http":
+		client := &http.Client{Timeout: time.Duration(svc.HealthCheck.Timeout) * time.Second}
+		url := fmt.Sprintf("http://%s:%d%s", node.IPAddress, svc.Port, svc.HealthCheck.Path)
+		resp, err := client.Get(url)
+		if err != nil || resp.StatusCode >= 400 {
+			newStatus = models.NodeStatusError
+		}
+		if resp != nil { _ = resp.Body.Close() }
+	case "tcp":
+		address := fmt.Sprintf("%s:%d", node.IPAddress, svc.Port)
+		conn, err := net.DialTimeout("tcp", address, time.Duration(svc.HealthCheck.Timeout)*time.Second)
+		if err != nil { newStatus = models.NodeStatusError } else { _ = conn.Close() }
+	default:
+		return
+	}
+	if newStatus != node.Status {
+		if err := s.db.Model(&models.Node{}).Where("id = ?", node.ID).Update("status", newStatus).Error; err != nil {
+			s.logger.Error("health checks: update status failed", zap.Error(err))
+		}
+	}
 }
 
 // NewMonitoringService creates a new monitoring service

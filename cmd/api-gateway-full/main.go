@@ -49,6 +49,11 @@ func main() {
 	}
 	defer db.Close()
 
+	// Run DB migrations (idempotent)
+	if err := database.RunMigrations(db.GetDB()); err != nil {
+		logger.Fatal("Failed to run database migrations", zap.Error(err))
+	}
+
 	// Initialize cache
 	cacheClient, err := cache.NewRedis(cfg.Redis)
 	if err != nil {
@@ -67,6 +72,9 @@ func main() {
 	monitoringService := services.NewMonitoringService(db.GetDB(), cacheClient.Client, logger)
 	orchestrationService := services.NewOrchestrationService(db.GetDB(), cacheClient.Client, logger)
 	validationService := services.NewValidationService(db.GetDB(), cacheClient.Client, logger)
+
+	// Start active health checks (periodic)
+	monitoringService.StartActiveHealthChecks()
 
 	// Initialize automation and intelligence
 	automationHandler := automation.NewHandler(db.GetDB(), logger)
@@ -88,6 +96,10 @@ func main() {
 
 	// Setup Gin router
 	router := setupRouter(apiHandlers, monitor)
+
+	// Demo seed route (protected behind /api/v1)
+	v1 := router.Group("/api/v1")
+	v1.POST("/demo/seed", apiHandlers.SeedDemo)
 
 	// Start server
 	server := &http.Server{

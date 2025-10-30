@@ -73,6 +73,10 @@ func main() {
 	// Setup Gin router
 	router := setupRouter(apiHandlers, monitor)
 
+	// Demo seed route (protected behind /api/v1)
+	v1 := router.Group("/api/v1")
+	v1.POST("/demo/seed", apiHandlers.SeedDemo)
+
 	// Start server
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
