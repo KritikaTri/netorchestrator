@@ -173,8 +173,17 @@ func (p *PodmanOrchestrator) startNode(ctx context.Context, node *models.Node, n
 	}
 
 	// Port mappings can be derived from services/ports; omitted for simple start
+	// Map node services to host ports (1:1) for demo purposes
+	for _, svc := range node.Config.Services {
+		if svc.Port > 0 {
+			args = append(args, "-p", fmt.Sprintf("%d:%d", svc.Port, svc.Port))
+		}
+	}
 
-	// Environment variables not configured in model; omitted
+	// Add environment variables from node config
+	for k, v := range node.Config.CustomAttrs {
+		args = append(args, "-e", fmt.Sprintf("%s=%s", k, v))
+	}
 
 	// Use specified image or default
 	image := node.Config.Image

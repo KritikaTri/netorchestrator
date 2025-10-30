@@ -21,6 +21,7 @@ import (
 	"netorchestrator/internal/events"
 	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/services"
+	"netorchestrator/internal/websocket"
 	"netorchestrator/pkg/cache"
 	"netorchestrator/pkg/database"
 	"netorchestrator/pkg/monitoring"
@@ -73,8 +74,11 @@ func main() {
 	orchestrationService := services.NewOrchestrationService(db.GetDB(), cacheClient.Client, logger)
 	validationService := services.NewValidationService(db.GetDB(), cacheClient.Client, logger)
 
-	// Start active health checks (periodic)
-	monitoringService.StartActiveHealthChecks()
+	// Initialize WebSocket hub and event service
+	wsHub := websocket.NewHub(logger)
+	go wsHub.Run()
+	eventService := services.NewEventService(wsHub, logger)
+	monitoringService.SetEventService(eventService)
 
 	// Initialize automation and intelligence
 	automationHandler := automation.NewHandler(db.GetDB(), logger)
@@ -96,6 +100,9 @@ func main() {
 
 	// Setup Gin router
 	router := setupRouter(apiHandlers, monitor)
+
+	// WebSocket endpoint
+	router.GET("/ws", wsHub.HandleWebSocket)
 
 	// Demo seed route (protected behind /api/v1)
 	v1 := router.Group("/api/v1")

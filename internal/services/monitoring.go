@@ -20,6 +20,7 @@ type MonitoringService struct {
 	db     *gorm.DB
 	cache  *redis.Client
 	logger *zap.Logger
+	event  *EventService
 }
 
 // StartActiveHealthChecks launches a periodic loop that checks node services according to HealthCheckConfig
@@ -74,6 +75,9 @@ func (s *MonitoringService) checkService(node models.Node, svc models.ServiceCon
 		if err := s.db.Model(&models.Node{}).Where("id = ?", node.ID).Update("status", newStatus).Error; err != nil {
 			s.logger.Error("health checks: update status failed", zap.Error(err))
 		}
+		if s.event != nil {
+			s.event.BroadcastNodeStatusUpdate(node.ID.String(), node.NetworkID.String(), string(newStatus), map[string]interface{}{"ip": node.IPAddress, "port": svc.Port})
+		}
 	}
 }
 
@@ -85,6 +89,9 @@ func NewMonitoringService(db *gorm.DB, cache *redis.Client, logger *zap.Logger) 
 		logger: logger,
 	}
 }
+
+// SetEventService attaches the websocket event broadcaster
+func (s *MonitoringService) SetEventService(event *EventService) { s.event = event }
 
 // GetNetworkMetrics retrieves metrics for a network
 func (s *MonitoringService) GetNetworkMetrics(ctx context.Context, networkID uuid.UUID) (map[string]interface{}, error) {
