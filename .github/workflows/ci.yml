@@ -50,9 +50,12 @@ jobs:
       - name: Compose up (local profile)
         run: |
           docker compose -f docker-compose.full.yml --profile local up -d
-          # basic health check: wait a bit then hit health
-          sleep 10
-          curl -fsS http://localhost:8080/health || (docker compose -f docker-compose.full.yml --profile local logs api-local; exit 1)
+          # health check with retries
+          for i in $(seq 1 30); do \
+            if curl -fsS http://localhost:8080/health >/dev/null; then echo "API healthy"; break; fi; \
+            echo "Waiting for API... ($i)"; sleep 2; \
+          done
+          curl -fsS http://localhost:8080/health || (docker compose -f docker-compose.full.yml --profile local logs api-local || true; exit 1)
       - name: Compose down
         if: always()
         run: docker compose -f docker-compose.full.yml --profile local down -v
