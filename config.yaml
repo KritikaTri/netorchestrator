@@ -4,10 +4,10 @@ server:
 
 database:
   host: localhost
-  port: 5433
-  dbname: netorch_mvp
-  user: netorch_admin
-  password: ""
+  port: 5432
+  dbname: netorchestrator
+  user: netorchestrator
+  password: "password"
   sslmode: disable
   max_connections: 25
   max_idle_connections: 5
