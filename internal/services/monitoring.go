@@ -12,7 +12,6 @@ import (
 	"gorm.io/gorm"
 
 	"netorchestrator/internal/models"
-	"netorchestrator/internal/websocket"
 )
 
 // MonitoringService handles monitoring-related operations
@@ -20,16 +19,14 @@ type MonitoringService struct {
 	db     *gorm.DB
 	cache  *redis.Client
 	logger *zap.Logger
-	wsHub  *websocket.Hub
 }
 
 // NewMonitoringService creates a new monitoring service
-func NewMonitoringService(db *gorm.DB, cache *redis.Client, logger *zap.Logger, wsHub *websocket.Hub) *MonitoringService {
+func NewMonitoringService(db *gorm.DB, cache *redis.Client, logger *zap.Logger) *MonitoringService {
 	return &MonitoringService{
 		db:     db,
 		cache:  cache,
 		logger: logger,
-		wsHub:  wsHub,
 	}
 }
 

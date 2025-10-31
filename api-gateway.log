@@ -1,205 +1,205 @@
-{"level":"info","ts":1761904021.686191,"caller":"api-gateway/main.go:68","msg":"Starting NetOrchestrator API Gateway"}
-{"level":"info","ts":1761904021.704438,"caller":"api-gateway/main.go:77","msg":"Running database migrations..."}
-{"level":"info","ts":1761904021.704511,"caller":"database/migrations.go:16","msg":"Starting database migrations..."}
+{"level":"info","ts":1761905650.057808,"caller":"api-gateway/main.go:67","msg":"Starting NetOrchestrator API Gateway"}
+{"level":"info","ts":1761905650.0743492,"caller":"api-gateway/main.go:76","msg":"Running database migrations..."}
+{"level":"info","ts":1761905650.074408,"caller":"database/migrations.go:16","msg":"Starting database migrations..."}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
-[0m[33m[4.217ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
-{"level":"info","ts":1761904021.709731,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.User"}
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
+[0m[33m[4.394ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1761905650.080158,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.User"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.679ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.731ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.764ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.812ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[8.631ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[9.183ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.649ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.623ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[6.806ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[6.729ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[5.483ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[5.486ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[1.035ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.975ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
 		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
 		WHERE a.attnum > 0 -- hide internal columns
 		AND NOT a.attisdropped -- hide deleted columns
 		AND b.relname = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[1.847ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[1.815ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
 
-2025/10/31 15:17:01 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
-[0m[33m[0.731ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
-{"level":"warn","ts":1761904021.737269,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.User"}
-{"level":"info","ts":1761904021.73729,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.User"}
+2025/10/31 15:44:10 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.707ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1761905650.108165,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.User"}
+{"level":"info","ts":1761905650.108196,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.User"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
-[0m[33m[0.558ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'networks' AND table_type = 'BASE TABLE'
-{"level":"info","ts":1761904021.737876,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Network"}
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
+[0m[33m[0.624ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'networks' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1761905650.1088488,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Network"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.544ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.651ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
 [0m[33m[0.324ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[2.809ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[2.919ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.362ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.337ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.918ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.303ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.503ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.500ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.520ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.510ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
 		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
 		WHERE a.attnum > 0 -- hide internal columns
 		AND NOT a.attisdropped -- hide deleted columns
 		AND b.relname = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[1.250ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[1.183ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
 
-2025/10/31 15:17:01 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
-[0m[33m[0.550ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
-{"level":"warn","ts":1761904021.754281,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Network"}
-{"level":"info","ts":1761904021.7542999,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Network"}
+2025/10/31 15:44:10 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.438ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1761905650.124554,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Network"}
+{"level":"info","ts":1761905650.1245708,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Network"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
-[0m[33m[0.516ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'nodes' AND table_type = 'BASE TABLE'
-{"level":"info","ts":1761904021.754844,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Node"}
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
+[0m[33m[0.496ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'nodes' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1761905650.125102,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Node"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.456ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.491ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.323ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.360ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[2.734ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[3.071ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.390ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.435ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.611ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.365ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.249ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.323ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.469ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.486ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
 		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
 		WHERE a.attnum > 0 -- hide internal columns
 		AND NOT a.attisdropped -- hide deleted columns
 		AND b.relname = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[1.340ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[1.208ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
 
-2025/10/31 15:17:01 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
-[0m[33m[0.555ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
-{"level":"warn","ts":1761904021.770446,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Node"}
-{"level":"info","ts":1761904021.770466,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Node"}
+2025/10/31 15:44:10 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.392ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1761905650.1407611,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Node"}
+{"level":"info","ts":1761905650.140782,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Node"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
-[0m[33m[0.411ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'links' AND table_type = 'BASE TABLE'
-{"level":"info","ts":1761904021.7709272,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Link"}
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
+[0m[33m[0.386ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'links' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1761905650.141205,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Link"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.326ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.390ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.289ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.330ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[2.986ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[2.641ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.374ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.396ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.587ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.393ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.352ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.406ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.409ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.466ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
 		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
 		WHERE a.attnum > 0 -- hide internal columns
 		AND NOT a.attisdropped -- hide deleted columns
 		AND b.relname = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[1.234ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[1.286ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
 
-2025/10/31 15:17:01 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
-[0m[33m[0.434ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
-{"level":"warn","ts":1761904021.786421,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Link"}
-{"level":"info","ts":1761904021.786444,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Link"}
+2025/10/31 15:44:10 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.577ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1761905650.1565828,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Link"}
+{"level":"info","ts":1761905650.156606,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Link"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
-[0m[33m[0.416ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'policies' AND table_type = 'BASE TABLE'
-{"level":"info","ts":1761904021.786889,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Policy"}
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:34
+[0m[33m[0.508ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'policies' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1761905650.1571462,"caller":"database/migrations.go:42","msg":"Table exists, updating schema","model":"*models.Policy"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.384ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.417ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.334ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.342ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[2.746ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[3.020ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.384ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.355ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.453ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.439ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[4.204ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[4.406ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[0.474ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[0.495ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
 		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
 		WHERE a.attnum > 0 -- hide internal columns
 		AND NOT a.attisdropped -- hide deleted columns
 		AND b.relname = 'users'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
-[0m[33m[1.249ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:43
+[0m[33m[1.241ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
 
-2025/10/31 15:17:01 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
-[0m[33m[0.508ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
-{"level":"warn","ts":1761904021.802047,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Policy"}
-{"level":"info","ts":1761904021.802067,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Policy"}
-{"level":"info","ts":1761904021.802075,"caller":"database/migrations.go:60","msg":"Checking for missing columns in links table..."}
+2025/10/31 15:44:10 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.401ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1761905650.17285,"caller":"database/migrations.go:46","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Policy"}
+{"level":"info","ts":1761905650.1728692,"caller":"database/migrations.go:56","msg":"Migrated model","model":"*models.Policy"}
+{"level":"info","ts":1761905650.172883,"caller":"database/migrations.go:60","msg":"Checking for missing columns in links table..."}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:61
-[0m[33m[0.345ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'links' AND table_type = 'BASE TABLE'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:61
+[0m[33m[0.372ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'links' AND table_type = 'BASE TABLE'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:64
-[0m[33m[1.633ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'links' AND column_name = 'name'
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:64
+[0m[33m[1.576ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'links' AND column_name = 'name'
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:71
-[0m[33m[1.536ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'links' AND column_name = 'config'
-{"level":"info","ts":1761904021.805674,"caller":"database/migrations.go:78","msg":"All migrations completed successfully"}
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:71
+[0m[33m[1.542ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'links' AND column_name = 'config'
+{"level":"info","ts":1761905650.1764438,"caller":"database/migrations.go:78","msg":"All migrations completed successfully"}
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:123
-[0m[33m[1.038ms] [34;1m[rows:11][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:123
+[0m[33m[1.390ms] [34;1m[rows:11][0m 
 		SELECT table_name 
 		FROM information_schema.tables 
 		WHERE table_schema = 'public' 
@@ -207,145 +207,123 @@
 		ORDER BY table_name;
 	
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[1.982ms] [34;1m[rows:13][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[2.321ms] [34;1m[rows:13][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'alerts'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[1.271ms] [34;1m[rows:9][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[1.279ms] [34;1m[rows:9][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'events'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[1.430ms] [34;1m[rows:15][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[1.325ms] [34;1m[rows:15][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'links'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[1.269ms] [34;1m[rows:8][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[1.166ms] [34;1m[rows:8][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'metrics'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[1.220ms] [34;1m[rows:14][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[1.268ms] [34;1m[rows:14][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'networks'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[1.265ms] [34;1m[rows:19][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[1.424ms] [34;1m[rows:19][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'nodes'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[0.504ms] [34;1m[rows:12][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[0.518ms] [34;1m[rows:12][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'policies'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[0.436ms] [34;1m[rows:10][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[0.456ms] [34;1m[rows:10][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'task_executions'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[0.445ms] [34;1m[rows:8][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[0.400ms] [34;1m[rows:8][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'users'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[0.478ms] [34;1m[rows:9][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[0.448ms] [34;1m[rows:9][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'workflow_definitions'
 			ORDER BY ordinal_position;
 		
 
-2025/10/31 15:17:01 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
-[0m[33m[0.440ms] [34;1m[rows:8][0m 
+2025/10/31 15:44:10 [32m/Users/ayushar3/projects/netorchestrator/pkg/database/migrations.go:146
+[0m[33m[0.434ms] [34;1m[rows:8][0m 
 			SELECT column_name, data_type, is_nullable, column_default
 			FROM information_schema.columns
 			WHERE table_schema = 'public' AND table_name = 'workflow_executions'
 			ORDER BY ordinal_position;
 		
-{"level":"info","ts":1761904021.817695,"caller":"api-gateway/main.go:88","msg":"Database migration status","table_count":11,"tables":["alerts","events","links","metrics","networks","nodes","policies","task_executions","users","workflow_definitions","workflow_executions"]}
-{"level":"info","ts":1761904021.817842,"caller":"api-gateway/main.go:93","msg":"Database migrations completed successfully"}
-{"level":"info","ts":1761904021.821701,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"high_cpu_usage","name":"High CPU Usage"}
-{"level":"info","ts":1761904021.821764,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"high_memory_usage","name":"High Memory Usage"}
-{"level":"info","ts":1761904021.821773,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"network_down","name":"Network Down"}
-{"level":"info","ts":1761904021.821781,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"websocket_connections_high","name":"High WebSocket Connections"}
-{"level":"info","ts":1761904021.821789,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"sla_breach","name":"SLA Breach"}
-{"level":"info","ts":1761904021.8217971,"caller":"alerting/manager.go:226","msg":"Added notification channel","id":"default_slack","name":"Default Slack Channel"}
-{"level":"info","ts":1761904021.821805,"caller":"alerting/manager.go:226","msg":"Added notification channel","id":"ops_email","name":"Operations Team Email"}
-{"level":"info","ts":1761904021.821813,"caller":"alerting/manager.go:226","msg":"Added notification channel","id":"webhook_pagerduty","name":"PagerDuty Integration"}
-{"level":"info","ts":1761904021.821821,"caller":"alerting/manager.go:214","msg":"Alert manager initialized with default rules and channels"}
-{"level":"info","ts":1761904021.821833,"caller":"alerting/manager.go:424","msg":"Alert evaluation started"}
-{"level":"info","ts":1761904021.821871,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"terraform"}
-{"level":"info","ts":1761904021.82189,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"ansible"}
-{"level":"info","ts":1761904021.8218958,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"api_call"}
-{"level":"info","ts":1761904021.821902,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"script"}
-{"level":"info","ts":1761904021.821908,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"validation"}
-{"level":"info","ts":1761904021.8219142,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"network_provision"}
-{"level":"info","ts":1761904021.821919,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"terraform"}
-{"level":"info","ts":1761904021.8219252,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"ansible"}
-{"level":"info","ts":1761904021.8219311,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"api_call"}
-{"level":"info","ts":1761904021.821943,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"script"}
-{"level":"info","ts":1761904021.82195,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"validation"}
-{"level":"info","ts":1761904021.821955,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"network_provision"}
-{"level":"info","ts":1761904021.822232,"caller":"api-gateway/main.go:176","msg":"Starting server","host":"0.0.0.0","port":"8080"}
-{"level":"info","ts":1761904031.823433,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904041.823213,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904051.823322,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904061.823376,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904071.823491,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-2025/10/31 15:17:58 AUDIT_LOG: {"id":"4752b0a6c3eee6c6a6635e46b386e3d7","timestamp":"2025-10-31T15:17:58.584986+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+{"level":"info","ts":1761905650.189164,"caller":"api-gateway/main.go:87","msg":"Database migration status","table_count":11,"tables":["alerts","events","links","metrics","networks","nodes","policies","task_executions","users","workflow_definitions","workflow_executions"]}
+{"level":"info","ts":1761905650.189184,"caller":"api-gateway/main.go:92","msg":"Database migrations completed successfully"}
+{"level":"info","ts":1761905650.193054,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"high_cpu_usage","name":"High CPU Usage"}
+{"level":"info","ts":1761905650.193117,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"high_memory_usage","name":"High Memory Usage"}
+{"level":"info","ts":1761905650.193126,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"network_down","name":"Network Down"}
+{"level":"info","ts":1761905650.193133,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"websocket_connections_high","name":"High WebSocket Connections"}
+{"level":"info","ts":1761905650.1931462,"caller":"alerting/manager.go:220","msg":"Added alert rule","id":"sla_breach","name":"SLA Breach"}
+{"level":"info","ts":1761905650.193155,"caller":"alerting/manager.go:226","msg":"Added notification channel","id":"default_slack","name":"Default Slack Channel"}
+{"level":"info","ts":1761905650.193163,"caller":"alerting/manager.go:226","msg":"Added notification channel","id":"ops_email","name":"Operations Team Email"}
+{"level":"info","ts":1761905650.1931689,"caller":"alerting/manager.go:226","msg":"Added notification channel","id":"webhook_pagerduty","name":"PagerDuty Integration"}
+{"level":"info","ts":1761905650.193175,"caller":"alerting/manager.go:214","msg":"Alert manager initialized with default rules and channels"}
+{"level":"info","ts":1761905650.193187,"caller":"alerting/manager.go:424","msg":"Alert evaluation started"}
+{"level":"info","ts":1761905650.193226,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"terraform"}
+{"level":"info","ts":1761905650.193255,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"ansible"}
+{"level":"info","ts":1761905650.1932611,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"api_call"}
+{"level":"info","ts":1761905650.1932669,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"script"}
+{"level":"info","ts":1761905650.193273,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"validation"}
+{"level":"info","ts":1761905650.193279,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"network_provision"}
+{"level":"info","ts":1761905650.193286,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"terraform"}
+{"level":"info","ts":1761905650.1932921,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"ansible"}
+{"level":"info","ts":1761905650.193297,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"api_call"}
+{"level":"info","ts":1761905650.193303,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"script"}
+{"level":"info","ts":1761905650.1933079,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"validation"}
+{"level":"info","ts":1761905650.193314,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"network_provision"}
+{"level":"info","ts":1761905650.193602,"caller":"api-gateway/main.go:168","msg":"Starting server","host":"0.0.0.0","port":"8080"}
+2025/10/31 15:45:29 AUDIT_LOG: {"id":"e276ffa8262540936a3132e0dc70f4ba","timestamp":"2025-10-31T15:45:29.908383+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
 
-2025/10/31 15:17:58 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
-[0m[33m[3.027ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2025/10/31 15:45:29 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[3.103ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
 
-2025/10/31 15:17:58 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
-[0m[33m[1.418ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
-{"level":"info","ts":1761904081.8232949,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"warn","ts":1761904081.8233669,"caller":"alerting/manager.go:247","msg":"Alert triggered","id":"alert_1761904081823361000","title":"High CPU Usage","severity":"warning","source":"alert_manager"}
-{"level":"info","ts":1761904081.8233879,"caller":"alerting/manager.go:333","msg":"Email notification sent (placeholder)","to":"ops-team@company.com","alert":"High CPU Usage"}
-{"level":"warn","ts":1761904081.823413,"caller":"alerting/manager.go:247","msg":"Alert triggered","id":"alert_1761904081823398000","title":"High Memory Usage","severity":"error","source":"alert_manager"}
-{"level":"info","ts":1761904081.8235,"caller":"alerting/manager.go:333","msg":"Email notification sent (placeholder)","to":"ops-team@company.com","alert":"High Memory Usage"}
-2025/10/31 15:18:02 AUDIT_LOG: {"id":"896d242800c4e3872fc691ab7e65c0d0","timestamp":"2025-10-31T15:18:02.096671+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
-{"level":"error","ts":1761904082.264725,"caller":"alerting/manager.go:276","msg":"Failed to send notification","channel":"Default Slack Channel","error":"HTTP request failed with status: 404","stacktrace":"netorchestrator/pkg/alerting.(*AlertManager).sendNotifications.func1\n\t/Users/ayushar3/projects/netorchestrator/pkg/alerting/manager.go:276"}
-{"level":"error","ts":1761904082.264725,"caller":"alerting/manager.go:276","msg":"Failed to send notification","channel":"Default Slack Channel","error":"HTTP request failed with status: 404","stacktrace":"netorchestrator/pkg/alerting.(*AlertManager).sendNotifications.func1\n\t/Users/ayushar3/projects/netorchestrator/pkg/alerting/manager.go:276"}
-{"level":"error","ts":1761904082.8978822,"caller":"alerting/manager.go:276","msg":"Failed to send notification","channel":"PagerDuty Integration","error":"HTTP request failed with status: 400","stacktrace":"netorchestrator/pkg/alerting.(*AlertManager).sendNotifications.func1\n\t/Users/ayushar3/projects/netorchestrator/pkg/alerting/manager.go:276"}
-{"level":"error","ts":1761904082.911288,"caller":"alerting/manager.go:276","msg":"Failed to send notification","channel":"PagerDuty Integration","error":"HTTP request failed with status: 400","stacktrace":"netorchestrator/pkg/alerting.(*AlertManager).sendNotifications.func1\n\t/Users/ayushar3/projects/netorchestrator/pkg/alerting/manager.go:276"}
-{"level":"info","ts":1761904091.823582,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904101.823659,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904111.823762,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904121.8235068,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904131.8238761,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-2025/10/31 15:18:58 AUDIT_LOG: {"id":"719917aabcc4d3d64cc88d2bae3bbfe8","timestamp":"2025-10-31T15:18:58.439004+05:30","level":"WARNING","action":"security_event","resource":"system","ip_address":"::1","success":false,"error_message":"token signature is invalid: signature is invalid","metadata":{"event_type":"invalid_token"}}
-{"level":"info","ts":1761904141.82341,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
-{"level":"info","ts":1761904151.824061,"caller":"websocket/hub.go:97","msg":"Broadcast event queued","event_type":"system_status","client_count":0,"message_size":113}
+2025/10/31 15:45:29 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
+[0m[33m[1.589ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
+2025/10/31 15:45:33 AUDIT_LOG: {"id":"2a5376b04021930732c3b255bf31b3a9","timestamp":"2025-10-31T15:45:33.729752+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}

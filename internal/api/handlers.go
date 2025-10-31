@@ -12,7 +12,6 @@ import (
 	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/models"
 	"netorchestrator/internal/services"
-	"netorchestrator/internal/websocket"
 )
 
 // Handlers contains all HTTP handlers
@@ -24,12 +23,6 @@ type Handlers struct {
 	AutomationHandler    *automation.Handler
 	IntelligenceHandlers *intelligence.IntelligenceHandlers
 	logger               *zap.Logger
-	wsHub                *websocket.Hub // For direct WebSocket testing
-}
-
-// SetWSHub sets the WebSocket hub for testing
-func (h *Handlers) SetWSHub(wsHub *websocket.Hub) {
-	h.wsHub = wsHub
 }
 
 // NewHandlers creates a new handlers instance
@@ -79,57 +72,16 @@ func (h *Handlers) HealthCheck(c *gin.Context) {
 // @Failure 503 {object} map[string]interface{} "Unready"
 // @Router /ready [get]
 func (h *Handlers) ReadyCheck(c *gin.Context) {
-    if err := h.monitoringService.Readiness(c.Request.Context()); err != nil {
-        c.JSON(http.StatusServiceUnavailable, gin.H{
-            "status":  "unready",
-            "message": err.Error(),
-        })
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{
-        "status":  "ready",
-        "timestamp": time.Now().UTC(),
-    })
-}
-
-// TestWebSocketEvent triggers a test WebSocket event for debugging
-// @Summary Test WebSocket Event
-// @Description Triggers a test event to verify WebSocket broadcast
-// @Tags Testing
-// @Produce json
-// @Success 200 {object} map[string]interface{} "Event triggered"
-// @Router /test/ws-event [post]
-func (h *Handlers) TestWebSocketEvent(c *gin.Context) {
-	if h.wsHub == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "WebSocket hub not initialized",
+	if err := h.monitoringService.Readiness(c.Request.Context()); err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status":  "unready",
+			"message": err.Error(),
 		})
 		return
 	}
-
-	networkID := c.Query("network_id")
-	if networkID == "" {
-		networkID = uuid.New().String()
-	}
-
-	eventData := map[string]interface{}{
-		"network_id":  networkID,
-		"change_type": "test_event",
-		"timestamp":   time.Now().UTC().Format(time.RFC3339),
-		"test":        true,
-	}
-
-	h.wsHub.BroadcastEvent("topology.updated", eventData)
-	h.logger.Info("Test WebSocket event broadcast",
-		zap.String("network_id", networkID),
-		zap.String("event_type", "topology.updated"),
-	)
-
 	c.JSON(http.StatusOK, gin.H{
-		"message":    "Test WebSocket event broadcast",
-		"network_id": networkID,
-		"event_type": "topology.updated",
-		"timestamp":  time.Now().UTC(),
+		"status":    "ready",
+		"timestamp": time.Now().UTC(),
 	})
 }
 
@@ -163,8 +115,8 @@ func (h *Handlers) AcknowledgeAlert(c *gin.Context) {
 		zap.String("username", username))
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":        "Alert acknowledged successfully",
-		"alert_id":       alertID,
+		"message":         "Alert acknowledged successfully",
+		"alert_id":        alertID,
 		"acknowledged_by": username,
 		"acknowledged_at": time.Now().UTC(),
 	})
@@ -354,7 +306,7 @@ func (h *Handlers) CreateAlertRule(c *gin.Context) {
 // @Router /api/v1/monitoring/alert-rules/{id} [put]
 func (h *Handlers) UpdateAlertRule(c *gin.Context) {
 	ruleID := c.Param("id")
-	
+
 	if ruleID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Rule ID is required",
@@ -398,7 +350,7 @@ func (h *Handlers) UpdateAlertRule(c *gin.Context) {
 // @Router /api/v1/monitoring/alert-rules/{id} [delete]
 func (h *Handlers) DeleteAlertRule(c *gin.Context) {
 	ruleID := c.Param("id")
-	
+
 	if ruleID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Rule ID is required",
@@ -521,7 +473,7 @@ func (h *Handlers) CreateNotificationChannel(c *gin.Context) {
 // @Router /api/v1/monitoring/notification-channels/{id} [delete]
 func (h *Handlers) DeleteNotificationChannel(c *gin.Context) {
 	channelID := c.Param("id")
-	
+
 	if channelID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Channel ID is required",
@@ -829,7 +781,7 @@ func (h *Handlers) DeleteNetwork(c *gin.Context) {
 		return
 	}
 
-    c.Status(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
 // StartNetwork handles starting a network
@@ -1280,7 +1232,7 @@ func (h *Handlers) DeleteNode(c *gin.Context) {
 		return
 	}
 
-    c.Status(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
 // StartNode handles starting a node
@@ -1516,7 +1468,7 @@ func (h *Handlers) DeleteLink(c *gin.Context) {
 		return
 	}
 
-    c.Status(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
 // ListPolicies handles listing policies in a network
@@ -1680,7 +1632,7 @@ func (h *Handlers) DeletePolicy(c *gin.Context) {
 		return
 	}
 
-    c.Status(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
 // ListAllPolicies handles listing all policies across all networks
@@ -2117,8 +2069,8 @@ func (h *Handlers) ResetPassword(c *gin.Context) {
 		zap.String("user_id", userID))
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":          "Password reset successfully",
-		"user_id":          userID,
+		"message":            "Password reset successfully",
+		"user_id":            userID,
 		"temporary_password": "TempPass123!",
 	})
 }

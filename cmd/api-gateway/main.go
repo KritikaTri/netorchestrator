@@ -44,7 +44,6 @@ import (
 	"netorchestrator/internal/optimization"
 	"netorchestrator/internal/security"
 	"netorchestrator/internal/services"
-	"netorchestrator/internal/websocket"
 	"netorchestrator/pkg/alerting"
 	"netorchestrator/pkg/cache"
 	"netorchestrator/pkg/database"
@@ -112,17 +111,13 @@ func main() {
 	alertManager.Initialize()
 	alertManager.StartAlertEvaluation()
 
-	// Initialize WebSocket hub
-	wsHub := websocket.NewHub(logger)
-	go wsHub.Run()
+	// WebSocket system removed - using REST APIs only
 
 	// Initialize services
 	networkService := services.NewNetworkService(db.GetDB(), cacheClient.Client, logger)
-	monitoringService := services.NewMonitoringService(db.GetDB(), cacheClient.Client, logger, wsHub)
+	monitoringService := services.NewMonitoringService(db.GetDB(), cacheClient.Client, logger)
 	orchestrationService := services.NewOrchestrationService(db.GetDB(), cacheClient.Client, logger)
 	validationService := services.NewValidationService(db.GetDB(), cacheClient.Client, logger)
-	eventService := services.NewEventService(wsHub, logger)
-
 	// Initialize security system
 	securityManager := security.NewSecurityManager(cfg.Security.JWTSecret)
 	authHandlers := security.NewAuthHandlers(securityManager)
@@ -143,8 +138,7 @@ func main() {
 	nlpService := nlp.NewNLPService(logger)
 	nlpHandlers := nlp.NewHandlers(nlpService, networkService, logger)
 
-	// Start periodic WebSocket updates
-	eventService.StartPeriodicUpdates()
+	// Periodic updates removed - using REST APIs only
 
 	// Initialize API handlers
 	apiHandlers := api.NewHandlers(
@@ -156,11 +150,9 @@ func main() {
 		intelligenceHandlers,
 		logger,
 	)
-	// Set WebSocket hub for direct testing
-	apiHandlers.SetWSHub(wsHub)
 
 	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, monitor, wsHub, cfg.Security, optimizationHandlers, nlpHandlers)
+	router := setupRouter(apiHandlers, authHandlers, securityManager, monitor, cfg.Security, optimizationHandlers, nlpHandlers)
 
 	// Start server
 	server := &http.Server{
@@ -221,7 +213,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, prometheus *monitoring.Prometheus, wsHub *websocket.Hub, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers) *gin.Engine {
+func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, prometheus *monitoring.Prometheus, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -239,11 +231,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 	// Readiness endpoint
 	router.GET("/ready", handlers.ReadyCheck)
 
-	// Test endpoint for WebSocket event (no auth required for testing)
-	router.POST("/test/ws-event", handlers.TestWebSocketEvent)
-
-	// WebSocket endpoint
-	router.GET("/ws", wsHub.HandleWebSocket)
+	// WebSocket endpoints removed - using REST APIs only
 
 	// Metrics endpoint
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
