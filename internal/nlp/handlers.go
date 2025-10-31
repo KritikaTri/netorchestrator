@@ -56,85 +56,6 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		return
 	}
 
-	// Get user ID from context (set by auth middleware)
-	userIDStr := c.GetString("user_id")
-	if userIDStr == "" {
-		// For API key auth, use default admin user
-		// In production, this should get user from API key
-		userID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "User ID not found",
-			})
-			return
-		}
-		// Parse natural language
-		spec, err := h.nlpService.ParseNetworkRequest(c.Request.Context(), req.Text)
-		if err != nil {
-			h.logger.Error("Failed to parse natural language", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Failed to parse natural language",
-				"details": err.Error(),
-			})
-			return
-		}
-
-		// Validate parsed specification
-		if err := h.nlpService.ValidateSpec(c.Request.Context(), spec); err != nil {
-			h.logger.Error("Invalid parsed specification", zap.Error(err))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Invalid network specification",
-				"details": err.Error(),
-			})
-			return
-		}
-
-		network := &models.Network{
-			Name:        spec.Name,
-			Description: spec.Description,
-			UserID:      userID,
-			Status:      models.NetworkStatusPending,
-			Config: models.NetworkConfig{
-				Topology: spec.Topology,
-				Subnet:   getSubnetFromConfig(spec.Config),
-			},
-		}
-
-		// Create network (this will trigger event and auto-provisioning)
-		if err := h.networkService.CreateNetwork(c.Request.Context(), network); err != nil {
-			h.logger.Error("Failed to create network from NLP", zap.Error(err))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Failed to create network",
-				"details": err.Error(),
-			})
-			return
-		}
-
-		// Create nodes
-		for _, nodeSpec := range spec.Nodes {
-			node := &models.Node{
-				NetworkID:  network.ID,
-				Name:       nodeSpec.Name,
-				Type:       models.NodeType(nodeSpec.Type),
-				IPAddress:  nodeSpec.IPAddress,
-				Status:     models.NodeStatusActive,
-			}
-
-			if err := h.networkService.CreateNode(c.Request.Context(), node); err != nil {
-				h.logger.Warn("Failed to create node", zap.String("node", nodeSpec.Name), zap.Error(err))
-				// Continue with other nodes
-			}
-		}
-
-		c.JSON(http.StatusCreated, gin.H{
-			"network":      network,
-			"spec":         spec,
-			"original_text": req.Text,
-			"message":      "Network provisioned from natural language",
-		})
-		return
-	}
-
 	// Parse natural language
 	spec, err := h.nlpService.ParseNetworkRequest(c.Request.Context(), req.Text)
 	if err != nil {
@@ -156,9 +77,22 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		return
 	}
 
-	// Resolve user ID
+	// Get user ID from context (set by auth middleware)
+	userIDStr := c.GetString("user_id")
 	var userID uuid.UUID
-	if userIDStr == "admin-uuid" || userIDStr == "user-uuid" {
+	
+	if userIDStr == "" {
+		// For API key auth, use default admin user
+		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "User ID not found",
+			})
+			return
+		}
+		userID = resolvedUUID
+	} else if userIDStr == "admin-uuid" || userIDStr == "user-uuid" {
+		// Handle demo users
 		username := "admin"
 		if userIDStr == "user-uuid" {
 			username = "user"
@@ -172,6 +106,7 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		}
 		userID = resolvedUUID
 	} else {
+		// Parse direct UUID
 		parsedUUID, err := uuid.Parse(userIDStr)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -182,6 +117,7 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		userID = parsedUUID
 	}
 
+	// Create network from parsed specification
 	network := &models.Network{
 		Name:        spec.Name,
 		Description: spec.Description,
@@ -193,7 +129,7 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		},
 	}
 
-	// Create network (this will trigger event and auto-provisioning)
+	// Create network
 	if err := h.networkService.CreateNetwork(c.Request.Context(), network); err != nil {
 		h.logger.Error("Failed to create network from NLP", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -203,27 +139,38 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		return
 	}
 
-	// Create nodes
+	// Create nodes from specification
+	createdNodes := []models.Node{}
 	for _, nodeSpec := range spec.Nodes {
 		node := &models.Node{
-			NetworkID:  network.ID,
-			Name:       nodeSpec.Name,
-			Type:       models.NodeType(nodeSpec.Type),
-			IPAddress:  nodeSpec.IPAddress,
-			Status:     models.NodeStatusActive,
+			NetworkID: network.ID,
+			Name:      nodeSpec.Name,
+			Type:      models.NodeType(nodeSpec.Type),
+			IPAddress: nodeSpec.IPAddress,
+			Status:    models.NodeStatusActive,
 		}
 
 		if err := h.networkService.CreateNode(c.Request.Context(), node); err != nil {
 			h.logger.Warn("Failed to create node", zap.String("node", nodeSpec.Name), zap.Error(err))
-			// Continue with other nodes
+		} else {
+			createdNodes = append(createdNodes, *node)
 		}
 	}
 
+	// Return successful response
 	c.JSON(http.StatusCreated, gin.H{
-		"network":      network,
-		"spec":         spec,
-		"original_text": req.Text,
-		"message":      "Network provisioned from natural language",
+		"success":        true,
+		"message":        "Network provisioned from natural language",
+		"network":        network,
+		"nodes_created":  len(createdNodes),
+		"nodes":          createdNodes,
+		"spec":           spec,
+		"original_text":  req.Text,
+		"parsing_stats": gin.H{
+			"topology":      spec.Topology,
+			"nodes_parsed":  len(spec.Nodes),
+			"config_items":  len(spec.Config),
+		},
 	})
 }
 

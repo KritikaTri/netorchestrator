@@ -1064,7 +1064,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"request\": \"Create a development network with 3 web servers, 1 database server, and a load balancer. Use 192.168.100.0/24 subnet.\",\n  \"context\": {\n    \"environment\": \"development\",\n    \"region\": \"us-west-2\"\n  }\n}"
+              "raw": "{\n  \"text\": \"Create a development network with 3 web servers, 1 database server, and a load balancer. Use 192.168.100.0/24 subnet.\"\n}"
             },
             "url": "{{base_url}}/api/v1/ai/provision"
           }
@@ -1072,7 +1072,7 @@
       ]
     },
     {
-      "name": "🔧 System & Utility (4 endpoints)",
+      "name": "🔧 System & Utility (3 endpoints)",
       "item": [
         {
           "name": "Health Check",
@@ -1086,13 +1086,6 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/ready"
-          }
-        },
-        {
-          "name": "Prometheus Metrics",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/metrics"
           }
         },
         {
