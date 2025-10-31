@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
@@ -44,10 +43,8 @@ import (
 	"netorchestrator/internal/optimization"
 	"netorchestrator/internal/security"
 	"netorchestrator/internal/services"
-	"netorchestrator/pkg/alerting"
 	"netorchestrator/pkg/cache"
 	"netorchestrator/pkg/database"
-	"netorchestrator/pkg/monitoring"
 )
 
 func main() {
@@ -98,18 +95,7 @@ func main() {
 		logger.Fatal("Failed to connect to cache", zap.Error(err))
 	}
 
-	// Events system removed - not needed for core functionality
-
-	// Initialize monitoring
-	monitor, err := monitoring.NewPrometheus()
-	if err != nil {
-		logger.Fatal("Failed to initialize monitoring", zap.Error(err))
-	}
-
-	// Initialize alerting
-	alertManager := alerting.NewAlertManager(logger)
-	alertManager.Initialize()
-	alertManager.StartAlertEvaluation()
+	// Monitoring and alerting system removed - not needed for core functionality
 
 	// WebSocket system removed - using REST APIs only
 
@@ -152,7 +138,7 @@ func main() {
 	)
 
 	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, monitor, cfg.Security, optimizationHandlers, nlpHandlers)
+	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers)
 
 	// Start server
 	server := &http.Server{
@@ -213,7 +199,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, prometheus *monitoring.Prometheus, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers) *gin.Engine {
+func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -223,7 +209,6 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 	router.Use(gin.Recovery())
 	router.Use(securityManager.SecurityHeadersMiddleware())
 	router.Use(securityManager.RateLimitMiddleware())
-	router.Use(prometheus.GinMiddleware())
 	router.Use(corsMiddleware(secCfg))
 
 	// Health check endpoint
@@ -232,9 +217,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 	router.GET("/ready", handlers.ReadyCheck)
 
 	// WebSocket endpoints removed - using REST APIs only
-
-	// Metrics endpoint
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// Prometheus metrics endpoint removed - not needed for core functionality
 
 	// Swagger documentation
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
