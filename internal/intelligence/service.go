@@ -10,13 +10,11 @@ import (
 	"time"
 
 	"netorchestrator/internal/ai"
-	"netorchestrator/internal/events"
 )
 
 // NetworkIntelligenceService provides AI-powered network analysis and optimization
 type NetworkIntelligenceService struct {
 	aiEngine        *ai.AIEngine
-	eventStore      *events.EventStore
 	anomalyDetector *AnomalyDetector
 	predictor       *NetworkPredictor
 	optimizer       *ResourceOptimizer
@@ -26,10 +24,10 @@ type NetworkIntelligenceService struct {
 
 // AnomalyDetector detects network anomalies using statistical methods and ML
 type AnomalyDetector struct {
-	models       map[string]*AnomalyModel
-	thresholds   map[string]float64
-	baselines    map[string]*Baseline
-	alertRules   []*AnomalyRule
+	models     map[string]*AnomalyModel
+	thresholds map[string]float64
+	baselines  map[string]*Baseline
+	alertRules []*AnomalyRule
 }
 
 // NetworkPredictor predicts network behavior and capacity needs
@@ -41,10 +39,10 @@ type NetworkPredictor struct {
 
 // ResourceOptimizer optimizes resource allocation and cost
 type ResourceOptimizer struct {
-	costModels     map[string]*CostModel
-	constraints    []*OptimizationConstraint
-	objectives     []*OptimizationObjective
-	solutions      []*OptimizationSolution
+	costModels  map[string]*CostModel
+	constraints []*OptimizationConstraint
+	objectives  []*OptimizationObjective
+	solutions   []*OptimizationSolution
 }
 
 // InsightEngine generates business insights from network data
@@ -72,20 +70,20 @@ type MLModel struct {
 
 // AnomalyModel detects anomalies in network metrics
 type AnomalyModel struct {
-	MetricName string               `json:"metric_name"`
-	Algorithm  string               `json:"algorithm"` // isolation_forest, one_class_svm, statistical
-	Sensitivity float64             `json:"sensitivity"`
-	Baseline   *Baseline            `json:"baseline"`
-	History    []AnomalyDetection   `json:"history"`
+	MetricName  string             `json:"metric_name"`
+	Algorithm   string             `json:"algorithm"` // isolation_forest, one_class_svm, statistical
+	Sensitivity float64            `json:"sensitivity"`
+	Baseline    *Baseline          `json:"baseline"`
+	History     []AnomalyDetection `json:"history"`
 }
 
 // Baseline represents normal behavior baseline
 type Baseline struct {
-	Mean       float64   `json:"mean"`
-	StdDev     float64   `json:"std_dev"`
+	Mean        float64         `json:"mean"`
+	StdDev      float64         `json:"std_dev"`
 	Percentiles map[int]float64 `json:"percentiles"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	SampleSize int       `json:"sample_size"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	SampleSize  int             `json:"sample_size"`
 }
 
 // AnomalyDetection represents a detected anomaly
@@ -102,22 +100,22 @@ type AnomalyDetection struct {
 
 // AnomalyRule defines conditions for anomaly alerting
 type AnomalyRule struct {
-	ID            string                 `json:"id"`
-	Name          string                 `json:"name"`
-	MetricPattern string                 `json:"metric_pattern"`
-	Condition     string                 `json:"condition"`
-	Threshold     float64                `json:"threshold"`
-	Window        time.Duration          `json:"window"`
-	Actions       []string               `json:"actions"`
-	Enabled       bool                   `json:"enabled"`
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	MetricPattern string        `json:"metric_pattern"`
+	Condition     string        `json:"condition"`
+	Threshold     float64       `json:"threshold"`
+	Window        time.Duration `json:"window"`
+	Actions       []string      `json:"actions"`
+	Enabled       bool          `json:"enabled"`
 }
 
 // TimeSeriesModel predicts future values based on historical data
 type TimeSeriesModel struct {
 	MetricName   string                 `json:"metric_name"`
-	Algorithm    string                 `json:"algorithm"` // arima, lstm, prophet, linear
+	Algorithm    string                 `json:"algorithm"`   // arima, lstm, prophet, linear
 	Seasonality  []string               `json:"seasonality"` // daily, weekly, monthly
-	Trend        string                 `json:"trend"` // increasing, decreasing, stable
+	Trend        string                 `json:"trend"`       // increasing, decreasing, stable
 	Parameters   map[string]interface{} `json:"parameters"`
 	LastForecast time.Time              `json:"last_forecast"`
 	Accuracy     float64                `json:"accuracy"`
@@ -153,107 +151,107 @@ type PricingTier struct {
 
 // Discount represents cost discounts
 type Discount struct {
-	Type        string    `json:"type"` // volume, commitment, spot
-	Percentage  float64   `json:"percentage"`
-	Conditions  []string  `json:"conditions"`
-	ValidFrom   time.Time `json:"valid_from"`
-	ValidUntil  time.Time `json:"valid_until"`
+	Type       string    `json:"type"` // volume, commitment, spot
+	Percentage float64   `json:"percentage"`
+	Conditions []string  `json:"conditions"`
+	ValidFrom  time.Time `json:"valid_from"`
+	ValidUntil time.Time `json:"valid_until"`
 }
 
 // OptimizationConstraint defines optimization constraints
 type OptimizationConstraint struct {
-	Name      string                 `json:"name"`
-	Type      string                 `json:"type"` // capacity, budget, sla, compliance
-	Operator  string                 `json:"operator"` // <=, >=, ==
-	Value     float64                `json:"value"`
-	Priority  int                    `json:"priority"`
-	Metadata  map[string]interface{} `json:"metadata"`
+	Name     string                 `json:"name"`
+	Type     string                 `json:"type"`     // capacity, budget, sla, compliance
+	Operator string                 `json:"operator"` // <=, >=, ==
+	Value    float64                `json:"value"`
+	Priority int                    `json:"priority"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // OptimizationObjective defines optimization objectives
 type OptimizationObjective struct {
-	Name      string  `json:"name"`
-	Type      string  `json:"type"` // minimize_cost, maximize_performance, minimize_latency
-	Weight    float64 `json:"weight"`
-	Priority  int     `json:"priority"`
-	Target    float64 `json:"target"`
+	Name     string  `json:"name"`
+	Type     string  `json:"type"` // minimize_cost, maximize_performance, minimize_latency
+	Weight   float64 `json:"weight"`
+	Priority int     `json:"priority"`
+	Target   float64 `json:"target"`
 }
 
 // OptimizationSolution represents an optimization result
 type OptimizationSolution struct {
-	ID            string                 `json:"id"`
-	Objective     string                 `json:"objective"`
-	Score         float64                `json:"score"`
-	Improvements  []Improvement          `json:"improvements"`
-	Savings       CostSavings            `json:"savings"`
-	Confidence    float64                `json:"confidence"`
-	GeneratedAt   time.Time              `json:"generated_at"`
-	Status        string                 `json:"status"` // pending, applied, rejected
+	ID           string        `json:"id"`
+	Objective    string        `json:"objective"`
+	Score        float64       `json:"score"`
+	Improvements []Improvement `json:"improvements"`
+	Savings      CostSavings   `json:"savings"`
+	Confidence   float64       `json:"confidence"`
+	GeneratedAt  time.Time     `json:"generated_at"`
+	Status       string        `json:"status"` // pending, applied, rejected
 }
 
 // Improvement represents a recommended improvement
 type Improvement struct {
-	Type          string                 `json:"type"`
-	Description   string                 `json:"description"`
-	Impact        string                 `json:"impact"` // low, medium, high
-	Effort        string                 `json:"effort"` // low, medium, high
-	EstimatedROI  float64                `json:"estimated_roi"`
-	Actions       []string               `json:"actions"`
-	Dependencies  []string               `json:"dependencies"`
-	Metadata      map[string]interface{} `json:"metadata"`
+	Type         string                 `json:"type"`
+	Description  string                 `json:"description"`
+	Impact       string                 `json:"impact"` // low, medium, high
+	Effort       string                 `json:"effort"` // low, medium, high
+	EstimatedROI float64                `json:"estimated_roi"`
+	Actions      []string               `json:"actions"`
+	Dependencies []string               `json:"dependencies"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // CostSavings represents potential cost savings
 type CostSavings struct {
-	Monthly   float64 `json:"monthly"`
-	Annually  float64 `json:"annually"`
-	Currency  string  `json:"currency"`
+	Monthly   float64            `json:"monthly"`
+	Annually  float64            `json:"annually"`
+	Currency  string             `json:"currency"`
 	Breakdown map[string]float64 `json:"breakdown"`
 }
 
 // KPI represents a key performance indicator
 type KPI struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Value       float64                `json:"value"`
-	Target      float64                `json:"target"`
-	Trend       string                 `json:"trend"` // up, down, stable
-	Status      string                 `json:"status"` // on_track, at_risk, critical
-	Unit        string                 `json:"unit"`
-	Category    string                 `json:"category"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	History     []KPIDataPoint         `json:"history"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Value       float64        `json:"value"`
+	Target      float64        `json:"target"`
+	Trend       string         `json:"trend"`  // up, down, stable
+	Status      string         `json:"status"` // on_track, at_risk, critical
+	Unit        string         `json:"unit"`
+	Category    string         `json:"category"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	History     []KPIDataPoint `json:"history"`
 }
 
 // KPIDataPoint represents a historical KPI value
 type KPIDataPoint struct {
-	Timestamp time.Time `json:"timestamp"`
-	Value     float64   `json:"value"`
+	Timestamp time.Time              `json:"timestamp"`
+	Value     float64                `json:"value"`
 	Context   map[string]interface{} `json:"context"`
 }
 
 // Dashboard represents an analytics dashboard
 type Dashboard struct {
-	ID          string      `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Widgets     []Widget    `json:"widgets"`
-	Filters     []Filter    `json:"filters"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	Owner       string      `json:"owner"`
-	Shared      bool        `json:"shared"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Widgets     []Widget  `json:"widgets"`
+	Filters     []Filter  `json:"filters"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Owner       string    `json:"owner"`
+	Shared      bool      `json:"shared"`
 }
 
 // Widget represents a dashboard widget
 type Widget struct {
-	ID         string                 `json:"id"`
-	Type       string                 `json:"type"` // chart, table, metric, alert
-	Title      string                 `json:"title"`
-	Query      string                 `json:"query"`
-	Config     map[string]interface{} `json:"config"`
-	Position   Position               `json:"position"`
-	Size       Size                   `json:"size"`
+	ID       string                 `json:"id"`
+	Type     string                 `json:"type"` // chart, table, metric, alert
+	Title    string                 `json:"title"`
+	Query    string                 `json:"query"`
+	Config   map[string]interface{} `json:"config"`
+	Position Position               `json:"position"`
+	Size     Size                   `json:"size"`
 }
 
 // Position represents widget position
@@ -270,17 +268,17 @@ type Size struct {
 
 // Filter represents a dashboard filter
 type Filter struct {
-	Name     string      `json:"name"`
-	Type     string      `json:"type"`
-	Values   []string    `json:"values"`
-	Selected []string    `json:"selected"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	Values   []string `json:"values"`
+	Selected []string `json:"selected"`
 }
 
 // Report represents an automated report
 type Report struct {
 	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
-	Type        string                 `json:"type"` // performance, cost, security, compliance
+	Type        string                 `json:"type"`     // performance, cost, security, compliance
 	Schedule    string                 `json:"schedule"` // daily, weekly, monthly
 	Recipients  []string               `json:"recipients"`
 	Format      string                 `json:"format"` // pdf, html, json
@@ -295,15 +293,14 @@ type Correlation struct {
 	MetricB      string  `json:"metric_b"`
 	Coefficient  float64 `json:"coefficient"`
 	Significance float64 `json:"significance"`
-	Type         string  `json:"type"` // positive, negative, none
+	Type         string  `json:"type"`     // positive, negative, none
 	Strength     string  `json:"strength"` // weak, moderate, strong
 }
 
 // NewNetworkIntelligenceService creates a new network intelligence service
-func NewNetworkIntelligenceService(aiEngine *ai.AIEngine, eventStore *events.EventStore) *NetworkIntelligenceService {
+func NewNetworkIntelligenceService(aiEngine *ai.AIEngine) *NetworkIntelligenceService {
 	service := &NetworkIntelligenceService{
 		aiEngine:        aiEngine,
-		eventStore:      eventStore,
 		anomalyDetector: NewAnomalyDetector(),
 		predictor:       NewNetworkPredictor(),
 		optimizer:       NewResourceOptimizer(),
@@ -313,7 +310,7 @@ func NewNetworkIntelligenceService(aiEngine *ai.AIEngine, eventStore *events.Eve
 
 	// Initialize built-in AI chains
 	service.initializeAIChains()
-	
+
 	return service
 }
 
@@ -371,12 +368,12 @@ func (nis *NetworkIntelligenceService) initializeAIChains() {
 				Template: "Preprocessing network metrics: {input}",
 			},
 			{
-				ID:       "anomaly_detection",
-				Type:     "tool",
-				Tool:     nis.createAnomalyDetectionTool(),
+				ID:   "anomaly_detection",
+				Type: "tool",
+				Tool: nis.createAnomalyDetectionTool(),
 			},
 			{
-				ID:       "root_cause_analysis", 
+				ID:       "root_cause_analysis",
 				Type:     "llm",
 				Template: "Based on the network metrics: {input}, perform root cause analysis. Consider patterns, correlations, and historical data.",
 			},
@@ -395,9 +392,9 @@ func (nis *NetworkIntelligenceService) initializeAIChains() {
 		Description: "Predicts future capacity needs using AI",
 		Steps: []ai.ChainStep{
 			{
-				ID:       "time_series_analysis",
-				Type:     "tool",
-				Tool:     nis.createForecastingTool(),
+				ID:   "time_series_analysis",
+				Type: "tool",
+				Tool: nis.createForecastingTool(),
 			},
 			{
 				ID:       "trend_analysis",
@@ -406,7 +403,7 @@ func (nis *NetworkIntelligenceService) initializeAIChains() {
 			},
 			{
 				ID:       "capacity_recommendations",
-				Type:     "llm", 
+				Type:     "llm",
 				Template: "Based on the capacity analysis: {input}, provide specific recommendations for scaling infrastructure. Include timeline and cost estimates.",
 			},
 		},
@@ -419,14 +416,14 @@ func (nis *NetworkIntelligenceService) initializeAIChains() {
 		Description: "Identifies cost optimization opportunities using ML",
 		Steps: []ai.ChainStep{
 			{
-				ID:       "usage_analysis",
-				Type:     "tool",
-				Tool:     nis.createUsageAnalysisTool(),
+				ID:   "usage_analysis",
+				Type: "tool",
+				Tool: nis.createUsageAnalysisTool(),
 			},
 			{
-				ID:       "cost_modeling",
-				Type:     "tool",
-				Tool:     nis.createCostModelingTool(),
+				ID:   "cost_modeling",
+				Type: "tool",
+				Tool: nis.createCostModelingTool(),
 			},
 			{
 				ID:       "optimization_engine",
@@ -434,9 +431,9 @@ func (nis *NetworkIntelligenceService) initializeAIChains() {
 				Template: "Analyze the following cost data: {input}. Identify optimization opportunities focusing on right-sizing, reserved instances, and unused resources.",
 			},
 			{
-				ID:       "roi_calculation",
-				Type:     "tool",
-				Tool:     nis.createROICalculationTool(),
+				ID:   "roi_calculation",
+				Type: "tool",
+				Tool: nis.createROICalculationTool(),
 			},
 		},
 	}
@@ -450,7 +447,7 @@ func (nis *NetworkIntelligenceService) initializeAIChains() {
 // AnalyzeNetworkPerformance analyzes network performance using AI
 func (nis *NetworkIntelligenceService) AnalyzeNetworkPerformance(ctx context.Context, metrics map[string]interface{}) (*ai.AIResponse, error) {
 	metricsJSON, _ := json.Marshal(metrics)
-	
+
 	request := &ai.AIRequest{
 		ChainID:   "network_analysis",
 		Input:     string(metricsJSON),
@@ -464,7 +461,7 @@ func (nis *NetworkIntelligenceService) AnalyzeNetworkPerformance(ctx context.Con
 // PredictCapacityNeeds predicts future capacity requirements
 func (nis *NetworkIntelligenceService) PredictCapacityNeeds(ctx context.Context, historicalData []map[string]interface{}) (*ai.AIResponse, error) {
 	dataJSON, _ := json.Marshal(historicalData)
-	
+
 	request := &ai.AIRequest{
 		ChainID:   "capacity_planning",
 		Input:     string(dataJSON),
@@ -478,7 +475,7 @@ func (nis *NetworkIntelligenceService) PredictCapacityNeeds(ctx context.Context,
 // OptimizeCosts finds cost optimization opportunities
 func (nis *NetworkIntelligenceService) OptimizeCosts(ctx context.Context, resourceData map[string]interface{}) (*ai.AIResponse, error) {
 	resourceJSON, _ := json.Marshal(resourceData)
-	
+
 	request := &ai.AIRequest{
 		ChainID:   "cost_optimization",
 		Input:     string(resourceJSON),
@@ -512,10 +509,10 @@ func (nis *NetworkIntelligenceService) DetectAnomalies(ctx context.Context, metr
 	anomalies := make([]*AnomalyDetection, 0)
 	for i, value := range values {
 		anomalyScore := nis.calculateAnomalyScore(value, model.Baseline)
-		
+
 		if anomalyScore > model.Sensitivity {
 			severity := nis.classifySeverity(anomalyScore)
-			
+
 			anomaly := &AnomalyDetection{
 				Timestamp:     time.Now().Add(-time.Duration(len(values)-i) * time.Minute),
 				MetricName:    metricName,
@@ -526,7 +523,7 @@ func (nis *NetworkIntelligenceService) DetectAnomalies(ctx context.Context, metr
 				Severity:      severity,
 				Context:       make(map[string]interface{}),
 			}
-			
+
 			anomalies = append(anomalies, anomaly)
 			model.History = append(model.History, *anomaly)
 		}
@@ -583,7 +580,7 @@ func (nis *NetworkIntelligenceService) calculateAnomalyScore(value float64, base
 
 	// Z-score based anomaly detection
 	zScore := math.Abs(value-baseline.Mean) / baseline.StdDev
-	
+
 	// Convert to probability (higher score = more anomalous)
 	return 1.0 - math.Exp(-zScore/2.0)
 }
@@ -593,15 +590,15 @@ func (nis *NetworkIntelligenceService) percentile(sortedValues []float64, p floa
 	if len(sortedValues) == 0 {
 		return 0
 	}
-	
+
 	index := p * float64(len(sortedValues)-1)
 	lower := int(math.Floor(index))
 	upper := int(math.Ceil(index))
-	
+
 	if lower == upper {
 		return sortedValues[lower]
 	}
-	
+
 	weight := index - float64(lower)
 	return sortedValues[lower]*(1-weight) + sortedValues[upper]*weight
 }

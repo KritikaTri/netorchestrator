@@ -23,7 +23,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-    "strings"
+	"strings"
 	"syscall"
 	"time"
 
@@ -39,7 +39,6 @@ import (
 	"netorchestrator/internal/api"
 	"netorchestrator/internal/automation"
 	"netorchestrator/internal/config"
-	"netorchestrator/internal/events"
 	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/nlp"
 	"netorchestrator/internal/optimization"
@@ -100,35 +99,7 @@ func main() {
 		logger.Fatal("Failed to connect to cache", zap.Error(err))
 	}
 
-	// Initialize event publisher (NATS)
-	var eventPublisher *events.EventPublisher
-	var eventSubscriber *events.EventSubscriber
-	natsURL := os.Getenv("NATS_URL")
-	if natsURL == "" {
-		natsURL = cfg.NATS.URL
-	}
-	if natsURL == "" {
-		natsURL = "nats://localhost:4222" // default
-	}
-	
-	eventPublisher, err = events.NewEventPublisher(natsURL, logger)
-	if err != nil {
-		logger.Warn("Failed to connect to NATS (publisher), events will be disabled", zap.Error(err))
-		eventPublisher = nil // Continue without events
-	} else {
-		logger.Info("Connected to NATS (publisher)", zap.String("url", natsURL))
-		defer eventPublisher.Close()
-	}
-
-	// Initialize event subscriber (same NATS connection)
-	eventSubscriber, err = events.NewEventSubscriber(natsURL, logger)
-	if err != nil {
-		logger.Warn("Failed to connect to NATS (subscriber), event subscriptions will be disabled", zap.Error(err))
-		eventSubscriber = nil
-	} else {
-		logger.Info("Connected to NATS (subscriber)", zap.String("url", natsURL))
-		defer eventSubscriber.Close()
-	}
+	// Events system removed - not needed for core functionality
 
 	// Initialize monitoring
 	monitor, err := monitoring.NewPrometheus()
@@ -146,25 +117,11 @@ func main() {
 	go wsHub.Run()
 
 	// Initialize services
-	networkService := services.NewNetworkService(db.GetDB(), cacheClient.Client, logger, eventPublisher)
-	monitoringService := services.NewMonitoringService(db.GetDB(), cacheClient.Client, logger, eventSubscriber, wsHub)
+	networkService := services.NewNetworkService(db.GetDB(), cacheClient.Client, logger)
+	monitoringService := services.NewMonitoringService(db.GetDB(), cacheClient.Client, logger, wsHub)
 	orchestrationService := services.NewOrchestrationService(db.GetDB(), cacheClient.Client, logger)
 	validationService := services.NewValidationService(db.GetDB(), cacheClient.Client, logger)
 	eventService := services.NewEventService(wsHub, logger)
-
-	// Initialize provisioning service
-	provisioningService := services.NewProvisioningService(db.GetDB(), logger, eventSubscriber)
-
-	// Start event-driven services in background
-	if eventSubscriber != nil {
-		ctx := context.Background()
-		if err := provisioningService.Start(ctx); err != nil {
-			logger.Warn("Failed to start provisioning service", zap.Error(err))
-		}
-		if err := monitoringService.Start(ctx); err != nil {
-			logger.Warn("Failed to start monitoring service", zap.Error(err))
-		}
-	}
 
 	// Initialize security system
 	securityManager := security.NewSecurityManager(cfg.Security.JWTSecret)
@@ -175,8 +132,7 @@ func main() {
 
 	// Initialize AI engine and intelligence services
 	aiEngine := ai.NewAIEngine()
-	eventStore := events.NewEventStore()
-	intelligenceService := intelligence.NewNetworkIntelligenceService(aiEngine, eventStore)
+	intelligenceService := intelligence.NewNetworkIntelligenceService(aiEngine)
 	intelligenceHandlers := intelligence.NewIntelligenceHandlers(intelligenceService)
 
 	// Initialize optimization service
@@ -204,7 +160,7 @@ func main() {
 	apiHandlers.SetWSHub(wsHub)
 
 	// Setup Gin router
-    router := setupRouter(apiHandlers, authHandlers, securityManager, monitor, wsHub, cfg.Security, optimizationHandlers, nlpHandlers)
+	router := setupRouter(apiHandlers, authHandlers, securityManager, monitor, wsHub, cfg.Security, optimizationHandlers, nlpHandlers)
 
 	// Start server
 	server := &http.Server{
@@ -276,12 +232,12 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 	router.Use(securityManager.SecurityHeadersMiddleware())
 	router.Use(securityManager.RateLimitMiddleware())
 	router.Use(prometheus.GinMiddleware())
-    router.Use(corsMiddleware(secCfg))
+	router.Use(corsMiddleware(secCfg))
 
 	// Health check endpoint
 	router.GET("/health", handlers.HealthCheck)
-    // Readiness endpoint
-    router.GET("/ready", handlers.ReadyCheck)
+	// Readiness endpoint
+	router.GET("/ready", handlers.ReadyCheck)
 
 	// Test endpoint for WebSocket event (no auth required for testing)
 	router.POST("/test/ws-event", handlers.TestWebSocketEvent)
@@ -319,7 +275,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 
 		// Protected routes (JWT or API Key authentication)
 		protected := v1.Group("/")
-        protected.Use(securityManager.CombinedAuthMiddleware())
+		protected.Use(securityManager.CombinedAuthMiddleware())
 		{
 			// Network management
 			networks := protected.Group("/networks")
@@ -381,17 +337,17 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				monitoring.GET("/nodes/:id/metrics", handlers.GetNodeMetrics)
 				monitoring.GET("/nodes/:id/health", handlers.GetNodeHealth)
 				monitoring.GET("/events", handlers.ListEvents)
-			monitoring.GET("/alerts", handlers.ListAlerts)
-			monitoring.POST("/alerts/:id/acknowledge", handlers.AcknowledgeAlert)
-			monitoring.POST("/alerts/:id/resolve", handlers.ResolveAlert)
-			monitoring.GET("/alert-rules", handlers.ListAlertRules)
-			monitoring.GET("/alert-rules/:id", handlers.GetAlertRule)
-			monitoring.POST("/alert-rules", handlers.CreateAlertRule)
-			monitoring.PUT("/alert-rules/:id", handlers.UpdateAlertRule)
-			monitoring.DELETE("/alert-rules/:id", handlers.DeleteAlertRule)
-			monitoring.GET("/notification-channels", handlers.ListNotificationChannels)
-			monitoring.POST("/notification-channels", handlers.CreateNotificationChannel)
-			monitoring.DELETE("/notification-channels/:id", handlers.DeleteNotificationChannel)
+				monitoring.GET("/alerts", handlers.ListAlerts)
+				monitoring.POST("/alerts/:id/acknowledge", handlers.AcknowledgeAlert)
+				monitoring.POST("/alerts/:id/resolve", handlers.ResolveAlert)
+				monitoring.GET("/alert-rules", handlers.ListAlertRules)
+				monitoring.GET("/alert-rules/:id", handlers.GetAlertRule)
+				monitoring.POST("/alert-rules", handlers.CreateAlertRule)
+				monitoring.PUT("/alert-rules/:id", handlers.UpdateAlertRule)
+				monitoring.DELETE("/alert-rules/:id", handlers.DeleteAlertRule)
+				monitoring.GET("/notification-channels", handlers.ListNotificationChannels)
+				monitoring.POST("/notification-channels", handlers.CreateNotificationChannel)
+				monitoring.DELETE("/notification-channels/:id", handlers.DeleteNotificationChannel)
 			}
 
 			// User management
@@ -411,18 +367,18 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 			// AI Intelligence endpoints
 			intelligence := protected.Group("/intelligence")
 			{
-			// Detailed routes
+				// Detailed routes
 				intelligence.POST("/analyze/network", handlers.IntelligenceHandlers.AnalyzeNetwork)
 				intelligence.POST("/predict/capacity", handlers.IntelligenceHandlers.PredictCapacity)
 				intelligence.POST("/optimize/costs", handlers.IntelligenceHandlers.OptimizeCosts)
 				intelligence.POST("/detect/anomalies", handlers.IntelligenceHandlers.DetectAnomalies)
-			
-			// Simplified aliases for backward compatibility
-			intelligence.POST("/analyze", handlers.IntelligenceHandlers.AnalyzeNetwork)
-			intelligence.POST("/predict", handlers.IntelligenceHandlers.PredictCapacity)
-			intelligence.POST("/optimize", handlers.IntelligenceHandlers.OptimizeCosts)
-			
-			// Model and insights endpoints
+
+				// Simplified aliases for backward compatibility
+				intelligence.POST("/analyze", handlers.IntelligenceHandlers.AnalyzeNetwork)
+				intelligence.POST("/predict", handlers.IntelligenceHandlers.PredictCapacity)
+				intelligence.POST("/optimize", handlers.IntelligenceHandlers.OptimizeCosts)
+
+				// Model and insights endpoints
 				intelligence.GET("/models", handlers.IntelligenceHandlers.GetMLModels)
 				intelligence.GET("/chains", handlers.IntelligenceHandlers.GetAIChains)
 				intelligence.GET("/insights", handlers.IntelligenceHandlers.GetInsights)
@@ -450,29 +406,29 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 // corsMiddleware adds CORS headers
 func corsMiddleware(secCfg config.SecurityConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-        if !secCfg.EnableCORS {
-            c.Next()
-            return
-        }
+		if !secCfg.EnableCORS {
+			c.Next()
+			return
+		}
 
-        origin := "*"
-        methods := "GET, POST, PUT, DELETE, OPTIONS"
-        headers := "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-API-Key"
+		origin := "*"
+		methods := "GET, POST, PUT, DELETE, OPTIONS"
+		headers := "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-API-Key"
 
-        if len(secCfg.AllowedOrigins) > 0 {
-            // In simple CORS, one value; for multiple, consider echoing request origin if in list
-            origin = secCfg.AllowedOrigins[0]
-        }
-        if len(secCfg.AllowedMethods) > 0 {
-            methods = strings.Join(secCfg.AllowedMethods, ", ")
-        }
-        if len(secCfg.AllowedHeaders) > 0 {
-            headers = strings.Join(secCfg.AllowedHeaders, ", ")
-        }
+		if len(secCfg.AllowedOrigins) > 0 {
+			// In simple CORS, one value; for multiple, consider echoing request origin if in list
+			origin = secCfg.AllowedOrigins[0]
+		}
+		if len(secCfg.AllowedMethods) > 0 {
+			methods = strings.Join(secCfg.AllowedMethods, ", ")
+		}
+		if len(secCfg.AllowedHeaders) > 0 {
+			headers = strings.Join(secCfg.AllowedHeaders, ", ")
+		}
 
-        c.Header("Access-Control-Allow-Origin", origin)
-        c.Header("Access-Control-Allow-Methods", methods)
-        c.Header("Access-Control-Allow-Headers", headers)
+		c.Header("Access-Control-Allow-Origin", origin)
+		c.Header("Access-Control-Allow-Methods", methods)
+		c.Header("Access-Control-Allow-Headers", headers)
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)

@@ -3,32 +3,28 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"netorchestrator/internal/events"
 	"netorchestrator/internal/models"
 )
 
 // NetworkService handles network-related operations
 type NetworkService struct {
-	db             *gorm.DB
-	cache          *redis.Client
-	logger         *zap.Logger
-	eventPublisher *events.EventPublisher
+	db     *gorm.DB
+	cache  *redis.Client
+	logger *zap.Logger
 }
 
 // NewNetworkService creates a new network service
-func NewNetworkService(db *gorm.DB, cache *redis.Client, logger *zap.Logger, eventPublisher *events.EventPublisher) *NetworkService {
+func NewNetworkService(db *gorm.DB, cache *redis.Client, logger *zap.Logger) *NetworkService {
 	return &NetworkService{
-		db:             db,
-		cache:          cache,
-		logger:         logger,
-		eventPublisher: eventPublisher,
+		db:     db,
+		cache:  cache,
+		logger: logger,
 	}
 }
 
@@ -45,22 +41,6 @@ func (s *NetworkService) CreateNetwork(ctx context.Context, network *models.Netw
 	}
 
 	s.logger.Info("Network created successfully", zap.String("network_id", network.ID.String()))
-
-	// Publish network created event
-	if s.eventPublisher != nil {
-		event := events.NetworkCreatedEvent{
-			NetworkID: network.ID.String(),
-			UserID:    network.UserID.String(),
-			Name:      network.Name,
-			Timestamp: time.Now().UTC().Format(time.RFC3339),
-		}
-		if err := s.eventPublisher.Publish("network.created", event); err != nil {
-			s.logger.Warn("Failed to publish network.created event", zap.Error(err))
-		} else {
-			s.logger.Info("Published network.created event", zap.String("network_id", network.ID.String()))
-		}
-	}
-
 	return nil
 }
 
@@ -128,20 +108,6 @@ func (s *NetworkService) UpdateNetwork(ctx context.Context, network *models.Netw
 
 	s.logger.Info("Network updated successfully", zap.String("network_id", network.ID.String()))
 
-	// Publish topology updated event
-	if s.eventPublisher != nil {
-		event := events.TopologyUpdatedEvent{
-			NetworkID:  network.ID.String(),
-			ChangeType: "config_changed",
-			Timestamp:  time.Now().UTC().Format(time.RFC3339),
-		}
-		if err := s.eventPublisher.Publish("topology.updated", event); err != nil {
-			s.logger.Warn("Failed to publish topology.updated event", zap.Error(err))
-		} else {
-			s.logger.Info("Published topology.updated event", zap.String("network_id", network.ID.String()), zap.String("change_type", "config_changed"))
-		}
-	}
-
 	return nil
 }
 
@@ -164,19 +130,6 @@ func (s *NetworkService) CreateNode(ctx context.Context, node *models.Node) erro
 	}
 
 	s.logger.Info("Node created successfully", zap.String("node_id", node.ID.String()))
-
-	// Publish topology updated event
-	if s.eventPublisher != nil {
-		event := events.TopologyUpdatedEvent{
-			NetworkID:  node.NetworkID.String(),
-			ChangeType: "node_added",
-			Timestamp:  time.Now().UTC().Format(time.RFC3339),
-		}
-		if err := s.eventPublisher.Publish("topology.updated", event); err != nil {
-			s.logger.Warn("Failed to publish topology.updated event", zap.Error(err))
-		}
-	}
-
 	return nil
 }
 
@@ -329,10 +282,10 @@ func (s *NetworkService) GetPolicy(ctx context.Context, id uuid.UUID) (*models.P
 // ListPolicies retrieves all policies for a network
 func (s *NetworkService) ListPolicies(ctx context.Context, networkID uuid.UUID) ([]models.Policy, error) {
 	var policies []models.Policy
-    if err := s.db.WithContext(ctx).
-        Select("id, network_id, name, policy_type, status, created_at, updated_at").
-        Where("network_id = ?", networkID).
-        Find(&policies).Error; err != nil {
+	if err := s.db.WithContext(ctx).
+		Select("id, network_id, name, policy_type, status, created_at, updated_at").
+		Where("network_id = ?", networkID).
+		Find(&policies).Error; err != nil {
 		s.logger.Error("Failed to list policies", zap.Error(err))
 		return nil, fmt.Errorf("failed to list policies: %w", err)
 	}
@@ -343,10 +296,10 @@ func (s *NetworkService) ListPolicies(ctx context.Context, networkID uuid.UUID) 
 // ListAllPolicies retrieves all policies across all networks
 func (s *NetworkService) ListAllPolicies(ctx context.Context) ([]models.Policy, error) {
 	var policies []models.Policy
-    if err := s.db.WithContext(ctx).
-        Select("id, network_id, name, policy_type, status, created_at, updated_at").
-        Preload("Network").
-        Find(&policies).Error; err != nil {
+	if err := s.db.WithContext(ctx).
+		Select("id, network_id, name, policy_type, status, created_at, updated_at").
+		Preload("Network").
+		Find(&policies).Error; err != nil {
 		s.logger.Error("Failed to list all policies", zap.Error(err))
 		return nil, fmt.Errorf("failed to list all policies: %w", err)
 	}
