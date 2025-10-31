@@ -1,0 +1,1440 @@
+{
+  "info": {
+    "name": "NetOrchestrator - Complete API Collection",
+    "description": "Complete Postman collection for all 92 working NetOrchestrator API endpoints after cleanup. Includes authentication, networks, nodes, AI intelligence, monitoring, automation, and more.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "3.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Auto-login script to get JWT token",
+          "if (!pm.globals.get('jwt_token') || pm.globals.get('token_expires') < Date.now()) {",
+          "    const loginRequest = {",
+          "        url: pm.environment.get('base_url') + '/api/v1/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({",
+          "                username: pm.environment.get('admin_username') || 'admin',",
+          "                password: pm.environment.get('admin_password') || 'admin123'",
+          "            })",
+          "        }",
+          "    };",
+          "    pm.sendRequest(loginRequest, function (err, response) {",
+          "        if (!err && response.code === 200) {",
+          "            const jsonData = response.json();",
+          "            pm.globals.set('jwt_token', jsonData.access_token);",
+          "            pm.globals.set('token_expires', Date.now() + (jsonData.expires_in * 1000));",
+          "            console.log('✅ Auto-login successful');",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication & Security (8 endpoints)",
+      "item": [
+        {
+          "name": "Login (Get JWT Token)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/refresh"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/profile"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST", 
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/logout"
+          }
+        },
+        {
+          "name": "Create API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My API Key\",\n  \"permissions\": [\"read:networks\", \"read:metrics\"]\n}"
+            },
+            "url": "{{base_url}}/api/v1/auth/api-keys"
+          }
+        },
+        {
+          "name": "List API Keys",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/api-keys"
+          }
+        },
+        {
+          "name": "Revoke API Key",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/api-keys/sample-key-id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌐 Network Management (15 endpoints)",
+      "item": [
+        {
+          "name": "List Networks",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks"
+          }
+        },
+        {
+          "name": "Create Network",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Network\",\n  \"description\": \"Network created via Postman\",\n  \"network_type\": \"development\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/networks"
+          }
+        },
+        {
+          "name": "Get Network Details",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}"
+          }
+        },
+        {
+          "name": "Update Network",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Network Name\",\n  \"description\": \"Updated via Postman\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}"
+          }
+        },
+        {
+          "name": "Delete Network",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}"
+          }
+        },
+        {
+          "name": "Start Network",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/start"
+          }
+        },
+        {
+          "name": "Stop Network", 
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/stop"
+          }
+        },
+        {
+          "name": "Restart Network",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/restart"
+          }
+        },
+        {
+          "name": "List Nodes in Network",
+          "request": {
+            "method": "GET", 
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/nodes"
+          }
+        },
+        {
+          "name": "Create Node in Network",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Web Server\",\n  \"node_type\": \"server\",\n  \"ip_address\": \"192.168.1.100\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/nodes"
+          }
+        },
+        {
+          "name": "List Links in Network",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/links"
+          }
+        },
+        {
+          "name": "Create Link in Network",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Connection\",\n  \"link_type\": \"ethernet\",\n  \"bandwidth\": \"1Gbps\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/links"
+          }
+        },
+        {
+          "name": "List Policies in Network",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/policies"
+          }
+        },
+        {
+          "name": "Create Policy in Network",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Security Policy\",\n  \"policy_type\": \"firewall\",\n  \"rules\": [\"ALLOW 80/tcp\", \"DENY ALL\"],\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/networks/{{sample_network_id}}/policies"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Node Management (9 endpoints)",
+      "item": [
+        {
+          "name": "List All Nodes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/nodes"
+          }
+        },
+        {
+          "name": "Create Node Directly",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{sample_network_id}}\",\n  \"name\": \"Database Server\",\n  \"node_type\": \"database\",\n  \"ip_address\": \"192.168.1.200\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/nodes"
+          }
+        },
+        {
+          "name": "Get Node Details",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/nodes/{{sample_node_id}}"
+          }
+        },
+        {
+          "name": "Update Node",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Node Name\",\n  \"status\": \"maintenance\",\n  \"ip_address\": \"192.168.1.201\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/nodes/{{sample_node_id}}"
+          }
+        },
+        {
+          "name": "Delete Node",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/nodes/{{sample_node_id}}"
+          }
+        },
+        {
+          "name": "Start Node",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/nodes/{{sample_node_id}}/start"
+          }
+        },
+        {
+          "name": "Stop Node",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/nodes/{{sample_node_id}}/stop"
+          }
+        },
+        {
+          "name": "Restart Node",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/nodes/{{sample_node_id}}/restart"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔗 Link Management (4 endpoints)",
+      "item": [
+        {
+          "name": "Get Link Details",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/links/sample-link-id"
+          }
+        },
+        {
+          "name": "Update Link",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Link\",\n  \"bandwidth\": \"10Gbps\",\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/links/sample-link-id"
+          }
+        },
+        {
+          "name": "Delete Link",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/links/sample-link-id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Policy Management (5 endpoints)",
+      "item": [
+        {
+          "name": "List All Policies",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/policies"
+          }
+        },
+        {
+          "name": "Create Global Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Global Security Policy\",\n  \"policy_type\": \"security\",\n  \"rules\": [\"DENY 22/tcp\", \"ALLOW 443/tcp\"],\n  \"enabled\": true\n}"
+            },
+            "url": "{{base_url}}/api/v1/policies"
+          }
+        },
+        {
+          "name": "Get Policy Details",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/policies/sample-policy-id"
+          }
+        },
+        {
+          "name": "Update Policy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw", 
+              "raw": "{\n  \"name\": \"Updated Security Policy\",\n  \"enabled\": false\n}"
+            },
+            "url": "{{base_url}}/api/v1/policies/sample-policy-id"
+          }
+        },
+        {
+          "name": "Delete Policy",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/policies/sample-policy-id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Monitoring & Metrics (16 endpoints)",
+      "item": [
+        {
+          "name": "Network Monitoring",
+          "item": [
+            {
+              "name": "Get Network Metrics",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/networks/{{sample_network_id}}/metrics"
+              }
+            },
+            {
+              "name": "Get Network Health",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/networks/{{sample_network_id}}/health"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Node Monitoring",
+          "item": [
+            {
+              "name": "Get Node Metrics",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/nodes/{{sample_node_id}}/metrics"
+              }
+            },
+            {
+              "name": "Get Node Health",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/nodes/{{sample_node_id}}/health"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Events & Alerts",
+          "item": [
+            {
+              "name": "List System Events",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/events"
+              }
+            },
+            {
+              "name": "List Active Alerts",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alerts"
+              }
+            },
+            {
+              "name": "Acknowledge Alert",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alerts/sample-alert-id/acknowledge"
+              }
+            },
+            {
+              "name": "Resolve Alert",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alerts/sample-alert-id/resolve"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Alert Rules",
+          "item": [
+            {
+              "name": "List Alert Rules",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules"
+              }
+            },
+            {
+              "name": "Get Alert Rule",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules/sample-rule-id"
+              }
+            },
+            {
+              "name": "Create Alert Rule",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"High Disk Usage\",\n  \"description\": \"Alert when disk usage exceeds 85%\",\n  \"condition\": \"disk_usage > 85\",\n  \"severity\": \"warning\",\n  \"enabled\": true\n}"
+                },
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules"
+              }
+            },
+            {
+              "name": "Update Alert Rule",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"severity\": \"critical\",\n  \"condition\": \"disk_usage > 95\"\n}"
+                },
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules/sample-rule-id"
+              }
+            },
+            {
+              "name": "Delete Alert Rule",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules/sample-rule-id"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notification Channels",
+          "item": [
+            {
+              "name": "List Notification Channels",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/notification-channels"
+              }
+            },
+            {
+              "name": "Create Notification Channel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"DevOps Slack\",\n  \"type\": \"slack\",\n  \"enabled\": true,\n  \"config\": {\n    \"webhook_url\": \"https://hooks.slack.com/services/...\",\n    \"channel\": \"#alerts\"\n  }\n}"
+                },
+                "url": "{{base_url}}/api/v1/monitoring/notification-channels"
+              }
+            },
+            {
+              "name": "Delete Notification Channel",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/notification-channels/sample-channel-id"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "👥 User Management (6 endpoints)",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users/profile"
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"updated@example.com\",\n  \"display_name\": \"Updated Name\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/users/profile"
+          }
+        },
+        {
+          "name": "List Users (Admin Only)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users"
+          }
+        },
+        {
+          "name": "Create User (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"roles\": [\"user\"]\n}"
+            },
+            "url": "{{base_url}}/api/v1/users"
+          }
+        },
+        {
+          "name": "Update User (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"updated@example.com\",\n  \"roles\": [\"user\", \"admin\"]\n}"
+            },
+            "url": "{{base_url}}/api/v1/users/sample-user-id"
+          }
+        },
+        {
+          "name": "Delete User (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users/sample-user-id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Intelligence (8 endpoints)",
+      "item": [
+        {
+          "name": "Network Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metrics\": {\n    \"latency\": 45,\n    \"throughput\": 1000,\n    \"packet_loss\": 0.1,\n    \"cpu_usage\": 75\n  },\n  \"time_range\": \"1h\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/analyze/network"
+          }
+        },
+        {
+          "name": "Capacity Prediction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"historical_data\": [\n    {\"timestamp\": \"2025-10-30\", \"cpu\": 60, \"memory\": 70},\n    {\"timestamp\": \"2025-10-31\", \"cpu\": 75, \"memory\": 80}\n  ],\n  \"forecast_period\": \"7d\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/predict/capacity"
+          }
+        },
+        {
+          "name": "Cost Optimization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resources\": {\n    \"instances\": 10,\n    \"storage\": \"500GB\",\n    \"bandwidth\": \"1Gbps\"\n  },\n  \"budget_constraint\": 5000,\n  \"optimization_goal\": \"minimize_cost\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/optimize/costs"
+          }
+        },
+        {
+          "name": "Anomaly Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metrics\": {\n    \"latency\": [20, 25, 30, 150, 25],\n    \"cpu\": [60, 65, 70, 95, 68]\n  },\n  \"sensitivity\": 0.95\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/detect/anomalies"
+          }
+        },
+        {
+          "name": "Analyze (Alias)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metrics\": {\"latency\": 45, \"throughput\": 1000},\n  \"time_range\": \"1h\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/analyze"
+          }
+        },
+        {
+          "name": "Predict (Alias)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"historical_data\": [{\"cpu\": 60}],\n  \"forecast_period\": \"7d\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/predict"
+          }
+        },
+        {
+          "name": "Optimize (Alias)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resources\": {\"instances\": 5},\n  \"optimization_goal\": \"minimize_cost\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/optimize"
+          }
+        },
+        {
+          "name": "Get ML Models",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/intelligence/models"
+          }
+        },
+        {
+          "name": "Get AI Chains",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/intelligence/chains"
+          }
+        },
+        {
+          "name": "Get AI Insights",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/intelligence/insights"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Network Optimization (3 endpoints)",
+      "item": [
+        {
+          "name": "Analyze Network for Optimization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metrics\": {\n    \"latency\": 120,\n    \"throughput\": 800,\n    \"error_rate\": 0.05\n  },\n  \"constraints\": {\n    \"budget\": 10000,\n    \"max_latency\": 100\n  }\n}"
+            },
+            "url": "{{base_url}}/api/v1/optimization/analyze/{{sample_network_id}}"
+          }
+        },
+        {
+          "name": "Recommend Topology Changes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_topology\": {\n    \"nodes\": 5,\n    \"links\": 8,\n    \"bottlenecks\": [\"node_3\", \"link_2\"]\n  },\n  \"optimization_goals\": [\"reduce_latency\", \"increase_throughput\"]\n}"
+            },
+            "url": "{{base_url}}/api/v1/optimization/recommend/{{sample_network_id}}"
+          }
+        },
+        {
+          "name": "Validate Configuration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"configuration\": {\n    \"subnet\": \"192.168.1.0/24\",\n    \"gateway\": \"192.168.1.1\",\n    \"dns\": [\"8.8.8.8\", \"8.8.4.4\"]\n  },\n  \"validation_rules\": [\"ip_conflicts\", \"subnet_overlap\"]\n}"
+            },
+            "url": "{{base_url}}/api/v1/optimization/validate/{{sample_network_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 Automation & Workflows (13 endpoints)",
+      "item": [
+        {
+          "name": "Workflow Management",
+          "item": [
+            {
+              "name": "List Workflows",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/workflows"
+              }
+            },
+            {
+              "name": "Create Workflow",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Network Deployment Workflow\",\n  \"description\": \"Automated network provisioning and configuration\",\n  \"tasks\": [\n    {\n      \"id\": \"validate_config\",\n      \"name\": \"Validate Configuration\",\n      \"type\": \"validation\",\n      \"action\": \"{\\\"type\\\": \\\"condition\\\", \\\"conditions\\\": [{\\\"field\\\": \\\"network_cidr\\\", \\\"operator\\\": \\\"exists\\\"}]}\"\n    },\n    {\n      \"id\": \"provision_network\",\n      \"name\": \"Provision Network\",\n      \"type\": \"network_provision\",\n      \"dependencies\": [\"validate_config\"],\n      \"action\": \"{\\\"network_type\\\": \\\"production\\\", \\\"auto_start\\\": true}\"\n    }\n  ],\n  \"enabled\": true\n}"
+                },
+                "url": "{{base_url}}/api/v1/automation/workflows"
+              }
+            },
+            {
+              "name": "Get Workflow",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/workflows/{{workflow_id}}"
+              }
+            },
+            {
+              "name": "Update Workflow",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Workflow Name\",\n  \"enabled\": false\n}"
+                },
+                "url": "{{base_url}}/api/v1/automation/workflows/{{workflow_id}}"
+              }
+            },
+            {
+              "name": "Delete Workflow",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/workflows/{{workflow_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Execution Management", 
+          "item": [
+            {
+              "name": "Execute Workflow",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"variables\": {\n    \"network_cidr\": \"10.0.0.0/16\",\n    \"environment\": \"staging\"\n  },\n  \"dry_run\": false\n}"
+                },
+                "url": "{{base_url}}/api/v1/automation/workflows/{{workflow_id}}/execute"
+              }
+            },
+            {
+              "name": "List Workflow Executions",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/workflows/{{workflow_id}}/executions"
+              }
+            },
+            {
+              "name": "Get Execution Details",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/executions/{{execution_id}}"
+              }
+            },
+            {
+              "name": "Cancel Execution",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/executions/{{execution_id}}/cancel"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Task Management",
+          "item": [
+            {
+              "name": "Get Execution Tasks",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/executions/{{execution_id}}/tasks"
+              }
+            },
+            {
+              "name": "Get Task Execution",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/tasks/{{task_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Templates & Resources",
+          "item": [
+            {
+              "name": "List Workflow Templates",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/templates"
+              }
+            },
+            {
+              "name": "Get Workflow Template",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/templates/network_provisioning"
+              }
+            },
+            {
+              "name": "List Available Executors",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/automation/executors"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🧠 NLP & AI Provisioning (1 endpoint)",
+      "item": [
+        {
+          "name": "Natural Language Provisioning",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request\": \"Create a development network with 3 web servers, 1 database server, and a load balancer. Use 192.168.100.0/24 subnet.\",\n  \"context\": {\n    \"environment\": \"development\",\n    \"region\": \"us-west-2\"\n  }\n}"
+            },
+            "url": "{{base_url}}/api/v1/ai/provision"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 System & Utility (4 endpoints)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/ready"
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/metrics"
+          }
+        },
+        {
+          "name": "API Documentation",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/swagger/index.html"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Complete Test Workflow",
+      "item": [
+        {
+          "name": "1. System Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('System is healthy', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json()).to.have.property('status', 'healthy');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Login and Get Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('access_token');",
+                  "    pm.globals.set('jwt_token', jsonData.access_token);",
+                  "    pm.globals.set('user_id', jsonData.user.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Test Network Management",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/networks"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Networks retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('networks');",
+                  "    pm.expect(jsonData.count).to.be.greaterThan(0);",
+                  "    if (jsonData.networks.length > 0) {",
+                  "        pm.globals.set('test_network_id', jsonData.networks[0].id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Test AI Intelligence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metrics\": {\n    \"latency\": 45,\n    \"throughput\": 1000\n  },\n  \"time_range\": \"1h\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/intelligence/analyze/network"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('AI analysis successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData).to.have.property('confidence');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Test Monitoring",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/monitoring/networks/{{test_network_id}}/metrics"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Network metrics retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('metrics');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Test Automation Templates",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/automation/templates"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Templates available', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('templates');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📊 Monitoring & Metrics (16 endpoints)",
+      "item": [
+        {
+          "name": "Network Monitoring",
+          "item": [
+            {
+              "name": "Get Network Metrics",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/networks/{{test_network_id}}/metrics"
+              }
+            },
+            {
+              "name": "Get Network Health",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/networks/{{test_network_id}}/health"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Node Monitoring",
+          "item": [
+            {
+              "name": "Get Node Metrics",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/nodes/sample-node-id/metrics"
+              }
+            },
+            {
+              "name": "Get Node Health",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/nodes/sample-node-id/health"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Events & Alerts",
+          "item": [
+            {
+              "name": "List System Events",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/events"
+              }
+            },
+            {
+              "name": "List Active Alerts",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alerts"
+              }
+            },
+            {
+              "name": "Acknowledge Alert",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alerts/sample-alert-id/acknowledge"
+              }
+            },
+            {
+              "name": "Resolve Alert",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alerts/sample-alert-id/resolve"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Alert Rules",
+          "item": [
+            {
+              "name": "List Alert Rules",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules"
+              }
+            },
+            {
+              "name": "Get Alert Rule",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules/sample-rule-id"
+              }
+            },
+            {
+              "name": "Create Alert Rule",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"High Network Latency\",\n  \"description\": \"Alert when latency > 200ms\",\n  \"condition\": \"latency > 200\",\n  \"severity\": \"warning\",\n  \"enabled\": true\n}"
+                },
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules"
+              }
+            },
+            {
+              "name": "Update Alert Rule",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"severity\": \"critical\",\n  \"condition\": \"latency > 500\"\n}"
+                },
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules/sample-rule-id"
+              }
+            },
+            {
+              "name": "Delete Alert Rule",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/alert-rules/sample-rule-id"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notification Channels",
+          "item": [
+            {
+              "name": "List Notification Channels",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/notification-channels"
+              }
+            },
+            {
+              "name": "Create Notification Channel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"DevOps Slack\",\n  \"type\": \"slack\",\n  \"enabled\": true\n}"
+                },
+                "url": "{{base_url}}/api/v1/monitoring/notification-channels"
+              }
+            },
+            {
+              "name": "Delete Notification Channel",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+                "url": "{{base_url}}/api/v1/monitoring/notification-channels/sample-channel-id"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

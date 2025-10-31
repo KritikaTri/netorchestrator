@@ -327,3 +327,73 @@
 2025/10/31 15:45:29 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
 [0m[33m[1.589ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
 2025/10/31 15:45:33 AUDIT_LOG: {"id":"2a5376b04021930732c3b255bf31b3a9","timestamp":"2025-10-31T15:45:33.729752+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+2025/10/31 15:50:46 AUDIT_LOG: {"id":"f0ef5ac2efcf64b1fed6151fbac25bd6","timestamp":"2025-10-31T15:50:46.532424+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+2025/10/31 15:51:02 AUDIT_LOG: {"id":"7c9b39206a454958b387f6349974329c","timestamp":"2025-10-31T15:51:02.22718+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+
+2025/10/31 15:51:02 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[5.968ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/31 15:51:02 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
+[0m[33m[1.050ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
+2025/10/31 15:51:05 AUDIT_LOG: {"id":"e193513c519359a40d99cc82c248f1ac","timestamp":"2025-10-31T15:51:05.913412+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+
+2025/10/31 15:51:05 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[3.661ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/31 15:51:05 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
+[0m[33m[0.750ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
+
+2025/10/31 15:51:05 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:56
+[0m[33m[4.282ms] [34;1m[rows:0][0m SELECT * FROM "links" WHERE "links"."network_id" = 'ca06b3ba-bc26-4144-b6fb-a2417697ebec' AND "links"."deleted_at" IS NULL
+
+2025/10/31 15:51:05 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:56
+[0m[33m[1.606ms] [34;1m[rows:0][0m SELECT * FROM "nodes" WHERE "nodes"."network_id" = 'ca06b3ba-bc26-4144-b6fb-a2417697ebec' AND "nodes"."deleted_at" IS NULL
+
+2025/10/31 15:51:05 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:56
+[0m[33m[8.805ms] [34;1m[rows:1][0m SELECT * FROM "networks" WHERE id = 'ca06b3ba-bc26-4144-b6fb-a2417697ebec' AND "networks"."deleted_at" IS NULL ORDER BY "networks"."id" LIMIT 1
+2025/10/31 15:51:09 AUDIT_LOG: {"id":"6ccc500cdcdbf28923bdf5da1c2bcfa0","timestamp":"2025-10-31T15:51:09.224478+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+2025/10/31 15:51:12 AUDIT_LOG: {"id":"f61b70e687dedbda3ced84f5a351cdfe","timestamp":"2025-10-31T15:51:12.372333+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+2025/10/31 15:52:38 AUDIT_LOG: {"id":"857a4a6eb87db73ba503c80bee27a6f0","timestamp":"2025-10-31T15:52:38.327058+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+
+2025/10/31 15:52:38 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[2.579ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/31 15:52:38 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
+[0m[33m[1.548ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
+
+2025/10/31 15:52:38 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[1.621ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/31 15:52:38 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:169
+[0m[33m[1.575ms] [34;1m[rows:1][0m SELECT * FROM "networks" WHERE "networks"."id" = '26598e13-8422-4173-860e-a4e9340125c6' AND "networks"."deleted_at" IS NULL
+
+2025/10/31 15:52:38 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:169
+[0m[33m[3.316ms] [34;1m[rows:1][0m SELECT * FROM "nodes" WHERE "nodes"."deleted_at" IS NULL
+2025/10/31 15:56:12 AUDIT_LOG: {"id":"5699d188ab65724007805b30a0f5a746","timestamp":"2025-10-31T15:56:12.432504+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+
+2025/10/31 15:56:12 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[3.334ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/31 15:56:12 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
+[0m[33m[1.025ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
+2025/10/31 16:00:38 AUDIT_LOG: {"id":"bdf0b299b3cb662d16ed764d28daadc1","timestamp":"2025-10-31T16:00:38.929288+05:30","level":"WARNING","action":"security_event","resource":"system","ip_address":"::1","success":false,"error_message":"token is malformed: token contains an invalid number of segments","metadata":{"event_type":"invalid_token"}}
+2025/10/31 16:01:07 AUDIT_LOG: {"id":"2a1d80a053b14b0fdf47e9f6569d90c7","timestamp":"2025-10-31T16:01:07.090684+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+
+2025/10/31 16:02:54 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:176
+[0m[33m[1.106ms] [34;1m[rows:0][0m SELECT * FROM "links" WHERE "links"."source_node_id" = '2a6e313a-a297-479d-8f0a-9328139ef7df' AND "links"."deleted_at" IS NULL
+
+2025/10/31 16:02:54 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:176
+[0m[33m[0.773ms] [34;1m[rows:1][0m SELECT * FROM "networks" WHERE "networks"."id" = '26598e13-8422-4173-860e-a4e9340125c6' AND "networks"."deleted_at" IS NULL
+
+2025/10/31 16:02:54 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:176
+[0m[33m[5.688ms] [34;1m[rows:1][0m SELECT * FROM "nodes" WHERE id = '2a6e313a-a297-479d-8f0a-9328139ef7df' AND "nodes"."deleted_at" IS NULL ORDER BY "nodes"."id" LIMIT 1
+
+2025/10/31 16:04:25 [32m/Users/ayushar3/projects/netorchestrator/internal/services/monitoring.go:220
+[0m[33m[2.235ms] [34;1m[rows:1][0m SELECT 1
+2025/10/31 16:07:41 AUDIT_LOG: {"id":"2df3885868d82b35350b23bb6a37d1ed","timestamp":"2025-10-31T16:07:41.109841+05:30","level":"INFO","user_id":"admin-uuid","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":true}
+
+2025/10/31 16:07:41 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:91
+[0m[33m[2.485ms] [34;1m[rows:1][0m SELECT "id" FROM "users" WHERE username = 'admin' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/31 16:07:41 [32m/Users/ayushar3/projects/netorchestrator/internal/services/network.go:75
+[0m[33m[0.724ms] [34;1m[rows:3][0m SELECT * FROM "networks" WHERE "networks"."deleted_at" IS NULL
