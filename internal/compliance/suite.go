@@ -968,3 +968,74 @@ func NewComplianceAssessment(config *AssessmentConfig, logger *zap.Logger) *Comp
 func NewContinuousMonitoring(config *ContinuousMonitoringConfig, logger *zap.Logger) *ContinuousMonitoring { return &ContinuousMonitoring{} }
 func NewCertificationPortal(config *PortalConfig, logger *zap.Logger) *CertificationPortal { return &CertificationPortal{} }
 func NewComplianceAnalytics(config *AnalyticsConfig, logger *zap.Logger) *ComplianceAnalytics { return &ComplianceAnalytics{} }
+
+// Missing placeholder types for ComplianceFramework
+type ComplianceRequirement struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Mandatory   bool      `json:"mandatory"`
+}
+type Control struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Type        string    `json:"type"`
+}
+type ComplianceStandard struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Version     string    `json:"version"`
+}
+type Procedure struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Steps       []string  `json:"steps"`
+}
+type Document struct {
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	URL         string    `json:"url"`
+}
+type TrainingRequirement struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Duration    int       `json:"duration"`
+}
+type AuditRequirement struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Frequency   string    `json:"frequency"`
+}
+type ReportingRequirement struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Frequency   string    `json:"frequency"`
+}
+type Penalty struct {
+	ID          string    `json:"id"`
+	Description string    `json:"description"`
+	Amount      float64   `json:"amount"`
+}
+type Reference struct {
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	URL         string    `json:"url"`
+}
+type Mapping struct {
+	From        string    `json:"from"`
+	To          string    `json:"to"`
+}
+type MaturityModel struct {
+	Level       int       `json:"level"`
+	Description string    `json:"description"`
+}
+type AssessmentCriteria struct {
+	Criteria    []string  `json:"criteria"`
+	Scoring     string    `json:"scoring"`
+}
+type Stakeholder struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Role        string    `json:"role"`
+}

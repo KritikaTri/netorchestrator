@@ -337,6 +337,7 @@ type PolicyType string
 const (
 	PolicyTypeTraffic  PolicyType = "traffic"
 	PolicyTypeSecurity PolicyType = "security"
+    PolicyTypeFirewall PolicyType = "firewall"
 	PolicyTypeQoS      PolicyType = "qos"
 	PolicyTypeRouting  PolicyType = "routing"
 	PolicyTypeAccess   PolicyType = "access"
@@ -495,7 +496,17 @@ func (pc *PolicyConfig) Scan(value interface{}) error {
 		return errors.New("cannot scan PolicyConfig from non-bytes/string")
 	}
 
-	return json.Unmarshal(bytes, pc)
+    // First try full PolicyConfig shape
+    if err := json.Unmarshal(bytes, pc); err == nil {
+        return nil
+    }
+    // Backward-compat: accept bare array of rules
+    var rulesOnly []PolicyRule
+    if err := json.Unmarshal(bytes, &rulesOnly); err == nil {
+        pc.Rules = rulesOnly
+        return nil
+    }
+    return json.Unmarshal(bytes, pc)
 }
 
 // Position JSONB methods

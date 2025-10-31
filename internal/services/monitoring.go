@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+    "encoding/json"
 	"fmt"
 	"time"
 
@@ -10,23 +11,76 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	"netorchestrator/internal/events"
 	"netorchestrator/internal/models"
+	"netorchestrator/internal/websocket"
 )
 
 // MonitoringService handles monitoring-related operations
 type MonitoringService struct {
-	db     *gorm.DB
-	cache  *redis.Client
-	logger *zap.Logger
+	db             *gorm.DB
+	cache          *redis.Client
+	logger         *zap.Logger
+	eventSubscriber *events.EventSubscriber
+	wsHub          *websocket.Hub
 }
 
 // NewMonitoringService creates a new monitoring service
-func NewMonitoringService(db *gorm.DB, cache *redis.Client, logger *zap.Logger) *MonitoringService {
+func NewMonitoringService(db *gorm.DB, cache *redis.Client, logger *zap.Logger, eventSubscriber *events.EventSubscriber, wsHub *websocket.Hub) *MonitoringService {
 	return &MonitoringService{
-		db:     db,
-		cache:  cache,
-		logger: logger,
+		db:             db,
+		cache:          cache,
+		logger:         logger,
+		eventSubscriber: eventSubscriber,
+		wsHub:          wsHub,
 	}
+}
+
+// Start subscribes to topology events for monitoring
+func (s *MonitoringService) Start(ctx context.Context) error {
+	if s.eventSubscriber == nil {
+		s.logger.Warn("Event subscriber not available, monitoring events will not be subscribed")
+		return nil
+	}
+
+	// Subscribe to topology updates
+	if err := s.eventSubscriber.Subscribe("topology.updated", s.handleTopologyUpdate); err != nil {
+		return fmt.Errorf("failed to subscribe to topology.updated: %w", err)
+	}
+
+	s.logger.Info("Monitoring service started, listening for topology events")
+	return nil
+}
+
+// handleTopologyUpdate handles topology.updated events
+func (s *MonitoringService) handleTopologyUpdate(data []byte) error {
+	var event events.TopologyUpdatedEvent
+	if err := json.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal topology.updated event: %w", err)
+	}
+
+	s.logger.Info("Processing topology update",
+		zap.String("network_id", event.NetworkID),
+		zap.String("change_type", event.ChangeType))
+
+	// Invalidate cache for this network's metrics
+	cacheKey := fmt.Sprintf("network_metrics:%s", event.NetworkID)
+	s.cache.Del(context.Background(), cacheKey)
+
+	s.logger.Info("Invalidated metrics cache for network",
+		zap.String("network_id", event.NetworkID))
+
+	// Broadcast topology update via WebSocket for real-time dashboard
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent("topology.updated", map[string]interface{}{
+			"network_id":  event.NetworkID,
+			"change_type": event.ChangeType,
+			"timestamp":   event.Timestamp,
+		})
+		s.logger.Debug("Broadcast topology update via WebSocket", zap.String("network_id", event.NetworkID))
+	}
+
+	return nil
 }
 
 // GetNetworkMetrics retrieves metrics for a network
@@ -36,11 +90,12 @@ func (s *MonitoringService) GetNetworkMetrics(ctx context.Context, networkID uui
 	cached, err := s.cache.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
 		s.logger.Debug("Retrieved network metrics from cache", zap.String("network_id", networkID.String()))
-		// In a real implementation, you would unmarshal the cached JSON
-		return map[string]interface{}{
-			"cached": true,
-			"data":   cached,
-		}, nil
+        var metrics map[string]interface{}
+        if uerr := json.Unmarshal([]byte(cached), &metrics); uerr == nil {
+            metrics["cached"] = true
+            return metrics, nil
+        }
+        // fallthrough on unmarshal error
 	}
 
 	// Get network and related data
@@ -79,8 +134,10 @@ func (s *MonitoringService) GetNetworkMetrics(ctx context.Context, networkID uui
 	}
 	metrics["link_status_breakdown"] = linkStatusCount
 
-	// Cache the results for 5 minutes
-	s.cache.Set(ctx, cacheKey, fmt.Sprintf("%+v", metrics), 5*time.Minute)
+    // Cache the results for 5 minutes (JSON)
+    if b, merr := json.Marshal(metrics); merr == nil {
+        s.cache.Set(ctx, cacheKey, string(b), 5*time.Minute)
+    }
 
 	return metrics, nil
 }
@@ -153,10 +210,12 @@ func (s *MonitoringService) GetNodeMetrics(ctx context.Context, nodeID uuid.UUID
 	cached, err := s.cache.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
 		s.logger.Debug("Retrieved node metrics from cache", zap.String("node_id", nodeID.String()))
-		return map[string]interface{}{
-			"cached": true,
-			"data":   cached,
-		}, nil
+        var metrics map[string]interface{}
+        if uerr := json.Unmarshal([]byte(cached), &metrics); uerr == nil {
+            metrics["cached"] = true
+            return metrics, nil
+        }
+        // fallthrough on unmarshal error
 	}
 
 	// Get node
@@ -195,10 +254,23 @@ func (s *MonitoringService) GetNodeMetrics(ctx context.Context, nodeID uuid.UUID
 		metrics["storage_gb"] = node.Config.Storage
 	}
 
-	// Cache the results for 2 minutes
-	s.cache.Set(ctx, cacheKey, fmt.Sprintf("%+v", metrics), 2*time.Minute)
+    // Cache the results for 2 minutes (JSON)
+    if b, merr := json.Marshal(metrics); merr == nil {
+        s.cache.Set(ctx, cacheKey, string(b), 2*time.Minute)
+    }
 
 	return metrics, nil
+}
+
+// Readiness checks DB and Redis connectivity for readiness probes
+func (s *MonitoringService) Readiness(ctx context.Context) error {
+    if err := s.db.WithContext(ctx).Exec("SELECT 1").Error; err != nil {
+        return err
+    }
+    if err := s.cache.Ping(ctx).Err(); err != nil {
+        return err
+    }
+    return nil
 }
 
 // GetNodeHealth checks the health of a specific node
@@ -244,4 +316,19 @@ func (s *MonitoringService) AcknowledgeAlert(ctx context.Context, alertID uuid.U
 	// In a real implementation, this would update an alerts table
 	s.logger.Info("Alert acknowledged", zap.String("alert_id", alertID.String()))
 	return nil
+}
+
+// ListEvents lists all system events
+func (s *MonitoringService) ListEvents(ctx context.Context) ([]map[string]interface{}, error) {
+	// Query events from database directly
+	var result []map[string]interface{}
+	if err := s.db.WithContext(ctx).Table("events").
+		Select("id, event_type, entity_type, entity_id, message, severity, timestamp as created_at").
+		Order("timestamp DESC").
+		Limit(50).
+		Scan(&result).Error; err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  mode: release
+
+database:
+  host: localhost
+  port: 5433
+  name: netorch_mvp
+  user: netorch_admin
+  password: SecurePass2025
+  ssl_mode: disable
+  max_connections: 25
+  max_idle_connections: 5
+
+redis:
+  host: localhost
+  port: 6379
+  db: 0
+  password: ""
+  
+security:
+  jwt_secret: "netorchestrator-super-secret-key-change-in-production-2024"
+  api_rate_limit: 100
+  enable_cors: true

@@ -94,8 +94,12 @@ func (h *Hub) BroadcastEvent(eventType string, data interface{}) {
 
 	select {
 	case h.broadcast <- jsonData:
+		h.logger.Info("Broadcast event queued", 
+			zap.String("event_type", eventType),
+			zap.Int("client_count", len(h.clients)),
+			zap.Int("message_size", len(jsonData)))
 	default:
-		h.logger.Warn("Broadcast channel full, dropping message")
+		h.logger.Warn("Broadcast channel full, dropping message", zap.String("event_type", eventType))
 	}
 }
 

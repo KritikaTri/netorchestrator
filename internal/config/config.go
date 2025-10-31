@@ -80,6 +80,10 @@ type SecurityConfig struct {
 	RateLimitBurst    int    `mapstructure:"rate_limit_burst"`
 	EnableAuditLogging bool   `mapstructure:"enable_audit_logging"`
 	EncryptionKey     string `mapstructure:"encryption_key"`
+    EnableCORS        bool   `mapstructure:"enable_cors"`
+    AllowedOrigins    []string `mapstructure:"allowed_origins"`
+    AllowedMethods    []string `mapstructure:"allowed_methods"`
+    AllowedHeaders    []string `mapstructure:"allowed_headers"`
 }
 
 // LoggingConfig holds logging configuration
@@ -170,6 +174,10 @@ func setDefaults() {
 	viper.SetDefault("security.rate_limit_burst", 10)
 	viper.SetDefault("security.enable_audit_logging", true)
 	viper.SetDefault("security.encryption_key", "netorchestrator-encryption-key-32-byte")
+    viper.SetDefault("security.enable_cors", true)
+    viper.SetDefault("security.allowed_origins", []string{"*"})
+    viper.SetDefault("security.allowed_methods", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
+    viper.SetDefault("security.allowed_headers", []string{"Origin", "Content-Type", "Accept", "Authorization", "X-API-Key"})
 
 	// Logging defaults
 	viper.SetDefault("logging.level", "info")

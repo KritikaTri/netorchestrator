@@ -28,7 +28,7 @@ data:
       host: "postgres-service"
       port: 5432
       user: "netorchestrator"
-      password: "netorchestrator123"
+      password: ""
       name: "netorchestrator"
       ssl_mode: "disable"
       max_open_conns: 25
@@ -44,16 +44,16 @@ data:
       host: "influxdb-service"
       port: 8086
       database: "netorchestrator"
-      username: "admin"
-      password: "netorchestrator123"
-      token: "netorchestrator-super-secret-token"
+      username: ""
+      password: ""
+      token: ""
       org: "netorchestrator"
       bucket: "metrics"
     logging:
       level: "info"
       format: "json"
     auth:
-      jwt_secret: "your-super-secret-jwt-key-change-in-production"
+      jwt_secret: ""
       jwt_expiry: 3600
       refresh_expiry: 86400
 ---
@@ -147,7 +147,17 @@ spec:
                 secretKeyRef:
                   name: netorchestrator-secrets
                   key: postgres-password
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: netorchestrator-secrets
+                  key: postgres-password
             - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: netorchestrator-secrets
+                  key: jwt-secret
+            - name: SECURITY_JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: netorchestrator-secrets
@@ -171,7 +181,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health
+              path: /ready
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5

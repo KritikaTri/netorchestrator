@@ -48,12 +48,14 @@ func main() {
 	orchestrationService := services.NewOrchestrationService(nil, nil, logger)
 	validationService := services.NewValidationService(nil, nil, logger)
 
-	// Initialize API handlers
+	// Initialize API handlers (with nil for automation and intelligence for simple version)
 	apiHandlers := api.NewHandlers(
 		networkService,
 		monitoringService,
 		orchestrationService,
 		validationService,
+		nil, // automation handler - not needed for simple version
+		nil, // intelligence handlers - not needed for simple version
 		logger,
 	)
 

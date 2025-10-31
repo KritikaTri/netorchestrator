@@ -1,0 +1,538 @@
+{
+	"info": {
+		"name": "NetOrchestrator API - MVP Test Collection",
+		"description": "Complete collection for testing NetOrchestrator API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "network_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "node_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "1.1 Login (Get Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', jsonData.access_token);",
+									"    pm.environment.set('access_token', jsonData.access_token);",
+									"    console.log('Token saved: ' + jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "profile"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Create API Key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"postman-test-key\",\n  \"permissions\": [\"read\", \"write\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/api-keys",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "api-keys"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Refresh Token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{access_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "refresh"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Networks",
+			"item": [
+				{
+					"name": "2.1 List Networks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/networks",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "networks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Create Network",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201 || pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.network && jsonData.network.id) {",
+									"        pm.collectionVariables.set('network_id', jsonData.network.id);",
+									"        console.log('Network ID saved: ' + jsonData.network.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"postman-test-network\",\n  \"subnet\": \"10.100.0.0/24\",\n  \"description\": \"Network created from Postman for testing\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/networks",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "networks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Get Network by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/networks/{{network_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "networks", "{{network_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.4 Update Network",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"postman-test-network-updated\",\n  \"description\": \"Updated via Postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/networks/{{network_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "networks", "{{network_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.5 Start Network",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/networks/{{network_id}}/start",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "networks", "{{network_id}}", "start"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. User Management",
+			"item": [
+				{
+					"name": "3.1 List Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"postman-user\",\n  \"email\": \"postman@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users", "profile"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Monitoring & Alerts",
+			"item": [
+				{
+					"name": "4.1 List Alerts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/monitoring/alerts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "monitoring", "alerts"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Create Alert Rule",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"High CPU Alert\",\n  \"description\": \"Alert when CPU exceeds 80%\",\n  \"condition\": \"cpu_usage > 80\",\n  \"severity\": \"warning\",\n  \"enabled\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/monitoring/alert-rules",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "monitoring", "alert-rules"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.3 List Alert Rules",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/monitoring/alert-rules",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "monitoring", "alert-rules"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.4 Acknowledge Alert",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/monitoring/alerts/test-alert-id/acknowledge",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "monitoring", "alerts", "test-alert-id", "acknowledge"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. AI Intelligence",
+			"item": [
+				{
+					"name": "5.1 Analyze Network",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"metrics\": {\n    \"cpu_usage\": 75.5,\n    \"memory_usage\": 60.2,\n    \"network_throughput\": 850,\n    \"latency\": 25\n  },\n  \"time_range\": \"1h\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/intelligence/analyze",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "intelligence", "analyze"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.2 Predict Capacity",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"historical_data\": [\n    {\"timestamp\": \"2025-10-01\", \"value\": 100},\n    {\"timestamp\": \"2025-10-08\", \"value\": 120},\n    {\"timestamp\": \"2025-10-15\", \"value\": 135},\n    {\"timestamp\": \"2025-10-22\", \"value\": 150}\n  ],\n  \"forecast_days\": 30,\n  \"confidence\": 0.95\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/intelligence/predict",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "intelligence", "predict"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.3 Optimize Costs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resources\": {\n    \"instances\": 10,\n    \"storage_gb\": 500,\n    \"bandwidth_gb\": 1000\n  },\n  \"constraints\": [\"maintain_performance\"],\n  \"objectives\": [\"reduce_cost\", \"improve_efficiency\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/intelligence/optimize",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "intelligence", "optimize"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.4 Detect Anomalies",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"metric_name\": \"cpu_usage\",\n  \"values\": [45, 48, 52, 50, 55, 58, 95, 98, 52, 49],\n  \"sensitivity\": 0.95\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/intelligence/detect/anomalies",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "intelligence", "detect", "anomalies"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.5 Get AI Insights",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/intelligence/insights?category=cost&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "intelligence", "insights"],
+							"query": [
+								{
+									"key": "category",
+									"value": "cost"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.6 Get ML Models",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/intelligence/models",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "intelligence", "models"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. System Health",
+			"item": [
+				{
+					"name": "6.1 Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6.2 Metrics",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/metrics",
+							"host": ["{{base_url}}"],
+							"path": ["metrics"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
+

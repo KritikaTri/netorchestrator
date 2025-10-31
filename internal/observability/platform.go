@@ -2,15 +2,11 @@ package observability
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
 	"net/http"
-	"sort"
-	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
@@ -34,437 +30,437 @@ type ObservabilityPlatform struct {
 
 // DistributedTracer implements distributed tracing with span collection
 type DistributedTracer struct {
-	spans            map[string]*Span
-	traces           map[string]*Trace
-	services         map[string]*ServiceMap
-	sampler          *TraceSampler
-	exporter         *TraceExporter
-	processor        *SpanProcessor
-	baggage          *BaggageManager
-	correlationIDs   map[string]string
-	config           *TracingConfig
-	logger           *zap.Logger
-	mu               sync.RWMutex
+	spans          map[string]*Span
+	traces         map[string]*Trace
+	services       map[string]*ServiceMap
+	sampler        *TraceSampler
+	exporter       *TraceExporter
+	processor      *SpanProcessor
+	baggage        *BaggageManager
+	correlationIDs map[string]string
+	config         *TracingConfig
+	logger         *zap.Logger
+	mu             sync.RWMutex
 }
 
 // Trace represents a complete distributed trace
 type Trace struct {
-	ID               string                    `json:"id"`
-	RootSpan         *Span                     `json:"root_span"`
-	Spans            []*Span                   `json:"spans"`
-	Services         []string                  `json:"services"`
-	StartTime        time.Time                 `json:"start_time"`
-	EndTime          time.Time                 `json:"end_time"`
-	Duration         time.Duration             `json:"duration"`
-	Status           string                    `json:"status"` // success, error, timeout
-	ErrorCount       int                       `json:"error_count"`
-	SpanCount        int                       `json:"span_count"`
-	ServiceCount     int                       `json:"service_count"`
-	CriticalPath     []*Span                   `json:"critical_path"`
-	Metadata         map[string]interface{}    `json:"metadata"`
-	Tags             map[string]string         `json:"tags"`
-	Annotations      []*Annotation             `json:"annotations"`
-	SamplingRate     float64                   `json:"sampling_rate"`
-	CompletedAt      time.Time                 `json:"completed_at"`
+	ID           string                 `json:"id"`
+	RootSpan     *Span                  `json:"root_span"`
+	Spans        []*Span                `json:"spans"`
+	Services     []string               `json:"services"`
+	StartTime    time.Time              `json:"start_time"`
+	EndTime      time.Time              `json:"end_time"`
+	Duration     time.Duration          `json:"duration"`
+	Status       string                 `json:"status"` // success, error, timeout
+	ErrorCount   int                    `json:"error_count"`
+	SpanCount    int                    `json:"span_count"`
+	ServiceCount int                    `json:"service_count"`
+	CriticalPath []*Span                `json:"critical_path"`
+	Metadata     map[string]interface{} `json:"metadata"`
+	Tags         map[string]string      `json:"tags"`
+	Annotations  []*Annotation          `json:"annotations"`
+	SamplingRate float64                `json:"sampling_rate"`
+	CompletedAt  time.Time              `json:"completed_at"`
 }
 
 // Span represents a single operation in a trace
 type Span struct {
-	ID               string                    `json:"id"`
-	TraceID          string                    `json:"trace_id"`
-	ParentSpanID     string                    `json:"parent_span_id,omitempty"`
-	OperationName    string                    `json:"operation_name"`
-	ServiceName      string                    `json:"service_name"`
-	StartTime        time.Time                 `json:"start_time"`
-	EndTime          time.Time                 `json:"end_time"`
-	Duration         time.Duration             `json:"duration"`
-	Status           string                    `json:"status"` // ok, error, timeout, cancelled
-	StatusCode       int                       `json:"status_code"`
-	Tags             map[string]interface{}    `json:"tags"`
-	Logs             []*SpanLog                `json:"logs"`
-	Events           []*SpanEvent              `json:"events"`
-	Links            []*SpanLink               `json:"links"`
-	Resource         *SpanResource             `json:"resource"`
+	ID                     string                  `json:"id"`
+	TraceID                string                  `json:"trace_id"`
+	ParentSpanID           string                  `json:"parent_span_id,omitempty"`
+	OperationName          string                  `json:"operation_name"`
+	ServiceName            string                  `json:"service_name"`
+	StartTime              time.Time               `json:"start_time"`
+	EndTime                time.Time               `json:"end_time"`
+	Duration               time.Duration           `json:"duration"`
+	Status                 string                  `json:"status"` // ok, error, timeout, cancelled
+	StatusCode             int                     `json:"status_code"`
+	Tags                   map[string]interface{}  `json:"tags"`
+	Logs                   []*SpanLog              `json:"logs"`
+	Events                 []*SpanEvent            `json:"events"`
+	Links                  []*SpanLink             `json:"links"`
+	Resource               *SpanResource           `json:"resource"`
 	InstrumentationLibrary *InstrumentationLibrary `json:"instrumentation_library"`
-	Kind             string                    `json:"kind"` // server, client, producer, consumer, internal
-	Component        string                    `json:"component"`
-	HTTPInfo         *HTTPSpanInfo             `json:"http_info,omitempty"`
-	DBInfo           *DatabaseSpanInfo         `json:"db_info,omitempty"`
-	MessageInfo      *MessageSpanInfo          `json:"message_info,omitempty"`
-	ErrorInfo        *ErrorInfo                `json:"error_info,omitempty"`
-	Baggage          map[string]string         `json:"baggage"`
-	SamplingDecision string                    `json:"sampling_decision"`
-	Children         []*Span                   `json:"children,omitempty"`
+	Kind                   string                  `json:"kind"` // server, client, producer, consumer, internal
+	Component              string                  `json:"component"`
+	HTTPInfo               *HTTPSpanInfo           `json:"http_info,omitempty"`
+	DBInfo                 *DatabaseSpanInfo       `json:"db_info,omitempty"`
+	MessageInfo            *MessageSpanInfo        `json:"message_info,omitempty"`
+	ErrorInfo              *ErrorInfo              `json:"error_info,omitempty"`
+	Baggage                map[string]string       `json:"baggage"`
+	SamplingDecision       string                  `json:"sampling_decision"`
+	Children               []*Span                 `json:"children,omitempty"`
 }
 
 // MetricsCollector aggregates and processes metrics from multiple sources
 type MetricsCollector struct {
-	metrics          map[string]*MetricFamily
-	timeSeries       map[string]*TimeSeries
-	collectors       map[string]MetricCollector
-	processors       []MetricProcessor
-	exporters        []MetricExporter
-	aggregators      map[string]*MetricAggregator
-	cardinality      *CardinalityManager
-	retention        *MetricRetention
-	config           *MetricsConfig
-	storage          MetricStorage
-	logger           *zap.Logger
-	mu               sync.RWMutex
+	metrics     map[string]*MetricFamily
+	timeSeries  map[string]*TimeSeries
+	collectors  map[string]MetricCollector
+	processors  []MetricProcessor
+	exporters   []MetricExporter
+	aggregators map[string]*MetricAggregator
+	cardinality *CardinalityManager
+	retention   *MetricRetention
+	config      *MetricsConfig
+	storage     MetricStorage
+	logger      *zap.Logger
+	mu          sync.RWMutex
 }
 
 // LogAggregator collects and correlates logs across services
 type LogAggregator struct {
-	logs             map[string][]*LogEntry
-	streams          map[string]*LogStream
-	parsers          map[string]LogParser
-	processors       []LogProcessor
-	enrichers        []LogEnricher
-	correlation      *LogCorrelation
-	indexer          *LogIndexer
-	search           *LogSearch
-	retention        *LogRetention
-	storage          LogStorage
-	config           *LogConfig
-	logger           *zap.Logger
-	mu               sync.RWMutex
+	logs        map[string][]*LogEntry
+	streams     map[string]*LogStream
+	parsers     map[string]LogParser
+	processors  []LogProcessor
+	enrichers   []LogEnricher
+	correlation *LogCorrelation
+	indexer     *LogIndexer
+	search      *LogSearch
+	retention   *LogRetention
+	storage     LogStorage
+	config      *LogConfig
+	logger      *zap.Logger
+	mu          sync.RWMutex
 }
 
 // APMAgent provides Application Performance Monitoring
 type APMAgent struct {
-	services         map[string]*ServiceAPM
-	transactions     map[string]*Transaction
-	errors           map[string]*ErrorTracking
-	profiler         *ContinuousProfiler
-	dependencies     *DependencyMap
-	sli              *SLITracker
-	slo              *SLOManager
-	performance      *PerformanceAnalyzer
-	capacity         *CapacityPlanner
-	config           *APMConfig
-	logger           *zap.Logger
-	mu               sync.RWMutex
+	services     map[string]*ServiceAPM
+	transactions map[string]*Transaction
+	errors       map[string]*ErrorTracking
+	profiler     *ContinuousProfiler
+	dependencies *DependencyMap
+	sli          *SLITracker
+	slo          *SLOManager
+	performance  *PerformanceAnalyzer
+	capacity     *CapacityPlanner
+	config       *APMConfig
+	logger       *zap.Logger
+	mu           sync.RWMutex
 }
 
 // Core data structures
 type SpanLog struct {
-	Timestamp        time.Time                 `json:"timestamp"`
-	Level            string                    `json:"level"`
-	Message          string                    `json:"message"`
-	Fields           map[string]interface{}    `json:"fields"`
+	Timestamp time.Time              `json:"timestamp"`
+	Level     string                 `json:"level"`
+	Message   string                 `json:"message"`
+	Fields    map[string]interface{} `json:"fields"`
 }
 
 type SpanEvent struct {
-	Name             string                    `json:"name"`
-	Timestamp        time.Time                 `json:"timestamp"`
-	Attributes       map[string]interface{}    `json:"attributes"`
+	Name       string                 `json:"name"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Attributes map[string]interface{} `json:"attributes"`
 }
 
 type SpanLink struct {
-	TraceID          string                    `json:"trace_id"`
-	SpanID           string                    `json:"span_id"`
-	TraceState       string                    `json:"trace_state"`
-	Attributes       map[string]interface{}    `json:"attributes"`
+	TraceID    string                 `json:"trace_id"`
+	SpanID     string                 `json:"span_id"`
+	TraceState string                 `json:"trace_state"`
+	Attributes map[string]interface{} `json:"attributes"`
 }
 
 type SpanResource struct {
-	ServiceName      string                    `json:"service.name"`
-	ServiceVersion   string                    `json:"service.version"`
-	ServiceInstance  string                    `json:"service.instance.id"`
-	HostName         string                    `json:"host.name"`
-	HostArch         string                    `json:"host.arch"`
-	ProcessPID       string                    `json:"process.pid"`
-	ProcessCommand   string                    `json:"process.command"`
-	ContainerID      string                    `json:"container.id"`
-	K8sNamespace     string                    `json:"k8s.namespace.name"`
-	K8sPod           string                    `json:"k8s.pod.name"`
+	ServiceName     string `json:"service.name"`
+	ServiceVersion  string `json:"service.version"`
+	ServiceInstance string `json:"service.instance.id"`
+	HostName        string `json:"host.name"`
+	HostArch        string `json:"host.arch"`
+	ProcessPID      string `json:"process.pid"`
+	ProcessCommand  string `json:"process.command"`
+	ContainerID     string `json:"container.id"`
+	K8sNamespace    string `json:"k8s.namespace.name"`
+	K8sPod          string `json:"k8s.pod.name"`
 }
 
 type InstrumentationLibrary struct {
-	Name             string                    `json:"name"`
-	Version          string                    `json:"version"`
-	SchemaURL        string                    `json:"schema_url"`
+	Name      string `json:"name"`
+	Version   string `json:"version"`
+	SchemaURL string `json:"schema_url"`
 }
 
 type HTTPSpanInfo struct {
-	Method           string                    `json:"method"`
-	URL              string                    `json:"url"`
-	Route            string                    `json:"route"`
-	StatusCode       int                       `json:"status_code"`
-	UserAgent        string                    `json:"user_agent"`
-	RequestSize      int64                     `json:"request_size"`
-	ResponseSize     int64                     `json:"response_size"`
-	Headers          map[string]string         `json:"headers"`
+	Method       string            `json:"method"`
+	URL          string            `json:"url"`
+	Route        string            `json:"route"`
+	StatusCode   int               `json:"status_code"`
+	UserAgent    string            `json:"user_agent"`
+	RequestSize  int64             `json:"request_size"`
+	ResponseSize int64             `json:"response_size"`
+	Headers      map[string]string `json:"headers"`
 }
 
 type DatabaseSpanInfo struct {
-	System           string                    `json:"system"`
-	ConnectionString string                    `json:"connection_string"`
-	Statement        string                    `json:"statement"`
-	Operation        string                    `json:"operation"`
-	TableName        string                    `json:"table_name"`
-	RowsAffected     int64                     `json:"rows_affected"`
+	System           string `json:"system"`
+	ConnectionString string `json:"connection_string"`
+	Statement        string `json:"statement"`
+	Operation        string `json:"operation"`
+	TableName        string `json:"table_name"`
+	RowsAffected     int64  `json:"rows_affected"`
 }
 
 type MessageSpanInfo struct {
-	System           string                    `json:"system"`
-	Destination      string                    `json:"destination"`
-	DestinationType  string                    `json:"destination_type"` // queue, topic
-	Operation        string                    `json:"operation"` // publish, receive, process
-	MessageID        string                    `json:"message_id"`
-	ConversationID   string                    `json:"conversation_id"`
-	MessageSize      int64                     `json:"message_size"`
+	System          string `json:"system"`
+	Destination     string `json:"destination"`
+	DestinationType string `json:"destination_type"` // queue, topic
+	Operation       string `json:"operation"`        // publish, receive, process
+	MessageID       string `json:"message_id"`
+	ConversationID  string `json:"conversation_id"`
+	MessageSize     int64  `json:"message_size"`
 }
 
 type ErrorInfo struct {
-	Type             string                    `json:"type"`
-	Message          string                    `json:"message"`
-	Stack            string                    `json:"stack"`
-	Fingerprint      string                    `json:"fingerprint"`
-	Culprit          string                    `json:"culprit"`
-	Handled          bool                      `json:"handled"`
-	Level            string                    `json:"level"`
+	Type        string `json:"type"`
+	Message     string `json:"message"`
+	Stack       string `json:"stack"`
+	Fingerprint string `json:"fingerprint"`
+	Culprit     string `json:"culprit"`
+	Handled     bool   `json:"handled"`
+	Level       string `json:"level"`
 }
 
 type Annotation struct {
-	Timestamp        time.Time                 `json:"timestamp"`
-	Value            string                    `json:"value"`
-	Endpoint         *Endpoint                 `json:"endpoint"`
+	Timestamp time.Time `json:"timestamp"`
+	Value     string    `json:"value"`
+	Endpoint  *Endpoint `json:"endpoint"`
 }
 
 type Endpoint struct {
-	ServiceName      string                    `json:"service_name"`
-	IPv4             string                    `json:"ipv4"`
-	IPv6             string                    `json:"ipv6"`
-	Port             int                       `json:"port"`
+	ServiceName string `json:"service_name"`
+	IPv4        string `json:"ipv4"`
+	IPv6        string `json:"ipv6"`
+	Port        int    `json:"port"`
 }
 
 // Metrics structures
 type MetricFamily struct {
-	Name             string                    `json:"name"`
-	Help             string                    `json:"help"`
-	Type             string                    `json:"type"` // counter, gauge, histogram, summary
-	Metrics          []*Metric                 `json:"metrics"`
-	CreatedAt        time.Time                 `json:"created_at"`
-	UpdatedAt        time.Time                 `json:"updated_at"`
+	Name      string    `json:"name"`
+	Help      string    `json:"help"`
+	Type      string    `json:"type"` // counter, gauge, histogram, summary
+	Metrics   []*Metric `json:"metrics"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Metric struct {
-	Labels           map[string]string         `json:"labels"`
-	Value            float64                   `json:"value"`
-	Timestamp        time.Time                 `json:"timestamp"`
-	Counter          *CounterValue             `json:"counter,omitempty"`
-	Gauge            *GaugeValue               `json:"gauge,omitempty"`
-	Histogram        *HistogramValue           `json:"histogram,omitempty"`
-	Summary          *SummaryValue             `json:"summary,omitempty"`
+	Labels    map[string]string `json:"labels"`
+	Value     float64           `json:"value"`
+	Timestamp time.Time         `json:"timestamp"`
+	Counter   *CounterValue     `json:"counter,omitempty"`
+	Gauge     *GaugeValue       `json:"gauge,omitempty"`
+	Histogram *HistogramValue   `json:"histogram,omitempty"`
+	Summary   *SummaryValue     `json:"summary,omitempty"`
 }
 
 type CounterValue struct {
-	Value            float64                   `json:"value"`
-	CreatedAt        time.Time                 `json:"created_at"`
+	Value     float64   `json:"value"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type GaugeValue struct {
-	Value            float64                   `json:"value"`
+	Value float64 `json:"value"`
 }
 
 type HistogramValue struct {
-	SampleCount      uint64                    `json:"sample_count"`
-	SampleSum        float64                   `json:"sample_sum"`
-	Buckets          []*HistogramBucket        `json:"buckets"`
+	SampleCount uint64             `json:"sample_count"`
+	SampleSum   float64            `json:"sample_sum"`
+	Buckets     []*HistogramBucket `json:"buckets"`
 }
 
 type HistogramBucket struct {
-	UpperBound       float64                   `json:"upper_bound"`
-	CumulativeCount  uint64                    `json:"cumulative_count"`
+	UpperBound      float64 `json:"upper_bound"`
+	CumulativeCount uint64  `json:"cumulative_count"`
 }
 
 type SummaryValue struct {
-	SampleCount      uint64                    `json:"sample_count"`
-	SampleSum        float64                   `json:"sample_sum"`
-	Quantiles        []*SummaryQuantile        `json:"quantiles"`
+	SampleCount uint64             `json:"sample_count"`
+	SampleSum   float64            `json:"sample_sum"`
+	Quantiles   []*SummaryQuantile `json:"quantiles"`
 }
 
 type SummaryQuantile struct {
-	Quantile         float64                   `json:"quantile"`
-	Value            float64                   `json:"value"`
+	Quantile float64 `json:"quantile"`
+	Value    float64 `json:"value"`
 }
 
 type TimeSeries struct {
-	Labels           map[string]string         `json:"labels"`
-	Samples          []*Sample                 `json:"samples"`
-	CreatedAt        time.Time                 `json:"created_at"`
+	Labels    map[string]string `json:"labels"`
+	Samples   []*Sample         `json:"samples"`
+	CreatedAt time.Time         `json:"created_at"`
 }
 
 type Sample struct {
-	Value            float64                   `json:"value"`
-	Timestamp        time.Time                 `json:"timestamp"`
+	Value     float64   `json:"value"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // Log structures
 type LogEntry struct {
-	ID               string                    `json:"id"`
-	Timestamp        time.Time                 `json:"timestamp"`
-	Level            string                    `json:"level"`
-	Message          string                    `json:"message"`
-	Logger           string                    `json:"logger"`
-	Thread           string                    `json:"thread"`
-	ServiceName      string                    `json:"service_name"`
-	ServiceVersion   string                    `json:"service_version"`
-	TraceID          string                    `json:"trace_id,omitempty"`
-	SpanID           string                    `json:"span_id,omitempty"`
-	Fields           map[string]interface{}    `json:"fields"`
-	Tags             map[string]string         `json:"tags"`
-	Source           *LogSource                `json:"source"`
-	Context          *LogContext               `json:"context"`
-	Exception        *LogException             `json:"exception,omitempty"`
-	MDC              map[string]string         `json:"mdc"` // Mapped Diagnostic Context
-	Structured       bool                      `json:"structured"`
+	ID             string                 `json:"id"`
+	Timestamp      time.Time              `json:"timestamp"`
+	Level          string                 `json:"level"`
+	Message        string                 `json:"message"`
+	Logger         string                 `json:"logger"`
+	Thread         string                 `json:"thread"`
+	ServiceName    string                 `json:"service_name"`
+	ServiceVersion string                 `json:"service_version"`
+	TraceID        string                 `json:"trace_id,omitempty"`
+	SpanID         string                 `json:"span_id,omitempty"`
+	Fields         map[string]interface{} `json:"fields"`
+	Tags           map[string]string      `json:"tags"`
+	Source         *LogSource             `json:"source"`
+	Context        *LogContext            `json:"context"`
+	Exception      *LogException          `json:"exception,omitempty"`
+	MDC            map[string]string      `json:"mdc"` // Mapped Diagnostic Context
+	Structured     bool                   `json:"structured"`
 }
 
 type LogSource struct {
-	Host             string                    `json:"host"`
-	File             string                    `json:"file"`
-	Function         string                    `json:"function"`
-	Line             int                       `json:"line"`
-	Module           string                    `json:"module"`
+	Host     string `json:"host"`
+	File     string `json:"file"`
+	Function string `json:"function"`
+	Line     int    `json:"line"`
+	Module   string `json:"module"`
 }
 
 type LogContext struct {
-	UserID           string                    `json:"user_id,omitempty"`
-	SessionID        string                    `json:"session_id,omitempty"`
-	RequestID        string                    `json:"request_id,omitempty"`
-	CorrelationID    string                    `json:"correlation_id,omitempty"`
-	Environment      string                    `json:"environment"`
-	Datacenter       string                    `json:"datacenter"`
+	UserID        string `json:"user_id,omitempty"`
+	SessionID     string `json:"session_id,omitempty"`
+	RequestID     string `json:"request_id,omitempty"`
+	CorrelationID string `json:"correlation_id,omitempty"`
+	Environment   string `json:"environment"`
+	Datacenter    string `json:"datacenter"`
 }
 
 type LogException struct {
-	Type             string                    `json:"type"`
-	Message          string                    `json:"message"`
-	Stacktrace       []string                  `json:"stacktrace"`
-	Cause            *LogException             `json:"cause,omitempty"`
+	Type       string        `json:"type"`
+	Message    string        `json:"message"`
+	Stacktrace []string      `json:"stacktrace"`
+	Cause      *LogException `json:"cause,omitempty"`
 }
 
 // APM structures
 type ServiceAPM struct {
-	Name             string                    `json:"name"`
-	Language         string                    `json:"language"`
-	Framework        string                    `json:"framework"`
-	Version          string                    `json:"version"`
-	Environment      string                    `json:"environment"`
-	Health           *ServiceHealth            `json:"health"`
-	Performance      *ServicePerformance       `json:"performance"`
-	Errors           *ServiceErrors            `json:"errors"`
-	Dependencies     []*ServiceDependency      `json:"dependencies"`
-	Instances        []*ServiceInstance        `json:"instances"`
-	Transactions     map[string]*TransactionMetrics `json:"transactions"`
-	SLIs             map[string]*SLI           `json:"slis"`
-	SLOs             map[string]*SLO           `json:"slos"`
-	Alerts           []*Alert                  `json:"alerts"`
-	LastUpdated      time.Time                 `json:"last_updated"`
+	Name         string                         `json:"name"`
+	Language     string                         `json:"language"`
+	Framework    string                         `json:"framework"`
+	Version      string                         `json:"version"`
+	Environment  string                         `json:"environment"`
+	Health       *ServiceHealth                 `json:"health"`
+	Performance  *ServicePerformance            `json:"performance"`
+	Errors       *ServiceErrors                 `json:"errors"`
+	Dependencies []*ServiceDependency           `json:"dependencies"`
+	Instances    []*ServiceInstance             `json:"instances"`
+	Transactions map[string]*TransactionMetrics `json:"transactions"`
+	SLIs         map[string]*SLI                `json:"slis"`
+	SLOs         map[string]*SLO                `json:"slos"`
+	Alerts       []*Alert                       `json:"alerts"`
+	LastUpdated  time.Time                      `json:"last_updated"`
 }
 
 type Transaction struct {
-	ID               string                    `json:"id"`
-	Name             string                    `json:"name"`
-	Type             string                    `json:"type"`
-	Result           string                    `json:"result"`
-	Duration         time.Duration             `json:"duration"`
-	Timestamp        time.Time                 `json:"timestamp"`
-	TraceID          string                    `json:"trace_id"`
-	SpanID           string                    `json:"span_id"`
-	UserContext      *UserContext              `json:"user_context"`
-	CustomContext    map[string]interface{}    `json:"custom_context"`
-	Tags             map[string]string         `json:"tags"`
-	Marks            map[string]float64        `json:"marks"`
-	SpanCount        int                       `json:"span_count"`
-	DroppedSpansCount int                      `json:"dropped_spans_count"`
-	Experience       *UserExperience           `json:"experience"`
-	Outcome          string                    `json:"outcome"` // success, failure, unknown
+	ID                string                 `json:"id"`
+	Name              string                 `json:"name"`
+	Type              string                 `json:"type"`
+	Result            string                 `json:"result"`
+	Duration          time.Duration          `json:"duration"`
+	Timestamp         time.Time              `json:"timestamp"`
+	TraceID           string                 `json:"trace_id"`
+	SpanID            string                 `json:"span_id"`
+	UserContext       *UserContext           `json:"user_context"`
+	CustomContext     map[string]interface{} `json:"custom_context"`
+	Tags              map[string]string      `json:"tags"`
+	Marks             map[string]float64     `json:"marks"`
+	SpanCount         int                    `json:"span_count"`
+	DroppedSpansCount int                    `json:"dropped_spans_count"`
+	Experience        *UserExperience        `json:"experience"`
+	Outcome           string                 `json:"outcome"` // success, failure, unknown
 }
 
 type ServiceHealth struct {
-	Status           string                    `json:"status"` // healthy, degraded, unhealthy
-	Uptime           time.Duration             `json:"uptime"`
-	ResponseTime     *ResponseTimeMetrics      `json:"response_time"`
-	ErrorRate        float64                   `json:"error_rate"`
-	Throughput       float64                   `json:"throughput"`
-	AvailabilityRate float64                   `json:"availability_rate"`
-	LastHealthCheck  time.Time                 `json:"last_health_check"`
-	HealthChecks     []*HealthCheck            `json:"health_checks"`
+	Status           string               `json:"status"` // healthy, degraded, unhealthy
+	Uptime           time.Duration        `json:"uptime"`
+	ResponseTime     *ResponseTimeMetrics `json:"response_time"`
+	ErrorRate        float64              `json:"error_rate"`
+	Throughput       float64              `json:"throughput"`
+	AvailabilityRate float64              `json:"availability_rate"`
+	LastHealthCheck  time.Time            `json:"last_health_check"`
+	HealthChecks     []*HealthCheck       `json:"health_checks"`
 }
 
 type ServicePerformance struct {
-	Latency          *LatencyMetrics           `json:"latency"`
-	Throughput       *ThroughputMetrics        `json:"throughput"`
-	ResourceUsage    *ResourceUsageMetrics     `json:"resource_usage"`
-	GCMetrics        *GarbageCollectionMetrics `json:"gc_metrics,omitempty"`
-	CacheMetrics     *CachePerformanceMetrics  `json:"cache_metrics,omitempty"`
-	DatabaseMetrics  *DatabasePerformanceMetrics `json:"database_metrics,omitempty"`
-	QueueMetrics     *QueuePerformanceMetrics  `json:"queue_metrics,omitempty"`
+	Latency         *LatencyMetrics             `json:"latency"`
+	Throughput      *ThroughputMetrics          `json:"throughput"`
+	ResourceUsage   *ResourceUsageMetrics       `json:"resource_usage"`
+	GCMetrics       *GarbageCollectionMetrics   `json:"gc_metrics,omitempty"`
+	CacheMetrics    *CachePerformanceMetrics    `json:"cache_metrics,omitempty"`
+	DatabaseMetrics *DatabasePerformanceMetrics `json:"database_metrics,omitempty"`
+	QueueMetrics    *QueuePerformanceMetrics    `json:"queue_metrics,omitempty"`
 }
 
 type ServiceErrors struct {
-	TotalErrors      int64                     `json:"total_errors"`
-	ErrorRate        float64                   `json:"error_rate"`
-	ErrorGroups      []*ErrorGroup             `json:"error_groups"`
-	TopErrors        []*ErrorSummary           `json:"top_errors"`
-	ErrorTrends      *ErrorTrends              `json:"error_trends"`
-	LastError        time.Time                 `json:"last_error"`
+	TotalErrors int64           `json:"total_errors"`
+	ErrorRate   float64         `json:"error_rate"`
+	ErrorGroups []*ErrorGroup   `json:"error_groups"`
+	TopErrors   []*ErrorSummary `json:"top_errors"`
+	ErrorTrends *ErrorTrends    `json:"error_trends"`
+	LastError   time.Time       `json:"last_error"`
 }
 
 // Configuration structures
 type ObservabilityConfig struct {
-	Tracing          *TracingConfig            `json:"tracing"`
-	Metrics          *MetricsConfig            `json:"metrics"`
-	Logging          *LogConfig                `json:"logging"`
-	APM              *APMConfig                `json:"apm"`
-	Storage          *StorageConfig            `json:"storage"`
-	Retention        *RetentionConfig          `json:"retention"`
-	Export           *ExportConfig             `json:"export"`
-	Sampling         *SamplingConfig           `json:"sampling"`
+	Tracing   *TracingConfig   `json:"tracing"`
+	Metrics   *MetricsConfig   `json:"metrics"`
+	Logging   *LogConfig       `json:"logging"`
+	APM       *APMConfig       `json:"apm"`
+	Storage   *StorageConfig   `json:"storage"`
+	Retention *RetentionConfig `json:"retention"`
+	Export    *ExportConfig    `json:"export"`
+	Sampling  *SamplingConfig  `json:"sampling"`
 }
 
 type TracingConfig struct {
-	Enabled          bool                      `json:"enabled"`
-	SamplingRate     float64                   `json:"sampling_rate"`
-	MaxSpansPerTrace int                       `json:"max_spans_per_trace"`
-	BatchSize        int                       `json:"batch_size"`
-	BatchTimeout     time.Duration             `json:"batch_timeout"`
-	MaxExportBatchSize int                     `json:"max_export_batch_size"`
-	ExportTimeout    time.Duration             `json:"export_timeout"`
-	Propagators      []string                  `json:"propagators"`
-	ResourceDetectors []string                 `json:"resource_detectors"`
+	Enabled            bool          `json:"enabled"`
+	SamplingRate       float64       `json:"sampling_rate"`
+	MaxSpansPerTrace   int           `json:"max_spans_per_trace"`
+	BatchSize          int           `json:"batch_size"`
+	BatchTimeout       time.Duration `json:"batch_timeout"`
+	MaxExportBatchSize int           `json:"max_export_batch_size"`
+	ExportTimeout      time.Duration `json:"export_timeout"`
+	Propagators        []string      `json:"propagators"`
+	ResourceDetectors  []string      `json:"resource_detectors"`
 }
 
 type MetricsConfig struct {
-	Enabled          bool                      `json:"enabled"`
-	ScrapeInterval   time.Duration             `json:"scrape_interval"`
-	MaxCardinality   int                       `json:"max_cardinality"`
-	RetentionPeriod  time.Duration             `json:"retention_period"`
-	Aggregations     []string                  `json:"aggregations"`
-	Exporters        []string                  `json:"exporters"`
+	Enabled         bool          `json:"enabled"`
+	ScrapeInterval  time.Duration `json:"scrape_interval"`
+	MaxCardinality  int           `json:"max_cardinality"`
+	RetentionPeriod time.Duration `json:"retention_period"`
+	Aggregations    []string      `json:"aggregations"`
+	Exporters       []string      `json:"exporters"`
 }
 
 type LogConfig struct {
-	Enabled          bool                      `json:"enabled"`
-	Level            string                    `json:"level"`
-	MaxSize          int64                     `json:"max_size"`
-	MaxAge           time.Duration             `json:"max_age"`
-	Compression      bool                      `json:"compression"`
-	StructuredLogging bool                     `json:"structured_logging"`
-	Parsers          []string                  `json:"parsers"`
+	Enabled           bool          `json:"enabled"`
+	Level             string        `json:"level"`
+	MaxSize           int64         `json:"max_size"`
+	MaxAge            time.Duration `json:"max_age"`
+	Compression       bool          `json:"compression"`
+	StructuredLogging bool          `json:"structured_logging"`
+	Parsers           []string      `json:"parsers"`
 }
 
 type APMConfig struct {
-	Enabled          bool                      `json:"enabled"`
-	TransactionSampleRate float64              `json:"transaction_sample_rate"`
-	MaxSpansPerTransaction int                 `json:"max_spans_per_transaction"`
-	CaptureBody      string                    `json:"capture_body"` // off, errors, all
-	CaptureHeaders   bool                      `json:"capture_headers"`
-	StackTraceLimit  int                       `json:"stack_trace_limit"`
-	SpanFramesMinDuration time.Duration        `json:"span_frames_min_duration"`
+	Enabled                bool          `json:"enabled"`
+	TransactionSampleRate  float64       `json:"transaction_sample_rate"`
+	MaxSpansPerTransaction int           `json:"max_spans_per_transaction"`
+	CaptureBody            string        `json:"capture_body"` // off, errors, all
+	CaptureHeaders         bool          `json:"capture_headers"`
+	StackTraceLimit        int           `json:"stack_trace_limit"`
+	SpanFramesMinDuration  time.Duration `json:"span_frames_min_duration"`
 }
 
 // Interface definitions
@@ -506,59 +502,59 @@ type LogStorage interface {
 
 // Additional required structures
 type ServiceMap struct {
-	Services         map[string]*ServiceNode   `json:"services"`
-	Edges            []*ServiceEdge            `json:"edges"`
-	LastUpdated      time.Time                 `json:"last_updated"`
+	Services    map[string]*ServiceNode `json:"services"`
+	Edges       []*ServiceEdge          `json:"edges"`
+	LastUpdated time.Time               `json:"last_updated"`
 }
 
 type ServiceNode struct {
-	Name             string                    `json:"name"`
-	Type             string                    `json:"type"`
-	Health           string                    `json:"health"`
-	RequestRate      float64                   `json:"request_rate"`
-	ErrorRate        float64                   `json:"error_rate"`
-	AvgLatency       time.Duration             `json:"avg_latency"`
+	Name        string        `json:"name"`
+	Type        string        `json:"type"`
+	Health      string        `json:"health"`
+	RequestRate float64       `json:"request_rate"`
+	ErrorRate   float64       `json:"error_rate"`
+	AvgLatency  time.Duration `json:"avg_latency"`
 }
 
 type ServiceEdge struct {
-	Source           string                    `json:"source"`
-	Target           string                    `json:"target"`
-	RequestRate      float64                   `json:"request_rate"`
-	ErrorRate        float64                   `json:"error_rate"`
-	AvgLatency       time.Duration             `json:"avg_latency"`
+	Source      string        `json:"source"`
+	Target      string        `json:"target"`
+	RequestRate float64       `json:"request_rate"`
+	ErrorRate   float64       `json:"error_rate"`
+	AvgLatency  time.Duration `json:"avg_latency"`
 }
 
 type TraceSampler struct {
-	SampleRate       float64                   `json:"sample_rate"`
-	MaxTracesPerSecond int                     `json:"max_traces_per_second"`
-	Rules            []*SamplingRule           `json:"rules"`
+	SampleRate         float64         `json:"sample_rate"`
+	MaxTracesPerSecond int             `json:"max_traces_per_second"`
+	Rules              []*SamplingRule `json:"rules"`
 }
 
 type SamplingRule struct {
-	ServiceName      string                    `json:"service_name"`
-	OperationName    string                    `json:"operation_name"`
-	SampleRate       float64                   `json:"sample_rate"`
-	MaxTracesPerSecond int                     `json:"max_traces_per_second"`
+	ServiceName        string  `json:"service_name"`
+	OperationName      string  `json:"operation_name"`
+	SampleRate         float64 `json:"sample_rate"`
+	MaxTracesPerSecond int     `json:"max_traces_per_second"`
 }
 
 type TraceExporter struct {
-	BatchSize        int                       `json:"batch_size"`
-	BatchTimeout     time.Duration             `json:"batch_timeout"`
-	MaxExportBatchSize int                     `json:"max_export_batch_size"`
-	ExportTimeout    time.Duration             `json:"export_timeout"`
+	BatchSize          int           `json:"batch_size"`
+	BatchTimeout       time.Duration `json:"batch_timeout"`
+	MaxExportBatchSize int           `json:"max_export_batch_size"`
+	ExportTimeout      time.Duration `json:"export_timeout"`
 }
 
 type SpanProcessor struct {
-	BatchSize        int                       `json:"batch_size"`
-	BatchTimeout     time.Duration             `json:"batch_timeout"`
-	MaxQueueSize     int                       `json:"max_queue_size"`
-	MaxExportBatchSize int                     `json:"max_export_batch_size"`
+	BatchSize          int           `json:"batch_size"`
+	BatchTimeout       time.Duration `json:"batch_timeout"`
+	MaxQueueSize       int           `json:"max_queue_size"`
+	MaxExportBatchSize int           `json:"max_export_batch_size"`
 }
 
 type BaggageManager struct {
-	MaxItems         int                       `json:"max_items"`
-	MaxBytesPerItem  int                       `json:"max_bytes_per_item"`
-	MaxBytes         int                       `json:"max_bytes"`
+	MaxItems        int `json:"max_items"`
+	MaxBytesPerItem int `json:"max_bytes_per_item"`
+	MaxBytes        int `json:"max_bytes"`
 }
 
 // Implement the main observability platform
@@ -576,39 +572,39 @@ func NewObservabilityPlatform(config *ObservabilityConfig, logger *zap.Logger) *
 		config:           config,
 		logger:           logger,
 	}
-	
+
 	return platform
 }
 
 // Start initializes and starts all observability components
 func (op *ObservabilityPlatform) Start(ctx context.Context) error {
 	op.logger.Info("Starting observability platform")
-	
+
 	// Start tracer
 	if err := op.tracer.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start tracer: %w", err)
 	}
-	
+
 	// Start metrics collector
 	if err := op.metricsCollector.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start metrics collector: %w", err)
 	}
-	
+
 	// Start log aggregator
 	if err := op.logAggregator.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start log aggregator: %w", err)
 	}
-	
+
 	// Start APM agent
 	if err := op.apmAgent.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start APM agent: %w", err)
 	}
-	
+
 	// Start alert manager
 	if err := op.alertManager.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start alert manager: %w", err)
 	}
-	
+
 	op.logger.Info("Observability platform started successfully")
 	return nil
 }
@@ -642,7 +638,7 @@ func (op *ObservabilityPlatform) GetServiceMap() *ServiceMap {
 func (op *ObservabilityPlatform) GetMetrics() map[string]interface{} {
 	op.mu.RLock()
 	defer op.mu.RUnlock()
-	
+
 	return map[string]interface{}{
 		"tracing": map[string]interface{}{
 			"active_traces": len(op.tracer.traces),
@@ -691,11 +687,11 @@ func (dt *DistributedTracer) Start(ctx context.Context) error {
 type SpanOption func(*SpanOptions)
 
 type SpanOptions struct {
-	Parent      *Span
-	Tags        map[string]interface{}
-	Kind        string
-	Component   string
-	StartTime   time.Time
+	Parent    *Span
+	Tags      map[string]interface{}
+	Kind      string
+	Component string
+	StartTime time.Time
 }
 
 func (dt *DistributedTracer) CreateSpan(ctx context.Context, operationName string, options ...SpanOption) *Span {
@@ -704,11 +700,11 @@ func (dt *DistributedTracer) CreateSpan(ctx context.Context, operationName strin
 		Kind:      "internal",
 		StartTime: time.Now(),
 	}
-	
+
 	for _, option := range options {
 		option(opts)
 	}
-	
+
 	span := &Span{
 		ID:            generateSpanID(),
 		TraceID:       dt.getOrCreateTraceID(ctx, opts.Parent),
@@ -724,29 +720,29 @@ func (dt *DistributedTracer) CreateSpan(ctx context.Context, operationName strin
 		Baggage:       make(map[string]string),
 		Children:      make([]*Span, 0),
 	}
-	
+
 	if opts.Parent != nil {
 		span.ParentSpanID = opts.Parent.ID
 		opts.Parent.Children = append(opts.Parent.Children, span)
 	}
-	
+
 	dt.mu.Lock()
 	dt.spans[span.ID] = span
 	dt.mu.Unlock()
-	
+
 	return span
 }
 
 func (dt *DistributedTracer) GetServiceMap() *ServiceMap {
 	dt.mu.RLock()
 	defer dt.mu.RUnlock()
-	
+
 	serviceMap := &ServiceMap{
 		Services:    make(map[string]*ServiceNode),
 		Edges:       make([]*ServiceEdge, 0),
 		LastUpdated: time.Now(),
 	}
-	
+
 	// Build service map from traces
 	for _, trace := range dt.traces {
 		for _, span := range trace.Spans {
@@ -762,7 +758,7 @@ func (dt *DistributedTracer) GetServiceMap() *ServiceMap {
 			}
 		}
 	}
-	
+
 	return serviceMap
 }
 
@@ -784,17 +780,17 @@ func NewMetricsCollector(config *MetricsConfig, logger *zap.Logger) *MetricsColl
 
 func (mc *MetricsCollector) Start(ctx context.Context) error {
 	mc.logger.Info("Starting metrics collector")
-	
+
 	// Start collection loop
 	go mc.collectionLoop(ctx)
-	
+
 	return nil
 }
 
 func (mc *MetricsCollector) collectionLoop(ctx context.Context) {
 	ticker := time.NewTicker(mc.config.ScrapeInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -813,7 +809,7 @@ func (mc *MetricsCollector) collectMetrics() {
 			mc.logger.Error("Failed to collect metrics", zap.String("collector", name), zap.Error(err))
 			continue
 		}
-		
+
 		for _, metricFamily := range metrics {
 			mc.storeMetricFamily(metricFamily)
 		}
@@ -823,7 +819,7 @@ func (mc *MetricsCollector) collectMetrics() {
 func (mc *MetricsCollector) RecordMetric(name string, value float64, labels map[string]string, metricType string) {
 	mc.mu.Lock()
 	defer mc.mu.Unlock()
-	
+
 	family, exists := mc.metrics[name]
 	if !exists {
 		family = &MetricFamily{
@@ -834,13 +830,13 @@ func (mc *MetricsCollector) RecordMetric(name string, value float64, labels map[
 		}
 		mc.metrics[name] = family
 	}
-	
+
 	metric := &Metric{
 		Labels:    labels,
 		Value:     value,
 		Timestamp: time.Now(),
 	}
-	
+
 	switch metricType {
 	case "counter":
 		metric.Counter = &CounterValue{
@@ -856,7 +852,7 @@ func (mc *MetricsCollector) RecordMetric(name string, value float64, labels map[
 	case "summary":
 		metric.Summary = mc.createSummaryValue(value)
 	}
-	
+
 	family.Metrics = append(family.Metrics, metric)
 	family.UpdatedAt = time.Now()
 }
@@ -894,12 +890,12 @@ func (la *LogAggregator) LogEvent(entry *LogEntry) {
 	for _, processor := range la.processors {
 		entry = processor.Process(entry)
 	}
-	
+
 	// Enrich the log entry
 	for _, enricher := range la.enrichers {
 		entry = enricher.Enrich(entry)
 	}
-	
+
 	// Store the log entry
 	la.mu.Lock()
 	if la.logs[entry.ServiceName] == nil {
@@ -907,7 +903,7 @@ func (la *LogAggregator) LogEvent(entry *LogEntry) {
 	}
 	la.logs[entry.ServiceName] = append(la.logs[entry.ServiceName], entry)
 	la.mu.Unlock()
-	
+
 	// Index for search
 	la.indexer.Index(entry)
 }
@@ -937,9 +933,9 @@ func (apm *APMAgent) Start(ctx context.Context) error {
 func (apm *APMAgent) TrackTransaction(transaction *Transaction) {
 	apm.mu.Lock()
 	defer apm.mu.Unlock()
-	
+
 	apm.transactions[transaction.ID] = transaction
-	
+
 	// Update service APM data
 	if apm.services[transaction.Name] == nil {
 		apm.services[transaction.Name] = &ServiceAPM{
@@ -1100,9 +1096,10 @@ type CardinalityManager struct{}
 type MetricRetention struct{}
 type LogStream struct{}
 type LogCorrelation struct{}
-type LogIndexer struct {
-	func (li *LogIndexer) Index(entry *LogEntry) {}
-}
+type LogIndexer struct{}
+
+func (li *LogIndexer) Index(entry *LogEntry) {}
+
 type LogSearch struct{}
 type LogRetention struct{}
 type ErrorTracking struct{}
@@ -1112,9 +1109,10 @@ type SLITracker struct{}
 type SLOManager struct{}
 type PerformanceAnalyzer struct{}
 type CapacityPlanner struct{}
-type AlertManager struct {
-	func (am *AlertManager) Start(ctx context.Context) error { return nil }
-}
+type AlertManager struct{}
+
+func (am *AlertManager) Start(ctx context.Context) error { return nil }
+
 type ObservabilityStorage struct{}
 type EventCorrelator struct{}
 type AnomalyDetector struct{}
@@ -1150,22 +1148,22 @@ func (op *ObservabilityPlatform) HTTPMiddleware() func(http.Handler) http.Handle
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			
+
 			// Create span for the request
 			span := op.CreateSpan(r.Context(), fmt.Sprintf("%s %s", r.Method, r.URL.Path))
 			defer span.Finish()
-			
+
 			// Add HTTP tags
 			span.SetTag("http.method", r.Method)
 			span.SetTag("http.url", r.URL.String())
 			span.SetTag("http.user_agent", r.UserAgent())
-			
+
 			// Wrap response writer to capture status code
 			wrapped := &responseWriter{ResponseWriter: w, statusCode: 200}
-			
+
 			// Call next handler
 			next.ServeHTTP(wrapped, r.WithContext(context.WithValue(r.Context(), "span", span)))
-			
+
 			// Record metrics
 			duration := time.Since(start)
 			op.RecordMetric("http_request_duration_seconds", duration.Seconds(), map[string]string{
@@ -1173,13 +1171,13 @@ func (op *ObservabilityPlatform) HTTPMiddleware() func(http.Handler) http.Handle
 				"path":   r.URL.Path,
 				"status": fmt.Sprintf("%d", wrapped.statusCode),
 			}, "histogram")
-			
+
 			op.RecordMetric("http_requests_total", 1, map[string]string{
 				"method": r.Method,
 				"path":   r.URL.Path,
 				"status": fmt.Sprintf("%d", wrapped.statusCode),
 			}, "counter")
-			
+
 			// Set span status based on HTTP status code
 			span.SetTag("http.status_code", wrapped.statusCode)
 			if wrapped.statusCode >= 400 {
@@ -1233,3 +1231,6 @@ func (s *Span) AddEvent(name string, attributes map[string]interface{}) {
 	}
 	s.Events = append(s.Events, event)
 }
+
+// Missing Dashboard type
+type Dashboard struct{}

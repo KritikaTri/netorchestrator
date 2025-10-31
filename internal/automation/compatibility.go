@@ -95,7 +95,7 @@ func (cw *CompatibilityWrapper) GetWorkflowCompat(id string) (*EnhancedWorkflowD
 // ListWorkflowsCompat lists all workflows
 func (cw *CompatibilityWrapper) ListWorkflowsCompat() ([]EnhancedWorkflowDefinition, error) {
 	var workflows []WorkflowDefinition
-	if err := cw.engine.db.Find(&workflows).Error; err != nil {
+	if err := cw.engine.db.Table("workflow_definitions").Find(&workflows).Error; err != nil {
 		return nil, err
 	}
 

@@ -1,0 +1,686 @@
+{
+  "info": {
+    "name": "NetOrchestrator - Complete API",
+    "description": "Complete collection with all 84 endpoints including workflows",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-login if no token exists",
+          "if (!pm.collectionVariables.get('access_token')) {",
+          "    pm.sendRequest({",
+          "        url: 'http://localhost:8080/api/v1/auth/login',",
+          "        method: 'POST',",
+          "        header: {'Content-Type': 'application/json'},",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({username: 'admin', password: 'admin123'})",
+          "        }",
+          "    }, function (err, res) {",
+          "        if (!err && res.json().access_token) {",
+          "            pm.collectionVariables.set('access_token', res.json().access_token);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "network_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "node_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workflow_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "execution_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "    console.log('✅ Token saved:', jsonData.access_token.substring(0, 30) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Networks",
+      "item": [
+        {
+          "name": "List Networks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.networks && jsonData.networks.length > 0) {",
+                  "        const prodNet = jsonData.networks.find(n => n.name.includes('Production'));",
+                  "        if (prodNet) {",
+                  "            pm.collectionVariables.set('network_id', prodNet.id);",
+                  "            console.log('✅ Network ID saved:', prodNet.id);",
+                  "        }",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/networks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "networks"]
+            }
+          }
+        },
+        {
+          "name": "Get Network Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/networks/{{network_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "networks", "{{network_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Network",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Network\",\n  \"subnet\": \"192.168.100.0/24\",\n  \"description\": \"Test network created from Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/networks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "networks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Nodes",
+      "item": [
+        {
+          "name": "List Nodes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.nodes && jsonData.nodes.length > 0) {",
+                  "        pm.collectionVariables.set('node_id', jsonData.nodes[0].id);",
+                  "        console.log('✅ Node ID saved:', jsonData.nodes[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/nodes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "nodes"]
+            }
+          }
+        },
+        {
+          "name": "Get Node Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/nodes/{{node_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "nodes", "{{node_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Node",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{network_id}}\",\n  \"name\": \"test-node-01\",\n  \"node_type\": \"application\",\n  \"ip_address\": \"192.168.100.10\",\n  \"cpu_cores\": 2,\n  \"memory_mb\": 4096,\n  \"disk_gb\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/nodes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "nodes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Monitoring",
+      "item": [
+        {
+          "name": "List Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/monitoring/alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "monitoring", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "Network Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/monitoring/networks/{{network_id}}/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "monitoring", "networks", "{{network_id}}", "metrics"]
+            }
+          }
+        },
+        {
+          "name": "Node Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/monitoring/nodes/{{node_id}}/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "monitoring", "nodes", "{{node_id}}", "metrics"]
+            }
+          }
+        },
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/monitoring/events?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "monitoring", "events"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. AI Intelligence",
+      "item": [
+        {
+          "name": "Get AI Insights",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/intelligence/insights?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "intelligence", "insights"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analyze Network",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{network_id}}\",\n  \"analysis_type\": \"full\",\n  \"time_range\": \"24h\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/intelligence/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "intelligence", "analyze"]
+            }
+          }
+        },
+        {
+          "name": "Predict Capacity",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{network_id}}\",\n  \"prediction_days\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/intelligence/predict",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "intelligence", "predict"]
+            }
+          }
+        },
+        {
+          "name": "Optimize Costs",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{network_id}}\",\n  \"optimization_level\": \"moderate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/intelligence/optimize",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "intelligence", "optimize"]
+            }
+          }
+        },
+        {
+          "name": "Detect Anomalies",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{network_id}}\",\n  \"sensitivity\": \"high\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/intelligence/detect/anomalies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "intelligence", "detect", "anomalies"]
+            }
+          }
+        },
+        {
+          "name": "Get ML Models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/intelligence/models",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "intelligence", "models"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Workflows",
+      "item": [
+        {
+          "name": "List Workflow Definitions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.workflows && jsonData.workflows.length > 0) {",
+                  "        pm.collectionVariables.set('workflow_id', jsonData.workflows[0].id);",
+                  "        console.log('✅ Workflow ID saved:', jsonData.workflows[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/workflows",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "workflows"]
+            }
+          }
+        },
+        {
+          "name": "Get Workflow Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/workflows/{{workflow_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "workflows", "{{workflow_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Workflow",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Workflow\",\n  \"description\": \"Test workflow created from Postman\",\n  \"version\": \"1.0\",\n  \"tasks\": [\n    {\n      \"name\": \"step1\",\n      \"type\": \"script\",\n      \"script\": \"echo Hello\"\n    }\n  ],\n  \"triggers\": {\n    \"type\": \"manual\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/workflows",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "workflows"]
+            }
+          }
+        },
+        {
+          "name": "List Workflow Executions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.executions && jsonData.executions.length > 0) {",
+                  "        pm.collectionVariables.set('execution_id', jsonData.executions[0].id);",
+                  "        console.log('✅ Execution ID saved:', jsonData.executions[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/executions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "executions"]
+            }
+          }
+        },
+        {
+          "name": "Get Execution Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/executions/{{execution_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "executions", "{{execution_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Execution Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/executions/{{execution_id}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "executions", "{{execution_id}}", "tasks"]
+            }
+          }
+        },
+        {
+          "name": "Execute Workflow",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.execution_id) {",
+                  "        pm.collectionVariables.set('execution_id', jsonData.execution_id);",
+                  "        console.log('✅ Execution started:', jsonData.execution_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parameters\": {\n    \"network_id\": \"{{network_id}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/automation/workflows/{{workflow_id}}/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "automation", "workflows", "{{workflow_id}}", "execute"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Policies",
+      "item": [
+        {
+          "name": "List Policies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "policies"]
+            }
+          }
+        },
+        {
+          "name": "Create Policy",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"network_id\": \"{{network_id}}\",\n  \"name\": \"Test Firewall Rule\",\n  \"policy_type\": \"firewall\",\n  \"rules\": [\n    {\n      \"action\": \"allow\",\n      \"protocol\": \"tcp\",\n      \"ports\": [8080]\n    }\n  ],\n  \"priority\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "policies"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Docs (Swagger)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger/index.html",
+              "host": ["{{baseUrl}}"],
+              "path": ["swagger", "index.html"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

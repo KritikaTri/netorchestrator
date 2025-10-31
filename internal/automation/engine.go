@@ -38,11 +38,16 @@ type WorkflowDefinition struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	Version     string                 `json:"version"`
-	Tasks       []TaskDefinition       `json:"tasks" gorm:"serializer:json"`
-	Parameters  map[string]interface{} `json:"parameters" gorm:"serializer:json"`
-	Triggers    []TriggerDefinition    `json:"triggers" gorm:"serializer:json"`
+	Tasks       []TaskDefinition       `json:"tasks" gorm:"serializer:json;type:jsonb"`
+	Parameters  map[string]interface{} `json:"parameters" gorm:"serializer:json;type:jsonb"`
+	Triggers    []TriggerDefinition    `json:"triggers" gorm:"serializer:json;type:jsonb"`
 	CreatedAt   time.Time              `json:"created_at"`
 	UpdatedAt   time.Time              `json:"updated_at"`
+}
+
+// TableName specifies the table name for WorkflowDefinition
+func (WorkflowDefinition) TableName() string {
+	return "workflow_definitions"
 }
 
 // TaskDefinition represents a single task in a workflow

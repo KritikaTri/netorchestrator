@@ -41,8 +41,9 @@ receivers:
   - name: 'critical-alerts'
     email_configs:
       - to: 'ops-team@company.com,oncall@company.com'
-        subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
-        body: |
+        headers:
+          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+        html: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -73,8 +74,9 @@ receivers:
   - name: 'error-alerts'
     email_configs:
       - to: 'ops-team@company.com'
-        subject: '⚠️ ERROR: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
-        body: |
+        headers:
+          Subject: '⚠️ ERROR: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+        html: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -98,8 +100,9 @@ receivers:
   - name: 'warning-alerts'
     email_configs:
       - to: 'dev-team@company.com'
-        subject: '💡 WARNING: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
-        body: |
+        headers:
+          Subject: '💡 WARNING: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+        html: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -122,8 +125,9 @@ receivers:
   - name: 'business-alerts'
     email_configs:
       - to: 'business-team@company.com,management@company.com'
-        subject: '📊 BUSINESS ALERT: {{ .GroupLabels.alertname }}'
-        body: |
+        headers:
+          Subject: '📊 BUSINESS ALERT: {{ .GroupLabels.alertname }}'
+        html: |
           {{ range .Alerts }}
           Business Impact Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}

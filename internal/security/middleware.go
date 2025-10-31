@@ -95,12 +95,43 @@ func (sm *SecurityManager) APIKeyAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Mock user for API key (in production, this would be looked up from database)
-		c.Set("user_id", "api_user")
+        // Mock user for API key (dev-only). Map to admin demo user for broad access.
+        c.Set("user_id", "admin-uuid")
 		c.Set("username", "API User")
 		c.Set("auth_method", "api_key")
 
 		c.Next()
+	}
+}
+
+// CombinedAuthMiddleware tries JWT first, then API Key. Aborts if neither succeeds.
+func (sm *SecurityManager) CombinedAuthMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        authHeader := c.GetHeader("Authorization")
+        apiKey := c.GetHeader("X-API-Key")
+
+        if authHeader != "" {
+            // Run JWT middleware; it will set context or abort
+            sm.JWTAuthMiddleware()(c)
+            if c.IsAborted() {
+                return
+            }
+            c.Next()
+            return
+        }
+
+        if apiKey != "" || c.Query("api_key") != "" {
+            sm.APIKeyAuthMiddleware()(c)
+            if c.IsAborted() {
+                return
+            }
+            c.Next()
+            return
+        }
+
+        sm.auditLogger.LogSecurityEvent("", "", "missing_auth", "Authentication required", c.ClientIP(), AuditWarning)
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+        c.Abort()
 	}
 }
 
@@ -159,13 +190,23 @@ func (sm *SecurityManager) StrictRateLimitMiddleware() gin.HandlerFunc {
 func (sm *SecurityManager) AuditMiddleware() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 		// Log the request for audit purposes
+        var userID, username, userAgent string
+        if v, ok := param.Keys["user_id"].(string); ok {
+            userID = v
+        }
+        if v, ok := param.Keys["username"].(string); ok {
+            username = v
+        }
+        if v, ok := param.Keys["user_agent"].(string); ok {
+            userAgent = v
+        }
 		sm.auditLogger.LogAPIAccess(
-			param.Keys["user_id"].(string),
-			param.Keys["username"].(string),
+            userID,
+            username,
 			param.Method,
 			param.Path,
 			param.ClientIP,
-			param.Keys["user_agent"].(string),
+            userAgent,
 			param.StatusCode,
 			param.Latency,
 		)

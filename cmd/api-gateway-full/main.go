@@ -64,12 +64,14 @@ func main() {
 	orchestrationService := services.NewOrchestrationService(db.GetDB(), cacheClient.Client, logger)
 	validationService := services.NewValidationService(db.GetDB(), cacheClient.Client, logger)
 
-	// Initialize API handlers
+	// Initialize API handlers (with nil for automation and intelligence)
 	apiHandlers := api.NewHandlers(
 		networkService,
 		monitoringService,
 		orchestrationService,
 		validationService,
+		nil, // automation handler - TODO: initialize properly
+		nil, // intelligence handlers - TODO: initialize properly
 		logger,
 	)
 

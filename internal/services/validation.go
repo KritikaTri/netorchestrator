@@ -158,6 +158,7 @@ func (s *ValidationService) ValidatePolicy(ctx context.Context, policy *models.P
 	validTypes := []models.PolicyType{
 		models.PolicyTypeTraffic,
 		models.PolicyTypeSecurity,
+		models.PolicyTypeFirewall,
 		models.PolicyTypeQoS,
 		models.PolicyTypeRouting,
 		models.PolicyTypeAccess,
