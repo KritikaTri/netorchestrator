@@ -38,10 +38,12 @@ import (
 	"netorchestrator/internal/api"
 	"netorchestrator/internal/automation"
 	"netorchestrator/internal/config"
+	"netorchestrator/internal/containerlab"
 	"netorchestrator/internal/devices"
 	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/nlp"
 	"netorchestrator/internal/optimization"
+	"netorchestrator/internal/orchestration"
 	"netorchestrator/internal/security"
 	"netorchestrator/internal/services"
 	"netorchestrator/pkg/cache"
@@ -125,8 +127,14 @@ func main() {
 	nlpService := nlp.NewNLPService(logger)
 	nlpHandlers := nlp.NewHandlers(nlpService, networkService, logger)
 
+	// Initialize Containerlab topology management
+	containerlabHandlers := containerlab.NewContainerlabHandlers(logger)
+
 	// Initialize device management system (using real containers)
 	containerDeviceHandlers := devices.NewContainerHandlers(logger)
+
+	// Initialize container provisioner (bridges virtual networks with real containers)
+	containerProvisioner := orchestration.NewContainerProvisioner(db.GetDB(), logger)
 
 	// Periodic updates removed - using REST APIs only
 
@@ -138,11 +146,12 @@ func main() {
 		validationService,
 		automationHandler,
 		intelligenceHandlers,
+		containerProvisioner,
 		logger,
 	)
 
 	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers)
+	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers, containerlabHandlers)
 
 	// Start server
 	server := &http.Server{
@@ -203,7 +212,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers) *gin.Engine {
+func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers, containerlabHandlers *containerlab.ContainerlabHandlers) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -375,6 +384,9 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 
 			// Device Management (Real container-based network devices)
 			containerDeviceHandlers.RegisterRoutes(protected)
+
+			// Containerlab Topology Management (Professional network lab orchestration)
+			containerlabHandlers.RegisterRoutes(protected)
 		}
 	}
 

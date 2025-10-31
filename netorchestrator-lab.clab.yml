@@ -1,0 +1,119 @@
+name: netorchestrator-lab
+
+# NetOrchestrator Multi-Vendor Network Lab
+# Professional Containerlab-style topology definition
+
+mgmt:
+  network: netorchestrator-lab
+  ipv4-subnet: 172.20.20.0/24
+
+topology:
+  # Network nodes with different vendors/OS
+  nodes:
+    # Nokia SR Linux - Enterprise Network OS
+    nokia-srl1:
+      kind: nokia_srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.10
+      ports:
+        - "21001:22"    # SSH
+        - "21002:57400" # gNMI
+        - "21003:80"    # HTTP
+        - "21004:443"   # HTTPS
+      env:
+        SRLINUX_MODE: standalone
+      labels:
+        vendor: Nokia
+        type: router
+        management: gnmi,netconf,ssh
+
+    # FRRouting - Open Source Routing Suite  
+    frr-router:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.11
+      ports:
+        - "22001:22"    # SSH
+        - "22002:2601"  # Zebra
+        - "22003:2605"  # BGP
+      binds:
+        - network-configs/frr/frr.conf:/etc/frr/frr.conf:ro
+        - network-configs/frr/daemons:/etc/frr/daemons:ro
+      exec:
+        - /usr/lib/frr/frrinit.sh start
+      labels:
+        vendor: FRRouting
+        type: router
+        management: ssh,telnet
+
+    # Alpine Linux - Lightweight Network Node
+    alpine-node1:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.12
+      ports:
+        - "23001:22"    # SSH
+      exec:
+        - apk add --no-cache openssh-server curl net-tools iproute2
+        - ssh-keygen -A
+        - echo 'root:netorchestrator' | chpasswd
+        - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+        - echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+        - /usr/sbin/sshd -D &
+      labels:
+        vendor: Alpine
+        type: host
+        management: ssh
+
+    # Ubuntu Network Node - Full Linux Router
+    ubuntu-router:
+      kind: linux
+      image: ubuntu:20.04
+      mgmt-ipv4: 172.20.20.13
+      ports:
+        - "24001:22"    # SSH
+        - "24002:80"    # HTTP
+      exec:
+        - apt-get update
+        - apt-get install -y openssh-server curl net-tools iproute2 bird2 nginx
+        - mkdir -p /run/sshd
+        - echo 'root:netorchestrator' | chpasswd
+        - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+        - echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+        - service ssh start
+        - service nginx start
+      labels:
+        vendor: Ubuntu
+        type: router
+        management: ssh,http
+
+    # VyOS-like Alpine (Network OS Simulation)
+    vyos-like:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.14
+      ports:
+        - "25001:22"    # SSH
+      exec:
+        - apk add --no-cache openssh-server curl net-tools iproute2 quagga
+        - ssh-keygen -A
+        - echo 'vyos:vyos' | chpasswd
+        - adduser -D vyos
+        - echo 'vyos:vyos' | chpasswd
+        - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+        - /usr/sbin/sshd -D &
+      labels:
+        vendor: VyOS-like
+        type: router
+        management: ssh
+
+  # Network links between devices
+  links:
+    # Connect FRR router to Alpine node
+    - endpoints: ["frr-router:eth1", "alpine-node1:eth1"]
+    # Connect Ubuntu router to VyOS
+    - endpoints: ["ubuntu-router:eth1", "vyos-like:eth1"]
+    # Connect FRR to Ubuntu (backbone)
+    - endpoints: ["frr-router:eth2", "ubuntu-router:eth2"]
+    # Connect Nokia to FRR
+    - endpoints: ["nokia-srl1:e1-1", "frr-router:eth3"]
