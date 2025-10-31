@@ -13,17 +13,17 @@ import (
 
 // Handlers handles NLP-related API endpoints
 type Handlers struct {
-	nlpService      *NLPService
+	nlpService     *NLPService
 	networkService *services.NetworkService
-	logger          *zap.Logger
+	logger         *zap.Logger
 }
 
 // NewHandlers creates new NLP handlers
 func NewHandlers(nlpService *NLPService, networkService *services.NetworkService, logger *zap.Logger) *Handlers {
 	return &Handlers{
-		nlpService:      nlpService,
-		networkService:  networkService,
-		logger:          logger,
+		nlpService:     nlpService,
+		networkService: networkService,
+		logger:         logger,
 	}
 }
 
@@ -80,7 +80,7 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr := c.GetString("user_id")
 	var userID uuid.UUID
-	
+
 	if userIDStr == "" {
 		// For API key auth, use default admin user
 		resolvedUUID, err := h.networkService.GetUserByUsername(c.Request.Context(), "admin")
@@ -159,17 +159,17 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 
 	// Return successful response
 	c.JSON(http.StatusCreated, gin.H{
-		"success":        true,
-		"message":        "Network provisioned from natural language",
-		"network":        network,
-		"nodes_created":  len(createdNodes),
-		"nodes":          createdNodes,
-		"spec":           spec,
-		"original_text":  req.Text,
+		"success":       true,
+		"message":       "Network provisioned from natural language",
+		"network":       network,
+		"nodes_created": len(createdNodes),
+		"nodes":         createdNodes,
+		"spec":          spec,
+		"original_text": req.Text,
 		"parsing_stats": gin.H{
-			"topology":      spec.Topology,
-			"nodes_parsed":  len(spec.Nodes),
-			"config_items":  len(spec.Config),
+			"topology":     spec.Topology,
+			"nodes_parsed": len(spec.Nodes),
+			"config_items": len(spec.Config),
 		},
 	})
 }
@@ -186,4 +186,3 @@ func getSubnetFromConfig(config map[string]interface{}) string {
 	}
 	return ""
 }
-

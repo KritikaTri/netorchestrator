@@ -1,3 +1,8 @@
 .env
 bin/
 .DS_Store
+api-gateway
+api-gateway.log
+api-gateway.pid
+api-gateway-simple
+api-gateway-full
