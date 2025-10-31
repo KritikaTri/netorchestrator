@@ -26,6 +26,10 @@ func RunMigrations(db *gorm.DB, logger *zap.Logger) error {
 		&models.Node{},
 		&models.Link{},
 		&models.Policy{},
+		// Temporarily disable device models to fix migration
+		// &models.NetworkDevice{},
+		// &models.DeviceInterface{},
+		// &models.DeviceMetric{},
 	}
 
 	// Run AutoMigrate for all models
@@ -43,8 +47,8 @@ func RunMigrations(db *gorm.DB, logger *zap.Logger) error {
 			if err := db.AutoMigrate(model); err != nil {
 				// Log warning but continue - some constraint errors are non-critical
 				if isNonCriticalError(err) {
-					logger.Warn("Non-critical migration error (continuing)", 
-						zap.Error(err), 
+					logger.Warn("Non-critical migration error (continuing)",
+						zap.Error(err),
 						zap.String("model", fmt.Sprintf("%T", model)),
 					)
 				} else {
@@ -102,7 +106,7 @@ func isNonCriticalError(err error) bool {
 // GetMigrationStatus returns the status of database migrations
 func GetMigrationStatus(db *gorm.DB, logger *zap.Logger) (map[string]interface{}, error) {
 	status := make(map[string]interface{})
-	
+
 	// Get database connection info
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -186,4 +190,3 @@ func CheckTableExists(db *gorm.DB, tableName string) (bool, error) {
 	}
 	return count > 0, nil
 }
-

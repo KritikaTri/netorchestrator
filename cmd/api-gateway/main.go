@@ -38,6 +38,7 @@ import (
 	"netorchestrator/internal/api"
 	"netorchestrator/internal/automation"
 	"netorchestrator/internal/config"
+	"netorchestrator/internal/devices"
 	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/nlp"
 	"netorchestrator/internal/optimization"
@@ -124,6 +125,9 @@ func main() {
 	nlpService := nlp.NewNLPService(logger)
 	nlpHandlers := nlp.NewHandlers(nlpService, networkService, logger)
 
+	// Initialize device management system (using real containers)
+	containerDeviceHandlers := devices.NewContainerHandlers(logger)
+
 	// Periodic updates removed - using REST APIs only
 
 	// Initialize API handlers
@@ -138,7 +142,7 @@ func main() {
 	)
 
 	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers)
+	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers)
 
 	// Start server
 	server := &http.Server{
@@ -199,7 +203,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers) *gin.Engine {
+func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -368,6 +372,9 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 			{
 				ai.POST("/provision", nlpHandlers.ProvisionFromNaturalLanguage)
 			}
+
+			// Device Management (Real container-based network devices)
+			containerDeviceHandlers.RegisterRoutes(protected)
 		}
 	}
 

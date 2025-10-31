@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Nokia SR Linux - Free enterprise network container
+  nokia-router1:
+    image: ghcr.io/nokia/srlinux:latest
+    container_name: nokia-router1
+    hostname: nokia-router1
+    ports:
+      - "21001:22"      # SSH
+      - "21002:80"      # HTTP Management
+      - "21003:443"     # HTTPS Management  
+      - "21004:57400"   # gNMI
+      - "21005:830"     # NETCONF
+    environment:
+      - SRLINUX_MODE=standalone
+    volumes:
+      - ./network-configs/nokia1:/etc/opt/srlinux/
+    networks:
+      - netorchestrator-lab
+    privileged: true
+
+  # Second Nokia Router for multi-device demo
+  nokia-router2:
+    image: ghcr.io/nokia/srlinux:latest
+    container_name: nokia-router2
+    hostname: nokia-router2
+    ports:
+      - "22001:22"      # SSH
+      - "22002:80"      # HTTP Management
+      - "22003:443"     # HTTPS Management
+      - "22004:57400"   # gNMI
+      - "22005:830"     # NETCONF
+    environment:
+      - SRLINUX_MODE=standalone
+    volumes:
+      - ./network-configs/nokia2:/etc/opt/srlinux/
+    networks:
+      - netorchestrator-lab
+    privileged: true
+
+  # FRRouting container (Open Source Router)
+  frr-router:
+    image: frrouting/frr:latest
+    container_name: frr-router
+    hostname: frr-router
+    ports:
+      - "23001:22"      # SSH
+      - "23002:2601"    # Zebra vty
+      - "23003:2605"    # BGP vty
+    volumes:
+      - ./network-configs/frr:/etc/frr/
+    networks:
+      - netorchestrator-lab
+    privileged: true
+    
+  # Alpine Linux as simple network node
+  alpine-node:
+    image: alpine:latest
+    container_name: alpine-node
+    hostname: alpine-node
+    command: >
+      sh -c "apk add --no-cache openssh-server curl &&
+             ssh-keygen -A &&
+             echo 'root:netorchestrator' | chpasswd &&
+             sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+             /usr/sbin/sshd -D"
+    ports:
+      - "24001:22"      # SSH
+    networks:
+      - netorchestrator-lab
+
+networks:
+  netorchestrator-lab:
+    driver: bridge
+    name: netorchestrator-lab

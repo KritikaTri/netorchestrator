@@ -23,10 +23,10 @@ func NewNLPService(logger *zap.Logger) *NLPService {
 
 // NetworkSpec represents a parsed network topology specification
 type NetworkSpec struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Nodes       []NodeSpec        `json:"nodes"`
-	Topology    string            `json:"topology"` // "star", "mesh", "ring", "bus"
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Nodes       []NodeSpec             `json:"nodes"`
+	Topology    string                 `json:"topology"` // "star", "mesh", "ring", "bus"
 	Config      map[string]interface{} `json:"config"`
 }
 
@@ -250,4 +250,3 @@ func (s *NLPService) ValidateSpec(ctx context.Context, spec *NetworkSpec) error 
 
 	return nil
 }
-
