@@ -22,6 +22,8 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -36,10 +38,22 @@ import {
   CheckCircle as ActiveIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
+  Api as ApiIcon,
+  List as ListIcon,
+  Assessment as MetricsIcon,
+  AccountTree as TopologyIcon,
+  Link as LinkIcon,
+  Security as PolicyIcon,
+  Assignment as WorkflowIcon,
+  Psychology as IntelligenceIcon,
+  NotificationsActive as AlertIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import { useWebSocket } from '../contexts/WebSocketContext';
+import NetworkOverview from './NetworkOverview';
+import MetricsCharts from './MetricsCharts';
+import NetworkTopology from './NetworkTopology';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -60,10 +74,15 @@ const Dashboard: React.FC = () => {
   
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [createNetworkOpen, setCreateNetworkOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   const [networkForm, setNetworkForm] = useState({
     name: '',
     description: '',
   });
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
   useEffect(() => {
     // Initial data fetch
@@ -125,6 +144,179 @@ const Dashboard: React.FC = () => {
   const totalNodes = nodes.length;
   const activeAlerts = alerts.filter(a => a.status !== 'resolved').length;
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 0: // Overview
+        return (
+          <>
+            {/* Stats Cards */}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+              <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography variant="h4" component="div">
+                        {totalNetworks}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        Total Networks
+                      </Typography>
+                      <Typography variant="body2" color="success.main">
+                        {activeNetworks} Active
+                      </Typography>
+                    </Box>
+                    <NetworkIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                  </Box>
+                </CardContent>
+              </Card>
+              
+              <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography variant="h4" component="div">
+                        {totalNodes}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        Total Nodes
+                      </Typography>
+                      <Typography variant="body2" color="success.main">
+                        {activeNodes} Active
+                      </Typography>
+                    </Box>
+                    <NodeIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                  </Box>
+                </CardContent>
+              </Card>
+              
+              <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography variant="h4" component="div">
+                        {activeAlerts}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        Active Alerts
+                      </Typography>
+                    </Box>
+                    <WarningIcon sx={{ fontSize: 40, color: 'warning.main' }} />
+                  </Box>
+                </CardContent>
+              </Card>
+              
+              <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography variant="h4" component="div">
+                        {connected ? 'OK' : 'DOWN'}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        Connection Status
+                      </Typography>
+                    </Box>
+                    {connected ? (
+                      <ActiveIcon sx={{ fontSize: 40, color: 'success.main' }} />
+                    ) : (
+                      <ErrorIcon sx={{ fontSize: 40, color: 'error.main' }} />
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+
+            {/* Networks Section */}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              <Card sx={{ flex: '1 1 600px', minWidth: 600 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Networks</Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={() => setCreateNetworkOpen(true)}
+                    >
+                      Create Network
+                    </Button>
+                  </Box>
+                  
+                  {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <List>
+                      {networks.length === 0 ? (
+                        <ListItem>
+                          <ListItemText primary="No networks found" />
+                        </ListItem>
+                      ) : (
+                        networks.map((network) => (
+                          <ListItem key={network.id}>
+                            <ListItemText
+                              primary={network.name}
+                              secondary={network.description}
+                            />
+                            <Chip
+                              label={network.status}
+                              color={network.status === 'active' ? 'success' : 'default'}
+                              size="small"
+                              sx={{ mr: 1 }}
+                            />
+                            <IconButton
+                              onClick={() => handleNetworkAction(network.id, network.status === 'active' ? 'stop' : 'start')}
+                              size="small"
+                            >
+                              {network.status === 'active' ? <StopIcon /> : <StartIcon />}
+                            </IconButton>
+                          </ListItem>
+                        ))
+                      )}
+                    </List>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card sx={{ flex: '1 1 300px', minWidth: 300 }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2 }}>Recent Alerts</Typography>
+                  <List>
+                    {alerts.slice(0, 5).map((alert) => (
+                      <ListItem key={alert.id}>
+                        <ListItemText
+                          primary={alert.title}
+                          secondary={alert.description || 'No description'}
+                        />
+                        <Chip
+                          label={alert.severity}
+                          color={alert.severity === 'high' ? 'error' : alert.severity === 'medium' ? 'warning' : 'info'}
+                          size="small"
+                        />
+                      </ListItem>
+                    ))}
+                    {alerts.length === 0 && (
+                      <ListItem>
+                        <ListItemText primary="No alerts" />
+                      </ListItem>
+                    )}
+                  </List>
+                </CardContent>
+              </Card>
+            </Box>
+          </>
+        );
+      case 1: // Networks
+        return <NetworkOverview networks={networks} loading={loading} error={error} />;
+      case 2: // Topology
+        return <NetworkTopology networks={networks} nodes={nodes} />;
+      case 3: // Metrics
+        return <MetricsCharts />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       {/* App Bar */}
@@ -178,161 +370,24 @@ const Dashboard: React.FC = () => {
           </Alert>
         )}
 
-        {/* Stats Cards */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" component="div">
-                    {totalNetworks}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Total Networks
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    {activeNetworks} Active
-                  </Typography>
-                </Box>
-                <NetworkIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-          
-          <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" component="div">
-                    {totalNodes}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Total Nodes
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    {activeNodes} Active
-                  </Typography>
-                </Box>
-                <NodeIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-          
-          <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" component="div">
-                    {activeAlerts}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Active Alerts
-                  </Typography>
-                </Box>
-                <WarningIcon sx={{ fontSize: 40, color: 'warning.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-          
-          <Card sx={{ minWidth: 250, flex: '1 1 250px' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" component="div">
-                    {connected ? 'OK' : 'DOWN'}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Connection Status
-                  </Typography>
-                </Box>
-                {connected ? (
-                  <ActiveIcon sx={{ fontSize: 40, color: 'success.main' }} />
-                ) : (
-                  <ErrorIcon sx={{ fontSize: 40, color: 'error.main' }} />
-                )}
-              </Box>
-            </CardContent>
-          </Card>
+        {/* Tabs */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange} 
+            aria-label="dashboard tabs"
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <Tab icon={<DashboardIcon />} iconPosition="start" label="Overview" />
+            <Tab icon={<NetworkIcon />} iconPosition="start" label="Networks" />
+            <Tab icon={<TopologyIcon />} iconPosition="start" label="Topology" />
+            <Tab icon={<MetricsIcon />} iconPosition="start" label="Metrics" />
+          </Tabs>
         </Box>
 
-        {/* Networks Section */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-          <Card sx={{ flex: '1 1 600px', minWidth: 600 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Networks</Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setCreateNetworkOpen(true)}
-                >
-                  Create Network
-                </Button>
-              </Box>
-              
-              {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <List>
-                  {networks.length === 0 ? (
-                    <ListItem>
-                      <ListItemText primary="No networks found" />
-                    </ListItem>
-                  ) : (
-                    networks.map((network) => (
-                      <ListItem key={network.id}>
-                        <ListItemText
-                          primary={network.name}
-                          secondary={network.description}
-                        />
-                        <Chip
-                          label={network.status}
-                          color={network.status === 'active' ? 'success' : 'default'}
-                          size="small"
-                          sx={{ mr: 1 }}
-                        />
-                        <IconButton
-                          onClick={() => handleNetworkAction(network.id, network.status === 'active' ? 'stop' : 'start')}
-                          size="small"
-                        >
-                          {network.status === 'active' ? <StopIcon /> : <StartIcon />}
-                        </IconButton>
-                      </ListItem>
-                    ))
-                  )}
-                </List>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card sx={{ flex: '1 1 300px', minWidth: 300 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>Recent Alerts</Typography>
-              <List>
-                {alerts.slice(0, 5).map((alert) => (
-                  <ListItem key={alert.id}>
-                    <ListItemText
-                      primary={alert.title}
-                      secondary={alert.description || 'No description'}
-                    />
-                    <Chip
-                      label={alert.severity}
-                      color={alert.severity === 'high' ? 'error' : alert.severity === 'medium' ? 'warning' : 'info'}
-                      size="small"
-                    />
-                  </ListItem>
-                ))}
-                {alerts.length === 0 && (
-                  <ListItem>
-                    <ListItemText primary="No alerts" />
-                  </ListItem>
-                )}
-              </List>
-            </CardContent>
-          </Card>
-        </Box>
+        {/* Tab Content */}
+        {renderTabContent()}
       </Container>
 
       {/* Create Network Dialog */}

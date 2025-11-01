@@ -1,20 +1,22 @@
-import React from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Card, CardContent, Typography, Box, CircularProgress } from '@mui/material';
+import { useApi } from '../contexts/ApiContext';
 
-interface Metric {
-  id: string;
-  source_type: string;
-  source_id: string;
-  metric_name: string;
-  value: number;
-  timestamp: string;
-}
+const MetricsCharts: React.FC = () => {
+  const { metrics, fetchMetrics, loading } = useApi();
 
-interface MetricsChartsProps {
-  metrics: Metric[];
-}
+  useEffect(() => {
+    fetchMetrics();
+  }, [fetchMetrics]);
 
-const MetricsCharts: React.FC<MetricsChartsProps> = ({ metrics }) => {
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Card>
       <CardContent>
