@@ -133,8 +133,17 @@ func main() {
 	// Initialize device management system (using real containers)
 	containerDeviceHandlers := devices.NewContainerHandlers(logger)
 
+	// Initialize real policy enforcement demo handlers
+	realPolicyHandlers := api.NewRealPolicyHandlers(logger)
+
 	// Initialize container provisioner (bridges virtual networks with real containers)
 	containerProvisioner := orchestration.NewContainerProvisioner(db.GetDB(), logger)
+
+	// Initialize link provisioner (creates real network connections between containers)
+	linkProvisioner := orchestration.NewLinkProvisioner(db.GetDB(), logger)
+
+	// Initialize policy enforcer (enforces network policies on real containers)
+	policyEnforcer := orchestration.NewPolicyEnforcer(db.GetDB(), logger)
 
 	// Periodic updates removed - using REST APIs only
 
@@ -147,11 +156,13 @@ func main() {
 		automationHandler,
 		intelligenceHandlers,
 		containerProvisioner,
+		linkProvisioner,
+		policyEnforcer,
 		logger,
 	)
 
 	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers, containerlabHandlers)
+	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers, containerlabHandlers, realPolicyHandlers)
 
 	// Start server
 	server := &http.Server{
@@ -212,7 +223,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers, containerlabHandlers *containerlab.ContainerlabHandlers) *gin.Engine {
+func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers, containerlabHandlers *containerlab.ContainerlabHandlers, realPolicyHandlers *api.RealPolicyHandlers) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -280,6 +291,9 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				networks.POST("/:id/links", handlers.CreateLink)
 				networks.GET("/:id/policies", handlers.ListPolicies)
 				networks.POST("/:id/policies", handlers.CreatePolicy)
+
+				// Enhanced topology with container integration
+				networks.GET("/:id/enhanced-topology", handlers.GetEnhancedNetworkTopology)
 			}
 
 			// Node management (direct node access)
@@ -301,6 +315,10 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				links.GET("/:id", handlers.GetLink)
 				links.PUT("/:id", handlers.UpdateLink)
 				links.DELETE("/:id", handlers.DeleteLink)
+
+				// Enhanced link management with container networking
+				links.GET("/:id/status", handlers.GetLinkStatus)
+				links.POST("/:id/test", handlers.TestLinkConnectivity)
 			}
 
 			// Policy management (direct policy access)
@@ -311,6 +329,10 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				policies.GET("/:id", handlers.GetPolicy)
 				policies.PUT("/:id", handlers.UpdatePolicy)
 				policies.DELETE("/:id", handlers.DeletePolicy)
+
+				// Enhanced policy management with container enforcement
+				policies.GET("/:id/status", handlers.GetPolicyStatus)
+				policies.POST("/:id/enforce", handlers.EnforcePolicyNow)
 			}
 
 			// Monitoring
@@ -387,6 +409,9 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 
 			// Containerlab Topology Management (Professional network lab orchestration)
 			containerlabHandlers.RegisterRoutes(protected)
+
+			// Real Policy Enforcement Demo (Actual iptables/tc rules on containers)
+			realPolicyHandlers.RegisterRoutes(protected)
 		}
 	}
 

@@ -136,11 +136,15 @@ func (cp *ContainerProvisioner) createNodeContainer(containerName, image, networ
 
 	// Add node-specific configuration
 	if image == "frrouting/frr:latest" {
-		// FRRouting router
+		// FRRouting router - needs full network access for routing protocols and policy enforcement
 		args = append(args, "--privileged")
+		args = append(args, "--cap-add=NET_ADMIN")
+		args = append(args, "--cap-add=SYS_ADMIN")
 		args = append(args, image)
 	} else if image == "ubuntu:20.04" {
-		// Ubuntu server
+		// Ubuntu server - needs network admin for policy enforcement
+		args = append(args, "--cap-add=NET_ADMIN")
+		args = append(args, "--cap-add=NET_RAW")
 		args = append(args, image)
 		args = append(args, "bash", "-c",
 			"apt-get update >/dev/null 2>&1 && "+
@@ -151,7 +155,8 @@ func (cp *ContainerProvisioner) createNodeContainer(containerName, image, networ
 				"service ssh start >/dev/null 2>&1 && "+
 				"sleep infinity")
 	} else {
-		// Alpine Linux (default)
+		// Alpine Linux (default) - lightweight but policy-capable
+		args = append(args, "--cap-add=NET_ADMIN")
 		args = append(args, image)
 		args = append(args, "sh", "-c",
 			"apk add --no-cache openssh-server curl net-tools iproute2 && "+
