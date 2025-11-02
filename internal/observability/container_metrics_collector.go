@@ -203,55 +203,74 @@ func (c *ContainerMetricsCollector) getContainerStats(containerID, containerName
 		return stats, fmt.Errorf("failed to get stats: %w", err)
 	}
 
-	// Parse the JSON output
-	var rawStats map[string]interface{}
-	if err := json.Unmarshal(output, &rawStats); err != nil {
-		// Try line-by-line parsing (Docker sometimes outputs one JSON per line)
-		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-		if len(lines) > 0 {
-			if err := json.Unmarshal([]byte(lines[0]), &rawStats); err != nil {
-				return stats, fmt.Errorf("failed to parse stats JSON: %w", err)
-			}
-		} else {
-			return stats, fmt.Errorf("failed to parse stats JSON: %w", err)
-		}
+	// Parse the JSON output - Docker returns an array of stats objects
+	var rawStatsArray []map[string]interface{}
+	if err := json.Unmarshal(output, &rawStatsArray); err != nil {
+		return stats, fmt.Errorf("failed to parse stats JSON: %w", err)
 	}
 
-	// Extract CPU percentage
+	// Get the first (and should be only) stats object
+	if len(rawStatsArray) == 0 {
+		return stats, fmt.Errorf("no stats data returned for container %s", containerID)
+	}
+
+	rawStats := rawStatsArray[0]
+
+	// Extract CPU percentage (try both old and new Docker format)
 	if cpuPerc, ok := rawStats["CPUPerc"].(string); ok {
+		stats.CPUPercent = parsePercent(cpuPerc)
+	} else if cpuPerc, ok := rawStats["cpu_percent"].(string); ok {
 		stats.CPUPercent = parsePercent(cpuPerc)
 	}
 
-	// Extract memory usage and limit
+	// Extract memory usage and limit (try both formats)
 	if memUsage, ok := rawStats["MemUsage"].(string); ok {
+		usage, limit := parseMemoryUsage(memUsage)
+		stats.MemoryUsageMB = usage
+		stats.MemoryLimitMB = limit
+	} else if memUsage, ok := rawStats["mem_usage"].(string); ok {
 		usage, limit := parseMemoryUsage(memUsage)
 		stats.MemoryUsageMB = usage
 		stats.MemoryLimitMB = limit
 	}
 
-	// Extract memory percentage
+	// Extract memory percentage (try both formats)
 	if memPerc, ok := rawStats["MemPerc"].(string); ok {
+		stats.MemoryPercent = parsePercent(memPerc)
+	} else if memPerc, ok := rawStats["mem_percent"].(string); ok {
 		stats.MemoryPercent = parsePercent(memPerc)
 	}
 
-	// Extract network I/O
+	// Extract network I/O (try both formats)
 	if netIO, ok := rawStats["NetIO"].(string); ok {
+		rx, tx := parseNetworkIO(netIO)
+		stats.NetworkRxMB = rx
+		stats.NetworkTxMB = tx
+	} else if netIO, ok := rawStats["net_io"].(string); ok {
 		rx, tx := parseNetworkIO(netIO)
 		stats.NetworkRxMB = rx
 		stats.NetworkTxMB = tx
 	}
 
-	// Extract block I/O
+	// Extract block I/O (try both formats)
 	if blockIO, ok := rawStats["BlockIO"].(string); ok {
+		read, write := parseBlockIO(blockIO)
+		stats.BlockReadMB = read
+		stats.BlockWriteMB = write
+	} else if blockIO, ok := rawStats["block_io"].(string); ok {
 		read, write := parseBlockIO(blockIO)
 		stats.BlockReadMB = read
 		stats.BlockWriteMB = write
 	}
 
-	// Extract PIDs
+	// Extract PIDs (try both formats)
 	if pids, ok := rawStats["PIDs"].(string); ok {
 		stats.PIDs = parsePIDs(pids)
 	} else if pidsFloat, ok := rawStats["PIDs"].(float64); ok {
+		stats.PIDs = int(pidsFloat)
+	} else if pids, ok := rawStats["pids"].(string); ok {
+		stats.PIDs = parsePIDs(pids)
+	} else if pidsFloat, ok := rawStats["pids"].(float64); ok {
 		stats.PIDs = int(pidsFloat)
 	}
 

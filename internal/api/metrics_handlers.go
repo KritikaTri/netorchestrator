@@ -33,12 +33,12 @@ func NewMetricsHandler(db *gorm.DB, metrics *observability.Metrics, logger *zap.
 
 // MetricsSummaryResponse represents the aggregated metrics response
 type MetricsSummaryResponse struct {
-	Timestamp      string                    `json:"timestamp"`
-	Health         HealthMetrics             `json:"health"`
-	Infrastructure InfrastructureMetrics     `json:"infrastructure"`
-	Performance    PerformanceMetrics        `json:"performance"`
-	Resources      ResourceMetrics           `json:"resources"`
-	Uptime         string                    `json:"uptime"`
+	Timestamp      string                `json:"timestamp"`
+	Health         HealthMetrics         `json:"health"`
+	Infrastructure InfrastructureMetrics `json:"infrastructure"`
+	Performance    PerformanceMetrics    `json:"performance"`
+	Resources      ResourceMetrics       `json:"resources"`
+	Uptime         string                `json:"uptime"`
 }
 
 type HealthMetrics struct {
@@ -47,11 +47,11 @@ type HealthMetrics struct {
 }
 
 type InfrastructureMetrics struct {
-	Networks   CountMetrics            `json:"networks"`
-	Nodes      NodeMetrics             `json:"nodes"`
-	Containers ContainerMetrics        `json:"containers"`
-	Links      CountMetrics            `json:"links"`
-	Policies   PolicyMetrics           `json:"policies"`
+	Networks   CountMetrics     `json:"networks"`
+	Nodes      NodeMetrics      `json:"nodes"`
+	Containers ContainerMetrics `json:"containers"`
+	Links      CountMetrics     `json:"links"`
+	Policies   PolicyMetrics    `json:"policies"`
 }
 
 type CountMetrics struct {
@@ -79,13 +79,13 @@ type PolicyMetrics struct {
 }
 
 type PerformanceMetrics struct {
-	ResponseTimeAvg    float64 `json:"response_time_avg_ms"`
-	ResponseTimeP95    float64 `json:"response_time_p95_ms"`
-	ResponseTimeP99    float64 `json:"response_time_p99_ms"`
-	Throughput         float64 `json:"throughput_req_per_sec"`
-	TotalRequests      float64 `json:"total_requests"`
-	ErrorRate          float64 `json:"error_rate_percent"`
-	SuccessRate        float64 `json:"success_rate_percent"`
+	ResponseTimeAvg float64 `json:"response_time_avg_ms"`
+	ResponseTimeP95 float64 `json:"response_time_p95_ms"`
+	ResponseTimeP99 float64 `json:"response_time_p99_ms"`
+	Throughput      float64 `json:"throughput_req_per_sec"`
+	TotalRequests   float64 `json:"total_requests"`
+	ErrorRate       float64 `json:"error_rate_percent"`
+	SuccessRate     float64 `json:"success_rate_percent"`
 }
 
 type ResourceMetrics struct {
@@ -119,6 +119,119 @@ type NetworkMetrics struct {
 	PacketsOut            int64   `json:"packets_out"`
 	Errors                int     `json:"errors"`
 	ActiveConnections     int     `json:"active_connections"`
+}
+
+// GetMetricByEntityAndName handles GET /api/v1/metrics endpoint with entity_id and metric_name query params
+// @Summary Get specific metric by entity ID and metric name
+// @Description Get detailed information about a specific metric from the database
+// @Tags Metrics
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param entity_id query string true "Entity ID (container ID, node ID, etc.)"
+// @Param metric_name query string true "Metric name (cpu_percent, memory_usage_mb, etc.)"
+// @Success 200 {object} map[string]interface{} "Metric details"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /metrics [get]
+func (h *MetricsHandler) GetMetricByEntityAndName(c *gin.Context) {
+	// Get query parameters
+	entityID := c.Query("entity_id")
+	metricName := c.Query("metric_name")
+
+	// Validate required parameters
+	if entityID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "entity_id parameter is required",
+		})
+		return
+	}
+
+	if metricName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "metric_name parameter is required",
+		})
+		return
+	}
+
+	// Query the database for the specific metric
+	var metric models.Metric
+	err := h.db.Where("entity_id = ? AND metric_name = ?", entityID, metricName).
+		Order("timestamp DESC").
+		First(&metric).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Metric not found",
+				"details": map[string]string{
+					"entity_id":   entityID,
+					"metric_name": metricName,
+				},
+			})
+			return
+		}
+		h.logger.Error("Failed to query metric", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrieve metric",
+		})
+		return
+	}
+
+	// Get additional historical data (last 10 records)
+	var historicalMetrics []models.Metric
+	h.db.Where("entity_id = ? AND metric_name = ?", entityID, metricName).
+		Order("timestamp DESC").
+		Limit(10).
+		Find(&historicalMetrics)
+
+	// Calculate some statistics
+	var values []float64
+	for _, m := range historicalMetrics {
+		values = append(values, m.MetricValue)
+	}
+
+	var avgValue, minValue, maxValue float64
+	if len(values) > 0 {
+		sum := 0.0
+		minValue = values[0]
+		maxValue = values[0]
+
+		for _, v := range values {
+			sum += v
+			if v < minValue {
+				minValue = v
+			}
+			if v > maxValue {
+				maxValue = v
+			}
+		}
+		avgValue = sum / float64(len(values))
+	}
+
+	// Build response
+	response := gin.H{
+		"entity_id":     metric.EntityID,
+		"entity_type":   metric.EntityType,
+		"metric_name":   metric.MetricName,
+		"current_value": metric.MetricValue,
+		"unit":          metric.Unit,
+		"timestamp":     metric.Timestamp,
+		"metadata":      metric.Metadata,
+		"statistics": gin.H{
+			"count":          len(historicalMetrics),
+			"average":        avgValue,
+			"minimum":        minValue,
+			"maximum":        maxValue,
+			"last_10_values": values,
+		},
+		"historical_data": historicalMetrics,
+		"status":          "success",
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetMetricsSummary aggregates and returns system metrics
@@ -340,13 +453,13 @@ func (h *MetricsHandler) getPerformanceMetrics() (PerformanceMetrics, error) {
 
 	var totalCount uint64
 	var totalSum float64
-	
+
 	for metric := range metricChan {
 		var m dto.Metric
 		if err := metric.Write(&m); err != nil {
 			continue
 		}
-		
+
 		if m.Histogram != nil {
 			totalCount += m.Histogram.GetSampleCount()
 			totalSum += m.Histogram.GetSampleSum()
@@ -380,11 +493,11 @@ func (h *MetricsHandler) getPerformanceMetrics() (PerformanceMetrics, error) {
 		if err := metric.Write(&m); err != nil {
 			continue
 		}
-		
+
 		if m.Counter != nil {
 			value := m.Counter.GetValue()
 			totalRequests += value
-			
+
 			// Check if this is an error status code
 			for _, label := range m.Label {
 				if label.GetName() == "status_code" && (label.GetValue()[0] == '4' || label.GetValue()[0] == '5') {
@@ -398,7 +511,7 @@ func (h *MetricsHandler) getPerformanceMetrics() (PerformanceMetrics, error) {
 	if totalRequests > 0 {
 		metrics.ErrorRate = (errorRequests / totalRequests) * 100
 		metrics.SuccessRate = 100 - metrics.ErrorRate
-		
+
 		// Estimate throughput (requests per second)
 		// This is a simple estimate; in production, calculate over a time window
 		metrics.Throughput = totalRequests / 60 // Assume 1 minute window
@@ -415,26 +528,26 @@ func (h *MetricsHandler) getPerformanceMetrics() (PerformanceMetrics, error) {
 func (h *MetricsHandler) getResourceMetrics(infra InfrastructureMetrics) ResourceMetrics {
 	// These are estimates based on infrastructure load
 	// In production, you'd integrate with actual system monitoring
-	
+
 	activeContainers := float64(infra.Containers.Total)
 	activeNetworks := float64(infra.Networks.Active)
-	
+
 	// Estimate CPU usage based on active resources
 	cpuUsage := (activeContainers * 2.5) + (activeNetworks * 1.5)
 	if cpuUsage > 100 {
 		cpuUsage = 95 // Cap at 95%
 	}
-	
+
 	// Estimate memory usage
 	memoryUsageMB := (activeContainers * 256) + (activeNetworks * 128)
 	totalMemoryMB := 16384.0 // 16 GB
 	memoryUsagePercent := (memoryUsageMB / totalMemoryMB) * 100
-	
+
 	// Storage usage
 	storageUsedGB := 50.0 + (activeNetworks * 2) + (activeContainers * 0.5)
 	totalStorageGB := 200.0
 	storageUsagePercent := (storageUsedGB / totalStorageGB) * 100
-	
+
 	// Network metrics
 	bandwidthUsage := (activeContainers * 1.5) + (activeNetworks * 2)
 	if bandwidthUsage > 100 {

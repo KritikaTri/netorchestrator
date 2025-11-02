@@ -365,8 +365,9 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				policies.POST("/:id/enforce", handlers.EnforcePolicyNow)
 			}
 
-			// Metrics summary endpoint (aggregated metrics for dashboard)
-			protected.GET("/metrics/summary", metricsHandler.GetMetricsSummary)
+			// Metrics endpoints
+			protected.GET("/metrics", metricsHandler.GetMetricByEntityAndName)  // Single metric by entity_id and metric_name
+			protected.GET("/metrics/summary", metricsHandler.GetMetricsSummary) // Aggregated metrics for dashboard
 
 			// NEW: Network-specific metrics endpoint (queryable by network_id)
 			protected.GET("/metrics/network/:network_id", networkMetricsHandler.GetNetworkMetrics)
