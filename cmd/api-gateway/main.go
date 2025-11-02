@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
@@ -42,6 +43,7 @@ import (
 	"netorchestrator/internal/devices"
 	"netorchestrator/internal/intelligence"
 	"netorchestrator/internal/nlp"
+	"netorchestrator/internal/observability"
 	"netorchestrator/internal/optimization"
 	"netorchestrator/internal/orchestration"
 	"netorchestrator/internal/security"
@@ -98,6 +100,16 @@ func main() {
 		logger.Fatal("Failed to connect to cache", zap.Error(err))
 	}
 
+	// Initialize observability (metrics + monitoring)
+	logger.Info("Initializing Prometheus observability")
+	metrics := observability.InitMetrics()
+	metricsCollector := observability.NewMetricsCollector(db.GetDB(), metrics, logger)
+	
+	// Start metrics collector (15 second interval)
+	ctx := context.Background()
+	metricsCollector.Start(ctx, 15*time.Second)
+	logger.Info("Metrics collector started with 15s interval")
+
 	// Monitoring and alerting system removed - not needed for core functionality
 
 	// WebSocket system removed - using REST APIs only
@@ -136,6 +148,12 @@ func main() {
 	// Initialize real policy enforcement demo handlers
 	realPolicyHandlers := api.NewRealPolicyHandlers(logger)
 
+	// Initialize metrics handler for aggregated metrics API
+	metricsHandler := api.NewMetricsHandler(db.GetDB(), metrics, logger)
+	
+	// Initialize network-specific metrics handler
+	networkMetricsHandler := api.NewNetworkMetricsHandler(db.GetDB(), logger, "http://localhost:9091")
+
 	// Initialize container provisioner (bridges virtual networks with real containers)
 	containerProvisioner := orchestration.NewContainerProvisioner(db.GetDB(), logger)
 
@@ -161,8 +179,8 @@ func main() {
 		logger,
 	)
 
-	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers, containerlabHandlers, realPolicyHandlers)
+	// Setup Gin router with observability
+	router := setupRouter(apiHandlers, authHandlers, securityManager, cfg.Security, optimizationHandlers, nlpHandlers, containerDeviceHandlers, containerlabHandlers, realPolicyHandlers, metricsHandler, networkMetricsHandler, metrics)
 
 	// Start server
 	server := &http.Server{
@@ -223,7 +241,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers, containerlabHandlers *containerlab.ContainerlabHandlers, realPolicyHandlers *api.RealPolicyHandlers) *gin.Engine {
+func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, secCfg config.SecurityConfig, optimizationHandlers *optimization.Handlers, nlpHandlers *nlp.Handlers, containerDeviceHandlers *devices.ContainerHandlers, containerlabHandlers *containerlab.ContainerlabHandlers, realPolicyHandlers *api.RealPolicyHandlers, metricsHandler *api.MetricsHandler, networkMetricsHandler *api.NetworkMetricsHandler, metrics *observability.Metrics) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -231,6 +249,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 
 	// Middleware
 	router.Use(gin.Recovery())
+	router.Use(observability.PrometheusMiddleware(metrics)) // Add Prometheus metrics middleware
 	router.Use(securityManager.SecurityHeadersMiddleware())
 	router.Use(securityManager.RateLimitMiddleware())
 	router.Use(corsMiddleware(secCfg))
@@ -239,9 +258,10 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 	router.GET("/health", handlers.HealthCheck)
 	// Readiness endpoint
 	router.GET("/ready", handlers.ReadyCheck)
+	// Prometheus metrics endpoint
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// WebSocket endpoints removed - using REST APIs only
-	// Prometheus metrics endpoint removed - not needed for core functionality
 
 	// Swagger documentation
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -334,6 +354,12 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				policies.GET("/:id/status", handlers.GetPolicyStatus)
 				policies.POST("/:id/enforce", handlers.EnforcePolicyNow)
 			}
+
+			// Metrics summary endpoint (aggregated metrics for dashboard)
+			protected.GET("/metrics/summary", metricsHandler.GetMetricsSummary)
+			
+			// NEW: Network-specific metrics endpoint (queryable by network_id)
+			protected.GET("/metrics/network/:network_id", networkMetricsHandler.GetNetworkMetrics)
 
 			// Monitoring
 			monitoring := protected.Group("/monitoring")

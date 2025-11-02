@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"netorchestrator/internal/models"
+	"netorchestrator/internal/observability"
 )
 
 // PolicyEnforcer manages real network policy enforcement on containers
@@ -29,6 +30,9 @@ func NewPolicyEnforcer(db *gorm.DB, logger *zap.Logger) *PolicyEnforcer {
 
 // EnforcePolicy applies real network policies to containers
 func (pe *PolicyEnforcer) EnforcePolicy(policy *models.Policy) error {
+	startTime := time.Now()
+	metrics := observability.GetMetrics()
+	
 	pe.logger.Info("Enforcing network policy on real container infrastructure",
 		zap.String("policy_id", policy.ID.String()),
 		zap.String("policy_name", policy.Name),
@@ -37,26 +41,44 @@ func (pe *PolicyEnforcer) EnforcePolicy(policy *models.Policy) error {
 	// Get all nodes in the network for policy enforcement
 	nodes, err := pe.getNetworkNodes(policy.NetworkID)
 	if err != nil {
+		metrics.RecordPolicyEnforcement(string(policy.Type), startTime, err)
 		return fmt.Errorf("failed to get network nodes: %w", err)
 	}
 
 	// Apply policy based on type
+	var enforceErr error
 	switch policy.Type {
 	case models.PolicyTypeFirewall:
-		return pe.enforceFirewallPolicy(policy, nodes)
+		enforceErr = pe.enforceFirewallPolicy(policy, nodes)
 	case models.PolicyTypeQoS:
-		return pe.enforceQoSPolicy(policy, nodes)
+		enforceErr = pe.enforceQoSPolicy(policy, nodes)
 	case models.PolicyTypeSecurity:
-		return pe.enforceSecurityPolicy(policy, nodes)
+		enforceErr = pe.enforceSecurityPolicy(policy, nodes)
 	case models.PolicyTypeTraffic:
-		return pe.enforceTrafficPolicy(policy, nodes)
+		enforceErr = pe.enforceTrafficPolicy(policy, nodes)
 	case models.PolicyTypeAccess:
-		return pe.enforceAccessPolicy(policy, nodes)
+		enforceErr = pe.enforceAccessPolicy(policy, nodes)
 	case models.PolicyTypeRouting:
-		return pe.enforceRoutingPolicy(policy, nodes)
+		enforceErr = pe.enforceRoutingPolicy(policy, nodes)
 	default:
-		return fmt.Errorf("unsupported policy type: %s", policy.Type)
+		enforceErr = fmt.Errorf("unsupported policy type: %s", policy.Type)
 	}
+	
+	metrics.RecordPolicyEnforcement(string(policy.Type), startTime, enforceErr)
+	
+	// NEW: Record network-scoped policy failures
+	if enforceErr != nil {
+		var network models.Network
+		if err := pe.db.First(&network, "id = ?", policy.NetworkID).Error; err == nil {
+			metrics.RecordNetworkPolicyFailure(
+				network.ID.String(),
+				network.Name,
+				string(policy.Type),
+			)
+		}
+	}
+	
+	return enforceErr
 }
 
 // getNetworkNodes retrieves all nodes with containers in a network
@@ -242,6 +264,8 @@ func (pe *PolicyEnforcer) enforceRoutingPolicy(policy *models.Policy, nodes []mo
 
 // applyFirewallRule applies a single firewall rule via iptables
 func (pe *PolicyEnforcer) applyFirewallRule(containerName string, rule models.PolicyRule) error {
+	metrics := observability.GetMetrics()
+	
 	// Build iptables command based on rule conditions and actions
 	var iptablesCmd strings.Builder
 
@@ -270,11 +294,20 @@ func (pe *PolicyEnforcer) applyFirewallRule(containerName string, rule models.Po
 		iptablesCmd.String(), rule.Name)
 
 	cmd := exec.Command("podman", "exec", containerName, "sh", "-c", command)
-	return cmd.Run()
+	err := cmd.Run()
+	
+	if err == nil {
+		// Increment iptables rule count on success
+		metrics.UpdateIptablesRuleCount(containerName, 1)
+	}
+	
+	return err
 }
 
 // applyQoSRule applies Quality of Service rules via tc
 func (pe *PolicyEnforcer) applyQoSRule(containerName string, rule models.PolicyRule) error {
+	metrics := observability.GetMetrics()
+	
 	// Apply traffic control based on QoS rule
 	if bandwidth, exists := rule.Action["bandwidth"]; exists {
 		command := fmt.Sprintf(`
@@ -283,7 +316,14 @@ func (pe *PolicyEnforcer) applyQoSRule(containerName string, rule models.PolicyR
 		`, rule.ID, bandwidth, rule.Name)
 
 		cmd := exec.Command("podman", "exec", containerName, "sh", "-c", command)
-		return cmd.Run()
+		err := cmd.Run()
+		
+		if err == nil {
+			// Increment tc rule count on success
+			metrics.UpdateTcRuleCount(containerName, 1)
+		}
+		
+		return err
 	}
 
 	return nil

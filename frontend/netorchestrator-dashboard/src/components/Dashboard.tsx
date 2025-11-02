@@ -17,11 +17,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  Drawer,
+  ListItemIcon,
+  ListItemButton,
+  Divider,
+  Tab,
+  Tabs,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -30,16 +31,19 @@ import {
   Notifications as NotificationsIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
-  Add as AddIcon,
-  PlayArrow as StartIcon,
-  Stop as StopIcon,
   CheckCircle as ActiveIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
-} from '@mui/icons-material';
+  Link as LinkIcon,
+  Security as SecurityIcon,
+  Timeline as TimelineIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+} from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
-import { useWebSocket } from '../contexts/WebSocketContext';
+import NetworkManagement from './NetworkManagement';
+import NodeManagement from './NodeManagement';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -51,38 +55,20 @@ const Dashboard: React.FC = () => {
     error, 
     fetchNetworks, 
     fetchNodes, 
-    fetchAlerts, 
-    createNetwork, 
-    startNetwork, 
-    stopNetwork 
+    fetchAlerts,
   } = useApi();
-  const { connected, lastMessage } = useWebSocket();
   
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  const [createNetworkOpen, setCreateNetworkOpen] = useState(false);
-  const [networkForm, setNetworkForm] = useState({
-    name: '',
-    description: '',
-  });
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [selectedNetworkId, setSelectedNetworkId] = useState<string>('');
 
   useEffect(() => {
     // Initial data fetch
-    console.log('Fetching initial data...');
     fetchNetworks();
     fetchNodes();
     fetchAlerts();
-  }, [fetchNetworks, fetchNodes, fetchAlerts]);
-
-  useEffect(() => {
-    // Handle real-time updates
-    if (lastMessage) {
-      console.log('Received WebSocket message:', lastMessage);
-      // Refresh data based on message type
-      fetchNetworks();
-      fetchNodes();
-      fetchAlerts();
-    }
-  }, [lastMessage, fetchNetworks, fetchNodes, fetchAlerts]);
+  }, []);
 
   const handleUserMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setUserMenuAnchor(event.currentTarget);

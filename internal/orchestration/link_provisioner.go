@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"netorchestrator/internal/models"
+	"netorchestrator/internal/observability"
 )
 
 // LinkProvisioner manages real network connections between containers
@@ -29,6 +30,9 @@ func NewLinkProvisioner(db *gorm.DB, logger *zap.Logger) *LinkProvisioner {
 
 // ProvisionLink creates real network connectivity between containers
 func (lp *LinkProvisioner) ProvisionLink(link *models.Link) error {
+	startTime := time.Now()
+	metrics := observability.GetMetrics()
+	
 	lp.logger.Info("Provisioning real network link between containers",
 		zap.String("link_id", link.ID.String()),
 		zap.String("source_node", link.SourceNodeID.String()),
@@ -37,11 +41,13 @@ func (lp *LinkProvisioner) ProvisionLink(link *models.Link) error {
 	// Get source and target nodes with container information
 	sourceNode, err := lp.getNodeWithContainer(link.SourceNodeID)
 	if err != nil {
+		metrics.RecordProvisioningOperation("link", startTime, err)
 		return fmt.Errorf("failed to get source node: %w", err)
 	}
 
 	targetNode, err := lp.getNodeWithContainer(link.TargetNodeID)
 	if err != nil {
+		metrics.RecordProvisioningOperation("link", startTime, err)
 		return fmt.Errorf("failed to get target node: %w", err)
 	}
 
@@ -50,11 +56,14 @@ func (lp *LinkProvisioner) ProvisionLink(link *models.Link) error {
 	targetContainerName, targetOk := targetNode.Config.CustomAttrs["container_name"]
 
 	if !sourceOk || !targetOk {
-		return fmt.Errorf("one or both nodes don't have containers provisioned yet")
+		err := fmt.Errorf("one or both nodes don't have containers provisioned yet")
+		metrics.RecordProvisioningOperation("link", startTime, err)
+		return err
 	}
 
 	// Create network bridge/connection between containers
 	if err := lp.createContainerNetworkConnection(sourceContainerName, targetContainerName, link); err != nil {
+		metrics.RecordProvisioningOperation("link", startTime, err)
 		return fmt.Errorf("failed to create container network connection: %w", err)
 	}
 
@@ -75,9 +84,33 @@ func (lp *LinkProvisioner) ProvisionLink(link *models.Link) error {
 	link.Status = models.LinkStatusActive
 
 	if err := lp.db.Save(link).Error; err != nil {
+		metrics.RecordProvisioningOperation("link", startTime, err)
 		return fmt.Errorf("failed to update link: %w", err)
 	}
 
+	metrics.RecordProvisioningOperation("link", startTime, nil)
+	
+	// NEW: Record network-scoped link metrics
+	// Get network information from source node
+	var network models.Network
+	if err := lp.db.First(&network, "id = ?", sourceNode.NetworkID).Error; err == nil {
+		metrics.SetNetworkLinkStatus(
+			network.ID.String(),
+			network.Name,
+			sourceNode.Name,
+			targetNode.Name,
+			link.ID.String(),
+			link.Status == models.LinkStatusActive,
+		)
+		metrics.RecordNetworkProvisionLatency(
+			network.ID.String(),
+			network.Name,
+			"link",
+			"provision_link",
+			startTime,
+		)
+	}
+	
 	lp.logger.Info("Link provisioned successfully",
 		zap.String("source_container", sourceContainerName),
 		zap.String("target_container", targetContainerName),

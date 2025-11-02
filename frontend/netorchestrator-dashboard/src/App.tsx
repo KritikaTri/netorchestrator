@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ApiProvider } from './contexts/ApiContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import LoginForm from './components/LoginForm';
-import Dashboard from './components/Dashboard';
+import MainDashboard from './components/MainDashboard';
 
 const darkTheme = createTheme({
   palette: {
@@ -78,7 +78,7 @@ const AppContent: React.FC = () => {
             <ProtectedRoute>
               <ApiProvider>
                 <WebSocketProvider>
-                  <Dashboard />
+                  <MainDashboard />
                 </WebSocketProvider>
               </ApiProvider>
             </ProtectedRoute>

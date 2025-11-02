@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	"netorchestrator/internal/models"
+	"netorchestrator/internal/observability"
 )
 
 // ContainerProvisioner bridges virtual networks with real container infrastructure
@@ -28,6 +29,9 @@ func NewContainerProvisioner(db *gorm.DB, logger *zap.Logger) *ContainerProvisio
 
 // ProvisionNetworkInfrastructure creates real containers when a network is created
 func (cp *ContainerProvisioner) ProvisionNetworkInfrastructure(network *models.Network) error {
+	startTime := time.Now()
+	metrics := observability.GetMetrics()
+
 	cp.logger.Info("Provisioning real infrastructure for network",
 		zap.String("network_id", network.ID.String()),
 		zap.String("network_name", network.Name))
@@ -38,23 +42,40 @@ func (cp *ContainerProvisioner) ProvisionNetworkInfrastructure(network *models.N
 	// Create dedicated network for this virtual network
 	if err := cp.createPodmanNetwork(networkSubnet); err != nil {
 		cp.logger.Error("Failed to create network", zap.Error(err))
+		metrics.RecordProvisioningOperation("network", startTime, err)
 		return err
 	}
 
-	// Update network status to provisioning
-	network.Status = models.NetworkStatusProvisioning
+	// Update network status to active after successful provisioning
+	network.Status = models.NetworkStatusActive
 	if err := cp.db.Save(network).Error; err != nil {
+		metrics.RecordProvisioningOperation("network", startTime, err)
 		return fmt.Errorf("failed to update network status: %w", err)
 	}
 
-	cp.logger.Info("Network infrastructure provisioning initiated",
-		zap.String("container_network", networkSubnet))
+	cp.logger.Info("Network infrastructure provisioning completed successfully",
+		zap.String("container_network", networkSubnet),
+		zap.String("status", string(models.NetworkStatusActive)))
+	
+	metrics.RecordProvisioningOperation("network", startTime, nil)
+
+	// NEW: Record network-level provisioning latency
+	metrics.RecordNetworkProvisionLatency(
+		network.ID.String(),
+		network.Name,
+		"network",
+		"provision_network",
+		startTime,
+	)
 
 	return nil
 }
 
 // ProvisionNodeContainer creates a real container when a node is added
 func (cp *ContainerProvisioner) ProvisionNodeContainer(node *models.Node, network *models.Network) error {
+	startTime := time.Now()
+	metrics := observability.GetMetrics()
+	
 	cp.logger.Info("Provisioning real container for node",
 		zap.String("node_id", node.ID.String()),
 		zap.String("node_name", node.Name),
@@ -68,6 +89,8 @@ func (cp *ContainerProvisioner) ProvisionNodeContainer(node *models.Node, networ
 	// Create container
 	if err := cp.createNodeContainer(containerName, image, networkName, node); err != nil {
 		cp.logger.Error("Failed to create node container", zap.Error(err))
+		metrics.RecordProvisioningOperation("node", startTime, err)
+		metrics.RecordContainerOperation("create", err)
 		return err
 	}
 
@@ -82,12 +105,30 @@ func (cp *ContainerProvisioner) ProvisionNodeContainer(node *models.Node, networ
 	node.Status = models.NodeStatusActive
 
 	if err := cp.db.Save(node).Error; err != nil {
+		metrics.RecordProvisioningOperation("node", startTime, err)
 		return fmt.Errorf("failed to update node: %w", err)
 	}
 
 	cp.logger.Info("Node container provisioned successfully",
 		zap.String("container_name", containerName),
 		zap.String("image", image))
+
+	metrics.RecordProvisioningOperation("node", startTime, nil)
+	metrics.RecordContainerOperation("create", nil)
+
+	// NEW: Record network-scoped metrics
+	metrics.RecordNetworkProvisionLatency(
+		network.ID.String(),
+		network.Name,
+		string(node.Type),
+		"provision_node",
+		startTime,
+	)
+	metrics.IncrementNetworkContainerCount(
+		network.ID.String(),
+		network.Name,
+		string(node.Type),
+	)
 
 	return nil
 }
@@ -114,10 +155,12 @@ func (cp *ContainerProvisioner) getContainerImageForNode(node *models.Node) stri
 
 // createPodmanNetwork creates a dedicated network for the virtual network
 func (cp *ContainerProvisioner) createPodmanNetwork(networkName string) error {
+	metrics := observability.GetMetrics()
 	cmd := exec.Command("podman", "network", "create", networkName)
 	output, err := cmd.CombinedOutput()
 
 	if err != nil && !strings.Contains(string(output), "already exists") {
+		metrics.RecordPodmanError("network_create")
 		return fmt.Errorf("network creation failed: %s", output)
 	}
 
@@ -172,6 +215,7 @@ func (cp *ContainerProvisioner) createNodeContainer(containerName, image, networ
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
+		observability.GetMetrics().RecordPodmanError("container_create")
 		return fmt.Errorf("container creation failed: %s", output)
 	}
 
@@ -186,6 +230,8 @@ func (cp *ContainerProvisioner) createNodeContainer(containerName, image, networ
 
 // DestroyNodeContainer removes the container for a node
 func (cp *ContainerProvisioner) DestroyNodeContainer(node *models.Node) error {
+	metrics := observability.GetMetrics()
+	
 	if node.Config.CustomAttrs == nil {
 		return nil // No container to destroy
 	}
@@ -201,11 +247,15 @@ func (cp *ContainerProvisioner) DestroyNodeContainer(node *models.Node) error {
 		cp.logger.Warn("Failed to remove container",
 			zap.String("container", containerName),
 			zap.Error(err))
+		metrics.RecordContainerOperation("delete", err)
+		metrics.RecordPodmanError("container_delete")
+		return err
 	}
 
 	cp.logger.Info("Node container destroyed",
 		zap.String("container", containerName))
 
+	metrics.RecordContainerOperation("delete", nil)
 	return nil
 }
 
