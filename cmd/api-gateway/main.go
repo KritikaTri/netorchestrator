@@ -104,11 +104,17 @@ func main() {
 	logger.Info("Initializing Prometheus observability")
 	metrics := observability.InitMetrics()
 	metricsCollector := observability.NewMetricsCollector(db.GetDB(), metrics, logger)
-	
+
 	// Start metrics collector (15 second interval)
 	ctx := context.Background()
 	metricsCollector.Start(ctx, 15*time.Second)
 	logger.Info("Metrics collector started with 15s interval")
+
+	// Initialize and start container metrics collector (real Docker/Podman stats)
+	logger.Info("Initializing real-time container metrics collector")
+	containerMetricsCollector := observability.NewContainerMetricsCollector(db.GetDB(), logger)
+	containerMetricsCollector.Start(ctx)
+	logger.Info("Container metrics collector started (10s interval) - collecting real metrics from Docker/Podman")
 
 	// Monitoring and alerting system removed - not needed for core functionality
 
@@ -150,7 +156,7 @@ func main() {
 
 	// Initialize metrics handler for aggregated metrics API
 	metricsHandler := api.NewMetricsHandler(db.GetDB(), metrics, logger)
-	
+
 	// Initialize network-specific metrics handler
 	networkMetricsHandler := api.NewNetworkMetricsHandler(db.GetDB(), logger, "http://localhost:9091")
 
@@ -208,6 +214,10 @@ func main() {
 	<-quit
 
 	logger.Info("Shutting down server...")
+
+	// Stop container metrics collector
+	containerMetricsCollector.Stop()
+	logger.Info("Container metrics collector stopped")
 
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -357,7 +367,7 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 
 			// Metrics summary endpoint (aggregated metrics for dashboard)
 			protected.GET("/metrics/summary", metricsHandler.GetMetricsSummary)
-			
+
 			// NEW: Network-specific metrics endpoint (queryable by network_id)
 			protected.GET("/metrics/network/:network_id", networkMetricsHandler.GetNetworkMetrics)
 

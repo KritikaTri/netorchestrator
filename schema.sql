@@ -80,11 +80,11 @@ CREATE TABLE IF NOT EXISTS policies (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Metrics table - performance and monitoring data
+-- Metrics table - performance and monitoring data (latest values only)
 CREATE TABLE IF NOT EXISTS metrics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    entity_type VARCHAR(50) NOT NULL, -- 'network', 'node', 'link'
-    entity_id UUID NOT NULL,
+    entity_type VARCHAR(50) NOT NULL, -- 'container', 'network', 'node', 'link'
+    entity_id TEXT NOT NULL,          -- Can be container ID or UUID
     metric_name VARCHAR(255) NOT NULL,
     metric_value DECIMAL(15,6) NOT NULL,
     unit VARCHAR(50),
@@ -167,7 +167,7 @@ CREATE INDEX IF NOT EXISTS idx_networks_status ON networks(status);
 CREATE INDEX IF NOT EXISTS idx_nodes_network_id ON nodes(network_id);
 CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
 CREATE INDEX IF NOT EXISTS idx_links_network_id ON links(network_id);
-CREATE INDEX IF NOT EXISTS idx_metrics_entity ON metrics(entity_type, entity_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_entity_id_metric_name_unique ON metrics(entity_id, metric_name);
 CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);
 CREATE INDEX IF NOT EXISTS idx_events_entity ON events(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);

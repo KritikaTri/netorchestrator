@@ -56,13 +56,8 @@ BEGIN
     VALUES 
       (network3_id, 'demo-app', 'container', '192.168.100.10', 'provisioning', 1, 2048, '{"role": "demo-application", "demo": true}');
     
-    -- Insert some sample metrics
-    INSERT INTO metrics (entity_type, entity_id, metric_name, metric_value, unit, metadata)
-    VALUES 
-      ('network', network1_id, 'total_bandwidth_mbps', 1000.0, 'mbps', '{"measurement_type": "peak"}'),
-      ('network', network1_id, 'active_connections', 150, 'count', '{"measurement_type": "current"}'),
-      ('network', network2_id, 'total_bandwidth_mbps', 500.0, 'mbps', '{"measurement_type": "peak"}'),
-      ('network', network2_id, 'active_connections', 25, 'count', '{"measurement_type": "current"}');
+    -- Metrics are now auto-populated by real-time collector from Docker/Podman containers
+    -- No need for sample/mocked metrics - they will be collected every 10 seconds
     
     -- Insert sample events
     INSERT INTO events (event_type, entity_type, entity_id, user_id, message, severity, metadata)

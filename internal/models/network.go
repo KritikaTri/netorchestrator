@@ -337,7 +337,7 @@ type PolicyType string
 const (
 	PolicyTypeTraffic  PolicyType = "traffic"
 	PolicyTypeSecurity PolicyType = "security"
-    PolicyTypeFirewall PolicyType = "firewall"
+	PolicyTypeFirewall PolicyType = "firewall"
 	PolicyTypeQoS      PolicyType = "qos"
 	PolicyTypeRouting  PolicyType = "routing"
 	PolicyTypeAccess   PolicyType = "access"
@@ -385,6 +385,59 @@ type User struct {
 
 	// Relationships
 	Networks []Network `json:"networks" gorm:"foreignKey:UserID"`
+}
+
+// Metric represents a performance or monitoring metric
+type Metric struct {
+	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	EntityType  string         `json:"entity_type" gorm:"type:varchar(50);not null"` // 'network', 'node', 'link', 'container'
+	EntityID    string         `json:"entity_id" gorm:"not null"`                    // Can be UUID or container ID
+	MetricName  string         `json:"metric_name" gorm:"type:varchar(255);not null"`
+	MetricValue float64        `json:"metric_value" gorm:"type:decimal(15,6);not null"`
+	Unit        string         `json:"unit" gorm:"type:varchar(50)"`
+	Timestamp   time.Time      `json:"timestamp" gorm:"default:CURRENT_TIMESTAMP"`
+	Metadata    MetricMetadata `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+}
+
+// MetricMetadata is a JSONB type for metric metadata
+type MetricMetadata map[string]interface{}
+
+// Value implements the driver.Valuer interface for JSONB
+func (m MetricMetadata) Value() (driver.Value, error) {
+	if m == nil {
+		return json.Marshal(map[string]interface{}{})
+	}
+	return json.Marshal(m)
+}
+
+// Scan implements the sql.Scanner interface for JSONB
+func (m *MetricMetadata) Scan(value interface{}) error {
+	if value == nil {
+		*m = make(map[string]interface{})
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("cannot scan MetricMetadata from non-bytes/string")
+	}
+
+	result := make(map[string]interface{})
+	if err := json.Unmarshal(bytes, &result); err != nil {
+		return err
+	}
+	*m = result
+	return nil
+}
+
+// TableName specifies the table name for Metric model
+func (Metric) TableName() string {
+	return "metrics"
 }
 
 // UserRole represents the role of a user
@@ -496,17 +549,17 @@ func (pc *PolicyConfig) Scan(value interface{}) error {
 		return errors.New("cannot scan PolicyConfig from non-bytes/string")
 	}
 
-    // First try full PolicyConfig shape
-    if err := json.Unmarshal(bytes, pc); err == nil {
-        return nil
-    }
-    // Backward-compat: accept bare array of rules
-    var rulesOnly []PolicyRule
-    if err := json.Unmarshal(bytes, &rulesOnly); err == nil {
-        pc.Rules = rulesOnly
-        return nil
-    }
-    return json.Unmarshal(bytes, pc)
+	// First try full PolicyConfig shape
+	if err := json.Unmarshal(bytes, pc); err == nil {
+		return nil
+	}
+	// Backward-compat: accept bare array of rules
+	var rulesOnly []PolicyRule
+	if err := json.Unmarshal(bytes, &rulesOnly); err == nil {
+		pc.Rules = rulesOnly
+		return nil
+	}
+	return json.Unmarshal(bytes, pc)
 }
 
 // Position JSONB methods
