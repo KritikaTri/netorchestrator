@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     node_type VARCHAR(100) DEFAULT 'container',
     ip_address VARCHAR(50),
     mac_address VARCHAR(17),
+    entity_id VARCHAR(255), -- Container ID for metrics mapping
     status VARCHAR(50) DEFAULT 'inactive',
     cpu_cores INTEGER DEFAULT 1,
     memory_mb INTEGER DEFAULT 512,

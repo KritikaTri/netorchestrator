@@ -63,6 +63,7 @@ type Node struct {
 	Status     NodeStatus     `json:"status" gorm:"type:varchar(20);default:'pending'"`
 	IPAddress  string         `json:"ip_address"`
 	MACAddress string         `json:"mac_address"`
+	EntityID   string         `json:"entity_id" gorm:"type:varchar(255)"` // Container ID for metrics mapping
 	Config     NodeConfig     `json:"config" gorm:"type:jsonb"`
 	Position   Position       `json:"position" gorm:"type:jsonb"`
 	CreatedAt  time.Time      `json:"created_at"`

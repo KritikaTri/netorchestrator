@@ -79,6 +79,17 @@ func RunMigrations(db *gorm.DB, logger *zap.Logger) error {
 		}
 	}
 
+	// Add missing entity_id column for nodes table (backward compatibility)
+	logger.Info("Checking for missing entity_id column in nodes table...")
+	if migrator.HasTable("nodes") {
+		var entityIDCount int
+		db.Raw("SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'nodes' AND column_name = 'entity_id'").Scan(&entityIDCount)
+		if entityIDCount == 0 {
+			logger.Info("Adding 'entity_id' column to nodes table")
+			db.Exec("ALTER TABLE nodes ADD COLUMN IF NOT EXISTS entity_id VARCHAR(255);")
+		}
+	}
+
 	logger.Info("All migrations completed successfully")
 	return nil
 }

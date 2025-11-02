@@ -162,9 +162,9 @@ type ContainerInfo struct {
 	Name string
 }
 
-// getRunningContainers returns list of running containers
+// getRunningContainers returns list of running containers with full container IDs
 func (c *ContainerMetricsCollector) getRunningContainers() ([]ContainerInfo, error) {
-	cmd := exec.Command(c.containerEngine, "ps", "--format", "{{.ID}}||{{.Names}}")
+	cmd := exec.Command(c.containerEngine, "ps", "--no-trunc", "--format", "{{.ID}}||{{.Names}}")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
