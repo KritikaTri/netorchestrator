@@ -25,7 +25,7 @@ import {
   Tabs,
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
+  Home as DashboardIcon,
   Hub as NetworkIcon,
   Storage as NodeIcon,
   Notifications as NotificationsIcon,
@@ -39,7 +39,7 @@ import {
   Timeline as TimelineIcon,
   Menu as MenuIcon,
   Close as CloseIcon,
-} from '@mui/material';
+} from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../contexts/ApiContext';
 import NetworkManagement from './NetworkManagement';
@@ -56,6 +56,7 @@ const Dashboard: React.FC = () => {
     fetchNetworks, 
     fetchNodes, 
     fetchAlerts,
+    createNetwork,
   } = useApi();
   
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);

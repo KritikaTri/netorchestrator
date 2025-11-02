@@ -17,9 +17,9 @@ import (
 
 // NetworkMetricsHandler handles network-specific metrics queries
 type NetworkMetricsHandler struct {
-	db               *gorm.DB
-	logger           *zap.Logger
-	prometheusURL    string
+	db            *gorm.DB
+	logger        *zap.Logger
+	prometheusURL string
 }
 
 // NewNetworkMetricsHandler creates a new network metrics handler
@@ -36,25 +36,25 @@ func NewNetworkMetricsHandler(db *gorm.DB, logger *zap.Logger, prometheusURL str
 
 // NetworkMetricsResponse represents the JSON response for network-specific metrics
 type NetworkMetricsResponse struct {
-	NetworkID   string                  `json:"network_id"`
-	NetworkName string                  `json:"network_name"`
-	Timestamp   string                  `json:"timestamp"`
-	Containers  NetworkContainerMetrics `json:"containers"`
-	Links       NetworkLinkMetrics      `json:"links"`
-	Policies    NetworkPolicyMetrics    `json:"policies"`
+	NetworkID    string                  `json:"network_id"`
+	NetworkName  string                  `json:"network_name"`
+	Timestamp    string                  `json:"timestamp"`
+	Containers   NetworkContainerMetrics `json:"containers"`
+	Links        NetworkLinkMetrics      `json:"links"`
+	Policies     NetworkPolicyMetrics    `json:"policies"`
 	Provisioning NetworkProvisionMetrics `json:"provisioning"`
 }
 
 type NetworkContainerMetrics struct {
-	TotalActive int                    `json:"total_active"`
-	ByNodeType  map[string]int         `json:"by_node_type"`
+	TotalActive int            `json:"total_active"`
+	ByNodeType  map[string]int `json:"by_node_type"`
 }
 
 type NetworkLinkMetrics struct {
-	TotalLinks  int                    `json:"total_links"`
-	ActiveLinks int                    `json:"active_links"`
-	DownLinks   int                    `json:"down_links"`
-	LinkDetails []LinkDetail           `json:"link_details"`
+	TotalLinks  int          `json:"total_links"`
+	ActiveLinks int          `json:"active_links"`
+	DownLinks   int          `json:"down_links"`
+	LinkDetails []LinkDetail `json:"link_details"`
 }
 
 type LinkDetail struct {
@@ -70,8 +70,8 @@ type NetworkPolicyMetrics struct {
 }
 
 type NetworkProvisionMetrics struct {
-	AvgLatencySeconds float64                `json:"avg_latency_seconds"`
-	LatencyByType     map[string]float64     `json:"latency_by_type"`
+	AvgLatencySeconds float64            `json:"avg_latency_seconds"`
+	LatencyByType     map[string]float64 `json:"latency_by_type"`
 }
 
 // PrometheusQueryResult represents Prometheus API query response
@@ -89,7 +89,7 @@ type PrometheusQueryResult struct {
 // GetNetworkMetrics handles GET /api/v1/metrics/network/:network_id
 func (h *NetworkMetricsHandler) GetNetworkMetrics(c *gin.Context) {
 	networkID := c.Param("network_id")
-	
+
 	h.logger.Info("Fetching network-specific metrics",
 		zap.String("network_id", networkID))
 
@@ -142,16 +142,20 @@ func (h *NetworkMetricsHandler) GetNetworkMetrics(c *gin.Context) {
 
 // queryNetworkContainers queries container count metrics from Prometheus
 func (h *NetworkMetricsHandler) queryNetworkContainers(networkID string) (NetworkContainerMetrics, error) {
+	// Always initialize with empty maps/slices to avoid null in JSON
+	metrics := NetworkContainerMetrics{
+		TotalActive: 0,
+		ByNodeType:  make(map[string]int),
+	}
+
 	query := fmt.Sprintf(`netorch_network_containers_active{network_id="%s"}`, networkID)
 	result, err := h.queryPrometheus(query)
 	if err != nil {
-		return NetworkContainerMetrics{}, err
+		h.logger.Debug("No container metrics found, returning defaults", zap.Error(err))
+		return metrics, nil // Return initialized struct instead of error
 	}
 
-	metrics := NetworkContainerMetrics{
-		ByNodeType: make(map[string]int),
-	}
-
+	// Process results if available
 	for _, r := range result.Data.Result {
 		nodeType := r.Metric["node_type"]
 		if len(r.Value) >= 2 {
@@ -169,21 +173,26 @@ func (h *NetworkMetricsHandler) queryNetworkContainers(networkID string) (Networ
 
 // queryNetworkLinks queries link status metrics from Prometheus
 func (h *NetworkMetricsHandler) queryNetworkLinks(networkID string) (NetworkLinkMetrics, error) {
+	// Always initialize with empty slices to avoid null in JSON
+	metrics := NetworkLinkMetrics{
+		TotalLinks:  0,
+		ActiveLinks: 0,
+		DownLinks:   0,
+		LinkDetails: []LinkDetail{},
+	}
+
 	query := fmt.Sprintf(`netorch_network_link_status{network_id="%s"}`, networkID)
 	result, err := h.queryPrometheus(query)
 	if err != nil {
-		return NetworkLinkMetrics{}, err
-	}
-
-	metrics := NetworkLinkMetrics{
-		LinkDetails: []LinkDetail{},
+		h.logger.Debug("No link metrics found, returning defaults", zap.Error(err))
+		return metrics, nil // Return initialized struct instead of error
 	}
 
 	for _, r := range result.Data.Result {
 		linkID := r.Metric["link_id"]
 		nodeA := r.Metric["node_a"]
 		nodeB := r.Metric["node_b"]
-		
+
 		var status float64
 		if len(r.Value) >= 2 {
 			if value, ok := r.Value[1].(string); ok {
@@ -211,14 +220,17 @@ func (h *NetworkMetricsHandler) queryNetworkLinks(networkID string) (NetworkLink
 
 // queryNetworkPolicies queries policy failure metrics from Prometheus
 func (h *NetworkMetricsHandler) queryNetworkPolicies(networkID string) (NetworkPolicyMetrics, error) {
+	// Always initialize with empty maps to avoid null in JSON
+	metrics := NetworkPolicyMetrics{
+		TotalFailures:  0,
+		FailuresByType: make(map[string]int),
+	}
+
 	query := fmt.Sprintf(`netorch_network_policy_failures_total{network_id="%s"}`, networkID)
 	result, err := h.queryPrometheus(query)
 	if err != nil {
-		return NetworkPolicyMetrics{}, err
-	}
-
-	metrics := NetworkPolicyMetrics{
-		FailuresByType: make(map[string]int),
+		h.logger.Debug("No policy metrics found, returning defaults", zap.Error(err))
+		return metrics, nil // Return initialized struct instead of error
 	}
 
 	for _, r := range result.Data.Result {
@@ -238,6 +250,12 @@ func (h *NetworkMetricsHandler) queryNetworkPolicies(networkID string) (NetworkP
 
 // queryNetworkProvisioning queries provisioning latency metrics from Prometheus
 func (h *NetworkMetricsHandler) queryNetworkProvisioning(networkID string) (NetworkProvisionMetrics, error) {
+	// Always initialize with empty maps to avoid null in JSON
+	metrics := NetworkProvisionMetrics{
+		AvgLatencySeconds: 0.0,
+		LatencyByType:     make(map[string]float64),
+	}
+
 	// Query average latency using rate and histogram
 	query := fmt.Sprintf(
 		`avg(rate(netorch_network_provision_latency_seconds_sum{network_id="%s"}[5m])) / avg(rate(netorch_network_provision_latency_seconds_count{network_id="%s"}[5m]))`,
@@ -245,11 +263,8 @@ func (h *NetworkMetricsHandler) queryNetworkProvisioning(networkID string) (Netw
 	)
 	result, err := h.queryPrometheus(query)
 	if err != nil {
-		return NetworkProvisionMetrics{}, err
-	}
-
-	metrics := NetworkProvisionMetrics{
-		LatencyByType: make(map[string]float64),
+		h.logger.Debug("No provisioning metrics found, returning defaults", zap.Error(err))
+		return metrics, nil // Return initialized struct instead of error
 	}
 
 	if len(result.Data.Result) > 0 && len(result.Data.Result[0].Value) >= 2 {
@@ -281,7 +296,7 @@ func (h *NetworkMetricsHandler) queryNetworkProvisioning(networkID string) (Netw
 func (h *NetworkMetricsHandler) queryPrometheus(query string) (*PrometheusQueryResult, error) {
 	// Build Prometheus query URL
 	queryURL := fmt.Sprintf("%s/api/v1/query?query=%s", h.prometheusURL, url.QueryEscape(query))
-	
+
 	h.logger.Debug("Querying Prometheus",
 		zap.String("url", queryURL),
 		zap.String("query", query))
