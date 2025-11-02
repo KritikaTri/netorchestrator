@@ -46,6 +46,17 @@ else
     echo "   InfluxDB started"
 fi
 
+# Start Prometheus
+echo "📈 Starting Prometheus..."
+if docker ps | grep -q prometheus; then
+    echo "   Prometheus already running"
+else
+    docker run -d --name prometheus \
+      -p 9090:9090 \
+      prom/prometheus:latest
+    echo "   Prometheus started"
+fi
+
 echo ""
 echo "⏳ Waiting for containers to be ready..."
 sleep 5
@@ -142,6 +153,7 @@ echo ""
 echo "🌐 NetOrchestrator is running at: http://localhost:8080"
 echo "📚 API Documentation: http://localhost:8080/swagger/index.html"
 echo "💊 Health Check: http://localhost:8080/health"
+echo "📈 Prometheus: http://localhost:9090"
 echo ""
 echo "🔐 Demo Credentials:"
 echo "   • Admin: admin / admin123 (full access)"
@@ -159,6 +171,6 @@ echo "   ✅ Enterprise Authentication (JWT, API keys)"
 echo "   ✅ Network Management API"
 echo "   ✅ AI Intelligence Suite (4 endpoints)"
 echo "   ✅ Real-time Monitoring & Alerts"
-echo "   ✅ PostgreSQL + Redis + InfluxDB"
+echo "   ✅ PostgreSQL + Redis + InfluxDB + Prometheus"
 echo ""
 echo "🚀 NetOrchestrator Enterprise Platform Ready!"
