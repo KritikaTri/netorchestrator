@@ -84,6 +84,27 @@ ALTER TABLE policies ADD COLUMN IF NOT EXISTS config JSONB DEFAULT '{}';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 " > /dev/null
 
+# Migrate metrics table for UPSERT support
+echo "🔧 Migrating metrics table for UPSERT support..."
+docker exec postgres psql -U netorchestrator -d netorchestrator -c "
+-- Change entity_id from UUID to TEXT to support container IDs
+DO \$\$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns 
+               WHERE table_name = 'metrics' AND column_name = 'entity_id' AND data_type = 'uuid') THEN
+        ALTER TABLE metrics ALTER COLUMN entity_id TYPE TEXT;
+    END IF;
+END \$\$;
+
+-- Drop old index if exists
+DROP INDEX IF EXISTS idx_metrics_entity;
+
+-- Create unique index for UPSERT (entity_id + metric_name uniqueness)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_entity_id_metric_name_unique 
+ON metrics (entity_id, metric_name);
+" > /dev/null
+echo "   ✅ Metrics table migration complete"
+
 # Add sample data
 echo "📊 Adding sample data..."
 docker exec postgres psql -U netorchestrator -d netorchestrator -c "
