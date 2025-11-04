@@ -40,7 +40,7 @@ func (cp *ContainerProvisioner) ProvisionNetworkInfrastructure(network *models.N
 	networkSubnet := fmt.Sprintf("net_%s", network.ID.String()[:8])
 
 	// Create dedicated network for this virtual network
-	if err := cp.createPodmanNetwork(networkSubnet); err != nil {
+	if err := cp.createPodmanNetwork(networkSubnet, network); err != nil {
 		cp.logger.Error("Failed to create network", zap.Error(err))
 		metrics.RecordProvisioningOperation("network", startTime, err)
 		return err
@@ -155,18 +155,56 @@ func (cp *ContainerProvisioner) getContainerImageForNode(node *models.Node) stri
 	}
 }
 
-// createPodmanNetwork creates a dedicated network for the virtual network
-func (cp *ContainerProvisioner) createPodmanNetwork(networkName string) error {
+// createPodmanNetwork creates a dedicated network for the virtual network with specified subnet
+func (cp *ContainerProvisioner) createPodmanNetwork(networkName string, network *models.Network) error {
 	metrics := observability.GetMetrics()
-	cmd := exec.Command("podman", "network", "create", networkName)
+
+	// Build command with subnet configuration if available
+	args := []string{"network", "create"}
+
+	// Add subnet configuration if specified in the network config
+	if network.Config.Subnet != "" {
+		args = append(args, "--subnet", network.Config.Subnet)
+
+		// Add gateway if specified
+		if network.Config.Gateway != "" {
+			args = append(args, "--gateway", network.Config.Gateway)
+		}
+
+		cp.logger.Info("Creating container network with custom subnet",
+			zap.String("network", networkName),
+			zap.String("subnet", network.Config.Subnet),
+			zap.String("gateway", network.Config.Gateway))
+	} else {
+		cp.logger.Info("Creating container network with default subnet",
+			zap.String("network", networkName))
+	}
+
+	// Add network name as final argument
+	args = append(args, networkName)
+
+	cmd := exec.Command("podman", args...)
 	output, err := cmd.CombinedOutput()
 
 	if err != nil && !strings.Contains(string(output), "already exists") {
 		metrics.RecordPodmanError("network_create")
-		return fmt.Errorf("network creation failed: %s", output)
+
+		// Parse error message for better user feedback
+		outputStr := string(output)
+		if strings.Contains(outputStr, "subnet") && strings.Contains(outputStr, "already used") {
+			return fmt.Errorf("subnet %s is already in use by another network. Please choose a different subnet range", network.Config.Subnet)
+		} else if strings.Contains(outputStr, "gateway") {
+			return fmt.Errorf("gateway %s conflicts with existing network configuration. Please choose a different gateway", network.Config.Gateway)
+		} else if strings.Contains(outputStr, "invalid") && strings.Contains(outputStr, "CIDR") {
+			return fmt.Errorf("invalid subnet format: %s. Please use valid CIDR notation (e.g., 192.168.1.0/24)", network.Config.Subnet)
+		}
+
+		return fmt.Errorf("container network creation failed: %s", outputStr)
 	}
 
-	cp.logger.Info("Container network created", zap.String("network", networkName))
+	cp.logger.Info("Container network created successfully",
+		zap.String("network", networkName),
+		zap.String("subnet", network.Config.Subnet))
 	return nil
 }
 

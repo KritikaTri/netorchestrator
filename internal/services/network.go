@@ -35,12 +35,37 @@ func (s *NetworkService) CreateNetwork(ctx context.Context, network *models.Netw
 		return fmt.Errorf("database not available - running in simple mode")
 	}
 
+	// CRITICAL FIX: Use raw SQL to populate both JSONB config AND direct columns for compatibility
+	// This ensures both the new JSONB structure and legacy direct columns are populated
 	if err := s.db.WithContext(ctx).Create(network).Error; err != nil {
 		s.logger.Error("Failed to create network", zap.Error(err))
 		return fmt.Errorf("failed to create network: %w", err)
 	}
 
-	s.logger.Info("Network created successfully", zap.String("network_id", network.ID.String()))
+	// Update direct columns if subnet/gateway are in config
+	if network.Config.Subnet != "" || network.Config.Gateway != "" {
+		updateQuery := s.db.WithContext(ctx).Model(network).Where("id = ?", network.ID)
+		updates := make(map[string]interface{})
+
+		if network.Config.Subnet != "" {
+			updates["subnet"] = network.Config.Subnet
+		}
+		if network.Config.Gateway != "" {
+			updates["gateway"] = network.Config.Gateway
+		}
+
+		if len(updates) > 0 {
+			if err := updateQuery.Updates(updates).Error; err != nil {
+				s.logger.Warn("Failed to update direct subnet/gateway columns", zap.Error(err))
+				// Don't fail the creation, just warn - JSONB config has the data
+			}
+		}
+	}
+
+	s.logger.Info("Network created successfully",
+		zap.String("network_id", network.ID.String()),
+		zap.String("subnet", network.Config.Subnet),
+		zap.String("gateway", network.Config.Gateway))
 	return nil
 }
 

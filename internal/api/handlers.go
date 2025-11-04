@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -655,11 +656,39 @@ func (h *Handlers) CreateNetwork(c *gin.Context) {
 		network.UserID = userID
 	}
 
-	// Validate network
+	// CRITICAL FIX: Handle direct subnet/gateway fields from API request
+	// The API accepts subnet/gateway as top-level fields but the model stores them in Config
+	type NetworkRequest struct {
+		models.Network
+		Subnet  string `json:"subnet"`
+		Gateway string `json:"gateway"`
+	}
+
+	// Parse the request again to get subnet/gateway fields
+	var req NetworkRequest
+	if err := c.ShouldBindJSON(&req); err == nil {
+		// If subnet/gateway provided at top level, store in both places for compatibility
+		if req.Subnet != "" {
+			network.Config.Subnet = req.Subnet
+		}
+		if req.Gateway != "" {
+			network.Config.Gateway = req.Gateway
+		}
+	}
+
+	// Validate network (includes subnet conflict checking)
 	if err := h.validationService.ValidateNetwork(c.Request.Context(), &network); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		// Check if it's a subnet conflict error for proper HTTP status code
+		if strings.Contains(err.Error(), "subnet") && strings.Contains(err.Error(), "conflicts") {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": err.Error(),
+				"code":  "SUBNET_CONFLICT",
+			})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+		}
 		return
 	}
 
@@ -674,8 +703,49 @@ func (h *Handlers) CreateNetwork(c *gin.Context) {
 
 	// 🚀 HACKATHON MAGIC: Provision real container infrastructure!
 	if err := h.containerProvisioner.ProvisionNetworkInfrastructure(&network); err != nil {
-		h.logger.Warn("Failed to provision container infrastructure", zap.Error(err))
-		// Don't fail the request - network is created, container provisioning is best-effort
+		h.logger.Error("Failed to provision container infrastructure", zap.Error(err))
+
+		// ALWAYS rollback database changes when Docker/Podman infrastructure fails
+		// This ensures database consistency regardless of the failure type
+		if deleteErr := h.networkService.DeleteNetwork(c.Request.Context(), network.ID); deleteErr != nil {
+			h.logger.Error("Failed to rollback network creation",
+				zap.Error(deleteErr),
+				zap.String("network_id", network.ID.String()),
+				zap.String("network_name", network.Name))
+
+			// If rollback also fails, return a more serious error
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Network creation failed and rollback also failed. Database may be inconsistent.",
+				"details": map[string]string{
+					"original_error": err.Error(),
+					"rollback_error": deleteErr.Error(),
+				},
+			})
+			return
+		}
+
+		h.logger.Info("Successfully rolled back network creation after infrastructure failure",
+			zap.String("network_id", network.ID.String()),
+			zap.String("network_name", network.Name))
+
+		// Determine appropriate error response based on failure type
+		if strings.Contains(err.Error(), "subnet") && strings.Contains(err.Error(), "already used") {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "Subnet conflict: " + err.Error(),
+				"code":  "DOCKER_SUBNET_CONFLICT",
+			})
+		} else if strings.Contains(err.Error(), "gateway") {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "Gateway conflict: " + err.Error(),
+				"code":  "DOCKER_GATEWAY_CONFLICT",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Infrastructure provisioning failed: " + err.Error(),
+				"code":  "INFRASTRUCTURE_FAILURE",
+			})
+		}
+		return
 	}
 
 	h.logger.Info("Network created with container infrastructure",
@@ -1172,16 +1242,10 @@ func (h *Handlers) CreateNodeDirect(c *gin.Context) {
 		return
 	}
 
-	// Get the network for container provisioning
-	network, err = h.networkService.GetNetwork(c.Request.Context(), node.NetworkID)
-	if err != nil {
-		h.logger.Error("Failed to get network for container provisioning", zap.Error(err))
-	} else {
-		// 🚀 HACKATHON MAGIC: Provision real container for this node!
-		if err := h.containerProvisioner.ProvisionNodeContainer(&node, network); err != nil {
-			h.logger.Warn("Failed to provision node container", zap.Error(err))
-			// Don't fail the request - node is created, container provisioning is best-effort
-		}
+	// 🚀 HACKATHON MAGIC: Provision real container for this node!
+	if err := h.containerProvisioner.ProvisionNodeContainer(&node, network); err != nil {
+		h.logger.Warn("Failed to provision node container", zap.Error(err))
+		// Don't fail the request - node is created, container provisioning is best-effort
 	}
 
 	h.logger.Info("Node created with container infrastructure",
@@ -1191,7 +1255,7 @@ func (h *Handlers) CreateNodeDirect(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"node":           node,
 		"status":         "success",
-		"message":        "Node created and real container infrastructure provisioned",
+		"message":        "Node created with real container infrastructure provisioned",
 		"container_info": "Real network container deployed automatically",
 	})
 }

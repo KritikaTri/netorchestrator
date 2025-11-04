@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -46,6 +47,18 @@ func (s *ValidationService) ValidateNetwork(ctx context.Context, network *models
 		return fmt.Errorf("network name already exists")
 	}
 
+	// Check for subnet conflicts if subnet is specified
+	if network.Config.Subnet != "" {
+		conflictingNetwork, err := s.checkSubnetConflict(ctx, network.Config.Subnet, network.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check subnet conflicts: %w", err)
+		}
+		if conflictingNetwork != nil {
+			return fmt.Errorf("subnet %s conflicts with existing network '%s' (ID: %s)",
+				network.Config.Subnet, conflictingNetwork.Name, conflictingNetwork.ID.String())
+		}
+	}
+
 	return nil
 }
 
@@ -82,6 +95,11 @@ func (s *ValidationService) ValidateNode(ctx context.Context, node *models.Node)
 	if node.IPAddress != "" {
 		if err := s.validateIPAddress(node.IPAddress); err != nil {
 			return fmt.Errorf("invalid IP address: %w", err)
+		}
+
+		// CRITICAL FIX: Validate that IP address belongs to network's subnet
+		if err := s.validateNodeIPInNetworkSubnet(ctx, node); err != nil {
+			return fmt.Errorf("IP address validation failed: %w", err)
 		}
 	}
 
@@ -132,7 +150,7 @@ func (s *ValidationService) ValidateLink(ctx context.Context, link *models.Link)
 
 	// Check if link already exists between these nodes
 	var existingLink models.Link
-	if err := s.db.WithContext(ctx).Where("(source_node_id = ? AND target_node_id = ?) OR (source_node_id = ? AND target_node_id = ?)", 
+	if err := s.db.WithContext(ctx).Where("(source_node_id = ? AND target_node_id = ?) OR (source_node_id = ? AND target_node_id = ?)",
 		link.SourceNodeID, link.TargetNodeID, link.TargetNodeID, link.SourceNodeID).First(&existingLink).Error; err == nil {
 		if existingLink.ID != link.ID {
 			return fmt.Errorf("link already exists between these nodes")
@@ -318,4 +336,86 @@ func (s *ValidationService) validateMACAddress(mac string) error {
 func (s *ValidationService) validateCIDR(cidr string) error {
 	_, _, err := net.ParseCIDR(cidr)
 	return err
+}
+
+// checkSubnetConflict checks if a subnet conflicts with existing networks
+func (s *ValidationService) checkSubnetConflict(ctx context.Context, subnet string, excludeNetworkID uuid.UUID) (*models.Network, error) {
+	// Parse the new subnet
+	_, newNet, err := net.ParseCIDR(subnet)
+	if err != nil {
+		return nil, fmt.Errorf("invalid subnet format: %w", err)
+	}
+
+	// Get all existing networks with subnets
+	var networks []models.Network
+	if err := s.db.WithContext(ctx).Where("id != ? AND config->>'subnet' IS NOT NULL AND config->>'subnet' != ''", excludeNetworkID).Find(&networks).Error; err != nil {
+		return nil, fmt.Errorf("failed to query existing networks: %w", err)
+	}
+
+	// Check for subnet overlaps
+	for _, network := range networks {
+		if network.Config.Subnet == "" {
+			continue
+		}
+
+		_, existingNet, err := net.ParseCIDR(network.Config.Subnet)
+		if err != nil {
+			s.logger.Warn("Invalid subnet in existing network",
+				zap.String("network_id", network.ID.String()),
+				zap.String("subnet", network.Config.Subnet))
+			continue
+		}
+
+		// Check if subnets overlap
+		if subnetsOverlap(newNet, existingNet) {
+			return &network, nil
+		}
+	}
+
+	return nil, nil
+}
+
+// subnetsOverlap checks if two subnets overlap
+func subnetsOverlap(net1, net2 *net.IPNet) bool {
+	// Check if net1 contains net2's network address or vice versa
+	return net1.Contains(net2.IP) || net2.Contains(net1.IP)
+}
+
+// validateNodeIPInNetworkSubnet validates that a node's IP address belongs to its network's subnet
+func (s *ValidationService) validateNodeIPInNetworkSubnet(ctx context.Context, node *models.Node) error {
+	// Get the network to check its subnet
+	var network models.Network
+	if err := s.db.WithContext(ctx).First(&network, "id = ?", node.NetworkID).Error; err != nil {
+		return fmt.Errorf("failed to retrieve network: %w", err)
+	}
+
+	// If no subnet is configured, skip validation
+	if network.Config.Subnet == "" {
+		return nil
+	}
+
+	// Parse the network subnet
+	_, networkSubnet, err := net.ParseCIDR(network.Config.Subnet)
+	if err != nil {
+		return fmt.Errorf("invalid network subnet %s: %w", network.Config.Subnet, err)
+	}
+
+	// Parse the node IP address
+	nodeIP := net.ParseIP(node.IPAddress)
+	if nodeIP == nil {
+		return fmt.Errorf("invalid node IP address format: %s", node.IPAddress)
+	}
+
+	// Check if the node IP is within the network subnet
+	if !networkSubnet.Contains(nodeIP) {
+		return fmt.Errorf("IP address %s is not within network subnet %s", node.IPAddress, network.Config.Subnet)
+	}
+
+	// Check if the IP is already used by another node in the same network
+	var existingNode models.Node
+	if err := s.db.WithContext(ctx).Where("network_id = ? AND ip_address = ? AND id != ?", node.NetworkID, node.IPAddress, node.ID).First(&existingNode).Error; err == nil {
+		return fmt.Errorf("IP address %s is already used by node '%s' in this network", node.IPAddress, existingNode.Name)
+	}
+
+	return nil
 }
