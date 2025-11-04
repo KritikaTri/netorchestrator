@@ -2,23 +2,27 @@ package config
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
 // Config holds all configuration for our application
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	InfluxDB InfluxDBConfig `mapstructure:"influxdb"`
-	Kafka    KafkaConfig    `mapstructure:"kafka"`
-	NATS     NATSConfig     `mapstructure:"nats"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Security SecurityConfig `mapstructure:"security"`
-	Logging  LoggingConfig  `mapstructure:"logging"`
-	Services ServicesConfig `mapstructure:"services"`
+	Server   ServerConfig           `mapstructure:"server"`
+	Database DatabaseConfig         `mapstructure:"database"`
+	Redis    RedisConfig            `mapstructure:"redis"`
+	InfluxDB InfluxDBConfig         `mapstructure:"influxdb"`
+	Kafka    KafkaConfig            `mapstructure:"kafka"`
+	NATS     NATSConfig             `mapstructure:"nats"`
+	JWT      JWTConfig              `mapstructure:"jwt"`
+	Security SecurityConfig         `mapstructure:"security"`
+	Logging  LoggingConfig          `mapstructure:"logging"`
+	Services ServicesConfig         `mapstructure:"services"`
+	OpenAI   OpenAIConfigIntegrated `mapstructure:"openai"`
 }
 
 // ServerConfig holds server configuration
@@ -100,14 +104,29 @@ type ServicesConfig struct {
 	ValidationService    ServiceConfig `mapstructure:"validation_service"`
 }
 
+// OpenAIConfig holds OpenAI API configuration integrated into main config
+type OpenAIConfigIntegrated struct {
+	APIKey      string  `mapstructure:"api_key"`
+	Model       string  `mapstructure:"model"`
+	Temperature float64 `mapstructure:"temperature"`
+	MaxTokens   int     `mapstructure:"max_tokens"`
+	Enabled     bool    `mapstructure:"enabled"`
+}
+
 // ServiceConfig holds individual service configuration
 type ServiceConfig struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
 }
 
-// LoadConfig loads configuration from file and environment variables
+// LoadConfig loads configuration from file, .env file, and environment variables
 func LoadConfig(configPath string) (*Config, error) {
+	// Try to load .env file first (optional)
+	if err := godotenv.Load(); err != nil {
+		// .env file not found or failed to load - this is optional, so just log it
+		log.Printf("No .env file found or failed to load: %v (this is optional)", err)
+	}
+
 	viper.SetConfigFile(configPath)
 	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()
@@ -123,6 +142,15 @@ func LoadConfig(configPath string) (*Config, error) {
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	// Override OpenAI config with environment variables if present
+	if apiKey := os.Getenv("OPENAI_API_KEY"); apiKey != "" {
+		config.OpenAI.APIKey = apiKey
+		config.OpenAI.Enabled = true
+	}
+	if model := os.Getenv("OPENAI_MODEL"); model != "" {
+		config.OpenAI.Model = model
 	}
 
 	return &config, nil
@@ -192,4 +220,11 @@ func setDefaults() {
 	viper.SetDefault("services.orchestration_service.port", 8083)
 	viper.SetDefault("services.validation_service.host", "localhost")
 	viper.SetDefault("services.validation_service.port", 8084)
+
+	// OpenAI defaults
+	viper.SetDefault("openai.api_key", "")
+	viper.SetDefault("openai.model", "gpt-4")
+	viper.SetDefault("openai.temperature", 0.7)
+	viper.SetDefault("openai.max_tokens", 2000)
+	viper.SetDefault("openai.enabled", false)
 }

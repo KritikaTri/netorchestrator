@@ -2,32 +2,50 @@ package nlp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"netorchestrator/internal/ai"
 
 	"go.uber.org/zap"
 )
 
 // NLPService handles natural language processing for network provisioning
 type NLPService struct {
-	logger *zap.Logger
+	logger    *zap.Logger
+	validator *NetworkValidator
+	aiEngine  *ai.AIEngine
 }
 
 // NewNLPService creates a new NLP service
-func NewNLPService(logger *zap.Logger) *NLPService {
+func NewNLPService(logger *zap.Logger, aiEngine *ai.AIEngine) *NLPService {
 	return &NLPService{
-		logger: logger,
+		logger:    logger,
+		validator: NewNetworkValidator(),
+		aiEngine:  aiEngine,
 	}
 }
 
 // NetworkSpec represents a parsed network topology specification
 type NetworkSpec struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Nodes       []NodeSpec             `json:"nodes"`
-	Topology    string                 `json:"topology"` // "star", "mesh", "ring", "bus"
-	Config      map[string]interface{} `json:"config"`
+	Name             string                 `json:"name"`
+	Description      string                 `json:"description"`
+	Nodes            []NodeSpec             `json:"nodes"`
+	Topology         string                 `json:"topology"` // "star", "mesh", "tree", "custom"
+	Policies         []PolicySpec           `json:"policies"`
+	Config           map[string]interface{} `json:"config"`
+	Valid            bool                   `json:"valid"`
+	Confidence       float64                `json:"confidence"`
+	ValidationErrors []string               `json:"validation_errors"`
+}
+
+// PolicySpec represents a parsed policy specification
+type PolicySpec struct {
+	Name  string                   `json:"name"`
+	Type  string                   `json:"type"`
+	Rules []map[string]interface{} `json:"rules"`
 }
 
 // NodeSpec represents a parsed node specification
@@ -39,14 +57,122 @@ type NodeSpec struct {
 
 // ParseNetworkRequest parses natural language and returns a network specification
 func (s *NLPService) ParseNetworkRequest(ctx context.Context, text string) (*NetworkSpec, error) {
-	text = strings.ToLower(strings.TrimSpace(text))
+	text = strings.TrimSpace(text)
 	s.logger.Info("Parsing natural language request", zap.String("text", text))
 
-	// Rule-based parsing
+	// Try AI-enhanced parsing first if available, fallback to rule-based
+	var spec *NetworkSpec
+	var err error
+
+	if s.aiEngine != nil {
+		spec, err = s.parseWithLLM(ctx, text)
+		if err != nil {
+			s.logger.Warn("LLM parsing failed, falling back to rule-based", zap.Error(err))
+			spec = s.parseWithRules(text)
+		}
+	} else {
+		spec = s.parseWithRules(text)
+	}
+
+	// Validate the parsed specification
+	validationErrors := s.validator.ValidateNetworkSpec(spec)
+	spec.Valid = len(validationErrors) == 0
+	spec.ValidationErrors = make([]string, len(validationErrors))
+
+	for i, verr := range validationErrors {
+		spec.ValidationErrors[i] = verr.Message
+	}
+
+	// Log validation results
+	if spec.Valid {
+		s.logger.Info("Successfully parsed and validated network specification",
+			zap.String("topology", spec.Topology),
+			zap.Int("node_count", len(spec.Nodes)),
+			zap.Float64("confidence", spec.Confidence))
+	} else {
+		s.logger.Warn("Network specification validation failed",
+			zap.Strings("errors", spec.ValidationErrors))
+	}
+
+	return spec, nil
+}
+
+// parseWithLLM uses OpenAI to parse natural language requests
+func (s *NLPService) parseWithLLM(ctx context.Context, text string) (*NetworkSpec, error) {
+	// Build validation prompt
+	systemPrompt := ai.BuildNLPValidationPrompt()
+	userPrompt := fmt.Sprintf(`Parse this network request and return valid JSON:
+
+"%s"
+
+%s
+
+Respond only with valid JSON matching the schema.`, text, s.validator.GetSupportedTypesForLLM())
+
+	// Use AI engine to process
+	aiReq := &ai.AIRequest{
+		ChainID: "nlp_parsing",
+		Input:   userPrompt,
+		Context: map[string]interface{}{
+			"original_text": text,
+			"system_prompt": systemPrompt,
+		},
+	}
+
+	// Create a simple LLM chain for parsing
+	if _, exists := s.aiEngine.GetChain("nlp_parsing"); !exists {
+		chain := &ai.Chain{
+			ID:   "nlp_parsing",
+			Name: "NLP Network Parsing",
+			Steps: []ai.ChainStep{
+				{
+					ID:       "llm_parse",
+					Type:     "llm",
+					Template: systemPrompt + "\n\nUser request: {input}",
+				},
+			},
+		}
+		s.aiEngine.CreateChain(chain)
+	}
+
+	resp, err := s.aiEngine.ProcessRequest(ctx, aiReq)
+	if err != nil {
+		return nil, fmt.Errorf("AI processing failed: %w", err)
+	}
+
+	// Parse JSON response
+	var spec NetworkSpec
+	if err := json.Unmarshal([]byte(resp.Output), &spec); err != nil {
+		// Try to extract JSON from response
+		jsonStr := s.extractJSONFromResponse(resp.Output)
+		if jsonStr != "" {
+			if err := json.Unmarshal([]byte(jsonStr), &spec); err != nil {
+				return nil, fmt.Errorf("failed to parse LLM JSON response: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("no valid JSON found in LLM response: %s", resp.Output)
+		}
+	}
+
+	// Set confidence from LLM or estimate based on validation
+	if spec.Confidence == 0 {
+		spec.Confidence = 0.8 // High confidence for LLM parsing
+	}
+
+	return &spec, nil
+}
+
+// parseWithRules uses rule-based parsing as fallback
+func (s *NLPService) parseWithRules(text string) *NetworkSpec {
+	text = strings.ToLower(strings.TrimSpace(text))
+
 	spec := &NetworkSpec{
-		Nodes:    []NodeSpec{},
-		Config:   make(map[string]interface{}),
-		Topology: "custom",
+		Nodes:            []NodeSpec{},
+		Policies:         []PolicySpec{},
+		Config:           make(map[string]interface{}),
+		Topology:         "custom",
+		ValidationErrors: []string{},
+		Confidence:       0.6, // Lower confidence for rule-based
 	}
 
 	// Extract topology type
@@ -54,24 +180,23 @@ func (s *NLPService) ParseNetworkRequest(ctx context.Context, text string) (*Net
 		spec.Topology = "star"
 	} else if strings.Contains(text, "mesh") {
 		spec.Topology = "mesh"
+	} else if strings.Contains(text, "tree") {
+		spec.Topology = "tree"
 	} else if strings.Contains(text, "ring") {
 		spec.Topology = "ring"
-	} else if strings.Contains(text, "bus") || strings.Contains(text, "linear") {
-		spec.Topology = "bus"
 	}
 
 	// Extract number of nodes
 	nodeCount := s.extractNumber(text)
 	if nodeCount == 0 {
-		// Try to extract from phrases like "5 nodes", "three routers"
 		nodeCount = s.extractNodeCount(text)
 	}
 	if nodeCount == 0 {
 		nodeCount = 3 // default
 	}
 
-	// Extract node types
-	nodeTypes := s.extractNodeTypes(text)
+	// Extract node types (only supported ones)
+	nodeTypes := s.extractSupportedNodeTypes(text)
 	if len(nodeTypes) == 0 {
 		nodeTypes = []string{"host"} // default
 	}
@@ -89,7 +214,7 @@ func (s *NLPService) ParseNetworkRequest(ctx context.Context, text string) (*Net
 	for i := 0; i < nodeCount; i++ {
 		nodeType := nodeTypes[i%len(nodeTypes)]
 		node := NodeSpec{
-			Name: fmt.Sprintf("Node %d", i+1),
+			Name: fmt.Sprintf("%s-%d", strings.Title(nodeType), i+1),
 			Type: nodeType,
 		}
 
@@ -108,20 +233,55 @@ func (s *NLPService) ParseNetworkRequest(ctx context.Context, text string) (*Net
 		spec.Config["subnet"] = subnet
 	}
 
-	// Extract description
-	if strings.Contains(text, "for") || strings.Contains(text, "to") {
-		parts := strings.Split(text, "for")
-		if len(parts) > 1 {
-			spec.Description = strings.TrimSpace(parts[1])
+	// Extract firewall policies if mentioned
+	if strings.Contains(text, "firewall") || strings.Contains(text, "security") {
+		firewallPolicy := PolicySpec{
+			Name: "Basic Firewall",
+			Type: "firewall",
+			Rules: []map[string]interface{}{
+				{
+					"name":     "Allow HTTP",
+					"action":   "allow",
+					"port":     80,
+					"protocol": "tcp",
+				},
+			},
+		}
+		spec.Policies = append(spec.Policies, firewallPolicy)
+	}
+
+	return spec
+}
+
+// extractJSONFromResponse attempts to extract JSON from LLM response
+func (s *NLPService) extractJSONFromResponse(response string) string {
+	// Look for JSON wrapped in code blocks
+	jsonRegex := regexp.MustCompile(`(?s)\{.*\}`)
+	matches := jsonRegex.FindAllString(response, -1)
+
+	for _, match := range matches {
+		// Try to parse each potential JSON match
+		var test map[string]interface{}
+		if err := json.Unmarshal([]byte(match), &test); err == nil {
+			return match
 		}
 	}
 
-	s.logger.Info("Parsed network specification",
-		zap.String("topology", spec.Topology),
-		zap.Int("node_count", len(spec.Nodes)),
-	)
+	return ""
+}
 
-	return spec, nil
+// extractSupportedNodeTypes extracts only supported node types
+func (s *NLPService) extractSupportedNodeTypes(text string) []string {
+	supportedTypes := s.validator.supportedTypes.NodeTypes
+	var foundTypes []string
+
+	for _, nodeType := range supportedTypes {
+		if strings.Contains(text, strings.ToLower(nodeType)) {
+			foundTypes = append(foundTypes, strings.ToLower(nodeType))
+		}
+	}
+
+	return foundTypes
 }
 
 // extractNumber extracts a number from text

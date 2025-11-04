@@ -1,0 +1,43 @@
+🚀 Starting Stopped NetOrchestrator Containers
+==============================================
+
+✅ No stopped containers found. All containers are already running or don't exist.
+
+
+📊 Final Container Status:
+=========================
+   ✅ policy-router: Running (Up 40 hours)
+   ✅ prometheus: Running (Up 40 hours)
+   ✅ grafana: Running (Up 40 hours)
+   ✅ node_a45d0665: Running (Up 40 hours)
+   ✅ node_2f1d89fe: Running (Up 40 hours)
+   ✅ node_fa28db5d: Running (Up 40 hours)
+   ✅ postgres: Running (Up 40 hours)
+   ✅ redis: Running (Up 40 hours)
+   ✅ influxdb: Running (Up 40 hours)
+   ✅ node_6903cf0d: Running (Up 40 hours)
+   ✅ node_26192788: Running (Up 40 hours)
+   ✅ node_920ff264: Running (Up 39 hours)
+   ✅ node_d01e1aeb: Running (Up 39 hours)
+   ✅ node_f48a3534: Running (Up 38 minutes)
+   ✅ node_cfeec190: Running (Up 38 minutes)
+   ✅ node_29a59e50: Running (Up 35 minutes)
+   ✅ node_e0568b22: Running (Up 35 minutes)
+   ✅ node_2f0f8ffe: Running (Up 35 minutes)
+
+📊 Summary: 18/18 containers running
+
+📋 Step 3: Building Application...
+
+🔨 Building API Gateway...
+
+📋 Step 4: Starting Services...
+
+🚀 Starting API Gateway...
+⏳ Waiting for API Gateway to start...
+
+📋 Step 5: Verifying Installation...
+
+✅ Health Check: healthy
+
+✅ Done!

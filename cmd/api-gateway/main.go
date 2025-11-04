@@ -132,8 +132,19 @@ func main() {
 	// Initialize automation system
 	automationHandler := automation.NewHandler(db.GetDB(), logger)
 
-	// Initialize AI engine and intelligence services
-	aiEngine := ai.NewAIEngine()
+	// Initialize AI engine with OpenAI integration (now loads from .env file automatically)
+	openaiConfig := config.LoadOpenAIConfig()
+	if openaiConfig.IsConfigured() {
+		logger.Info("OpenAI integration enabled",
+			zap.String("model", openaiConfig.Model),
+			zap.Bool("configured", true),
+			zap.String("api_key_prefix", openaiConfig.APIKey[:12]+"..."))
+	} else {
+		logger.Info("OpenAI not configured, using mock AI responses")
+		logger.Info("To enable OpenAI: Create .env file with OPENAI_API_KEY or set environment variable")
+	}
+
+	aiEngine := ai.NewAIEngine(openaiConfig.APIKey)
 	intelligenceService := intelligence.NewNetworkIntelligenceService(aiEngine)
 	intelligenceHandlers := intelligence.NewIntelligenceHandlers(intelligenceService)
 
@@ -141,8 +152,8 @@ func main() {
 	optimizationService := optimization.NewOptimizationService(db.GetDB(), logger)
 	optimizationHandlers := optimization.NewHandlers(optimizationService, logger)
 
-	// Initialize NLP service for zero-touch provisioning
-	nlpService := nlp.NewNLPService(logger)
+	// Initialize NLP service for zero-touch provisioning with AI integration
+	nlpService := nlp.NewNLPService(logger, aiEngine)
 	nlpHandlers := nlp.NewHandlers(nlpService, networkService, logger)
 
 	// Initialize Containerlab topology management
@@ -168,6 +179,10 @@ func main() {
 
 	// Initialize policy enforcer (enforces network policies on real containers)
 	policyEnforcer := orchestration.NewPolicyEnforcer(db.GetDB(), logger)
+
+	// 🚀 CONNECT NLP TO CONTAINER PROVISIONING: Enable real container creation from natural language
+	nlpHandlers.SetContainerProvisioner(containerProvisioner)
+	logger.Info("NLP handlers connected to container provisioner - natural language will create real containers")
 
 	// Periodic updates removed - using REST APIs only
 

@@ -1,6 +1,7 @@
 package nlp
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +14,16 @@ import (
 
 // Handlers handles NLP-related API endpoints
 type Handlers struct {
-	nlpService     *NLPService
-	networkService *services.NetworkService
-	logger         *zap.Logger
+	nlpService           *NLPService
+	networkService       *services.NetworkService
+	logger               *zap.Logger
+	containerProvisioner ContainerProvisioner
+}
+
+// ContainerProvisioner interface for container provisioning
+type ContainerProvisioner interface {
+	ProvisionNetworkInfrastructure(network *models.Network) error
+	ProvisionNodeContainer(node *models.Node, network *models.Network) error
 }
 
 // NewHandlers creates new NLP handlers
@@ -25,6 +33,16 @@ func NewHandlers(nlpService *NLPService, networkService *services.NetworkService
 		networkService: networkService,
 		logger:         logger,
 	}
+}
+
+// SetContainerProvisioner sets the container provisioner (injected from main)
+func (h *Handlers) SetContainerProvisioner(provisioner ContainerProvisioner) {
+	h.containerProvisioner = provisioner
+}
+
+// getContainerProvisioner returns the container provisioner if available
+func (h *Handlers) getContainerProvisioner() ContainerProvisioner {
+	return h.containerProvisioner
 }
 
 // ProvisionFromNaturalLanguage handles natural language provisioning requests
@@ -67,12 +85,15 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		return
 	}
 
-	// Validate parsed specification
-	if err := h.nlpService.ValidateSpec(c.Request.Context(), spec); err != nil {
-		h.logger.Error("Invalid parsed specification", zap.Error(err))
+	// Check if parsed specification is valid
+	if !spec.Valid {
+		h.logger.Error("Invalid parsed specification", zap.Strings("validation_errors", spec.ValidationErrors))
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Invalid network specification",
-			"details": err.Error(),
+			"error":             "Invalid network specification",
+			"validation_errors": spec.ValidationErrors,
+			"original_text":     req.Text,
+			"parsed_spec":       spec,
+			"suggestions":       "Use supported node types (router, switch, host, firewall, load_balancer, gateway), topologies (star, mesh, tree, custom), and ensure topology constraints are met",
 		})
 		return
 	}
@@ -139,8 +160,25 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		return
 	}
 
-	// Create nodes from specification
+	// 🚀 PROVISION REAL CONTAINER INFRASTRUCTURE FOR NETWORK!
+	containerProvisioner := h.getContainerProvisioner()
+	if containerProvisioner != nil {
+		if err := containerProvisioner.ProvisionNetworkInfrastructure(network); err != nil {
+			h.logger.Warn("Failed to provision network infrastructure from NLP",
+				zap.String("network_id", network.ID.String()),
+				zap.Error(err))
+			// Don't fail - network created, container provisioning is best-effort
+		} else {
+			h.logger.Info("Network infrastructure provisioned from NLP",
+				zap.String("network_id", network.ID.String()),
+				zap.String("network_name", network.Name))
+		}
+	}
+
+	// Create nodes from specification with real container provisioning
 	createdNodes := []models.Node{}
+	nodeContainerProvisioner := h.getContainerProvisioner()
+
 	for _, nodeSpec := range spec.Nodes {
 		node := &models.Node{
 			NetworkID: network.ID,
@@ -152,9 +190,26 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 
 		if err := h.networkService.CreateNode(c.Request.Context(), node); err != nil {
 			h.logger.Warn("Failed to create node", zap.String("node", nodeSpec.Name), zap.Error(err))
-		} else {
-			createdNodes = append(createdNodes, *node)
+			continue
 		}
+
+		// 🚀 PROVISION REAL CONTAINER FOR THIS NODE!
+		if nodeContainerProvisioner != nil {
+			if err := nodeContainerProvisioner.ProvisionNodeContainer(node, network); err != nil {
+				h.logger.Warn("Failed to provision node container from NLP",
+					zap.String("node_id", node.ID.String()),
+					zap.String("node_name", node.Name),
+					zap.Error(err))
+				// Don't fail - node created, container provisioning is best-effort
+			} else {
+				h.logger.Info("Node container provisioned from NLP",
+					zap.String("node_id", node.ID.String()),
+					zap.String("node_name", node.Name),
+					zap.String("container_name", fmt.Sprintf("node_%s", node.ID.String()[:8])))
+			}
+		}
+
+		createdNodes = append(createdNodes, *node)
 	}
 
 	// Return successful response
@@ -166,10 +221,17 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		"nodes":         createdNodes,
 		"spec":          spec,
 		"original_text": req.Text,
+		"validation": gin.H{
+			"valid":      spec.Valid,
+			"confidence": spec.Confidence,
+			"errors":     spec.ValidationErrors,
+		},
 		"parsing_stats": gin.H{
 			"topology":     spec.Topology,
 			"nodes_parsed": len(spec.Nodes),
+			"policies":     len(spec.Policies),
 			"config_items": len(spec.Config),
+			"ai_enhanced":  spec.Confidence > 0.7,
 		},
 	})
 }

@@ -22,3 +22,11 @@ security:
   jwt_secret: ""
   api_rate_limit: 100
   enable_cors: true
+
+# OpenAI Configuration for AI-powered features
+openai:
+  api_key: ""  # Will be loaded from OPENAI_API_KEY environment variable or .env file
+  model: "gpt-4"
+  temperature: 0.7
+  max_tokens: 2000
+  enabled: false  # Set to true when API key is provided
