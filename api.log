@@ -1,0 +1,850 @@
+{"level":"info","ts":1762283432.775775,"caller":"api-gateway/main.go:69","msg":"Starting NetOrchestrator API Gateway"}
+{"level":"info","ts":1762283432.787242,"caller":"api-gateway/main.go:78","msg":"Running database migrations..."}
+{"level":"info","ts":1762283432.7873092,"caller":"database/migrations.go:16","msg":"Starting database migrations..."}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:38
+[0m[33m[3.965ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1762283432.7919302,"caller":"database/migrations.go:46","msg":"Table exists, updating schema","model":"*models.User"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[1.100ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.780ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[5.688ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.563ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[5.823ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[6.600ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.778ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[1.579ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2025/11/05 00:40:32 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.403ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1762283432.815944,"caller":"database/migrations.go:50","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.User"}
+{"level":"info","ts":1762283432.815966,"caller":"database/migrations.go:60","msg":"Migrated model","model":"*models.User"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:38
+[0m[33m[0.431ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'networks' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1762283432.816437,"caller":"database/migrations.go:46","msg":"Table exists, updating schema","model":"*models.Network"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.374ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.224ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[2.402ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.366ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.989ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[4.852ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.422ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[1.048ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2025/11/05 00:40:32 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.302ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1762283432.8308532,"caller":"database/migrations.go:50","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Network"}
+{"level":"info","ts":1762283432.83087,"caller":"database/migrations.go:60","msg":"Migrated model","model":"*models.Network"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:38
+[0m[33m[0.434ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'nodes' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1762283432.831329,"caller":"database/migrations.go:46","msg":"Table exists, updating schema","model":"*models.Node"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.394ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.199ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[2.553ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.259ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.747ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.554ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.337ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.938ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2025/11/05 00:40:32 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.270ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1762283432.8439538,"caller":"database/migrations.go:50","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Node"}
+{"level":"info","ts":1762283432.84397,"caller":"database/migrations.go:60","msg":"Migrated model","model":"*models.Node"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:38
+[0m[33m[0.257ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'links' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1762283432.8442502,"caller":"database/migrations.go:46","msg":"Table exists, updating schema","model":"*models.Link"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.225ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.209ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[2.256ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.277ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.458ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.428ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.311ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.921ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2025/11/05 00:40:32 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.292ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1762283432.856012,"caller":"database/migrations.go:50","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Link"}
+{"level":"info","ts":1762283432.856033,"caller":"database/migrations.go:60","msg":"Migrated model","model":"*models.Link"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:38
+[0m[33m[0.280ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'policies' AND table_type = 'BASE TABLE'
+{"level":"info","ts":1762283432.8563561,"caller":"database/migrations.go:46","msg":"Table exists, updating schema","model":"*models.Policy"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.238ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.199ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[2.220ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'netorchestrator' AND table_schema = CURRENT_SCHEMA() AND table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.283ms] [34;1m[rows:-][0m SELECT * FROM "users" LIMIT 5
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.357ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users' AND constraint_type = 'UNIQUE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[3.100ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'netorchestrator' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.302ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'users'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:47
+[0m[33m[0.908ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'users' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2025/11/05 00:40:32 [31;1m [35;1mERROR: constraint "uni_users_username" of relation "users" does not exist (SQLSTATE 42704)
+[0m[33m[0.338ms] [34;1m[rows:0][0m ALTER TABLE "users" DROP CONSTRAINT "uni_users_username"
+{"level":"warn","ts":1762283432.867682,"caller":"database/migrations.go:50","msg":"Non-critical migration error (continuing)","error":"ERROR: constraint \"uni_users_username\" of relation \"users\" does not exist (SQLSTATE 42704)","model":"*models.Policy"}
+{"level":"info","ts":1762283432.867698,"caller":"database/migrations.go:60","msg":"Migrated model","model":"*models.Policy"}
+{"level":"info","ts":1762283432.8677142,"caller":"database/migrations.go:64","msg":"Checking for missing columns in links table..."}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:65
+[0m[33m[0.254ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'links' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:68
+[0m[33m[1.199ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'links' AND column_name = 'name'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:75
+[0m[33m[1.240ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'links' AND column_name = 'config'
+{"level":"info","ts":1762283432.8704698,"caller":"database/migrations.go:83","msg":"Checking for missing entity_id column in nodes table..."}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:84
+[0m[33m[0.251ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'nodes' AND table_type = 'BASE TABLE'
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:86
+[0m[33m[1.168ms] [34;1m[rows:1][0m SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'nodes' AND column_name = 'entity_id'
+{"level":"info","ts":1762283432.8719392,"caller":"database/migrations.go:93","msg":"All migrations completed successfully"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:138
+[0m[33m[0.766ms] [34;1m[rows:11][0m 
+		SELECT table_name 
+		FROM information_schema.tables 
+		WHERE table_schema = 'public' 
+		AND table_type = 'BASE TABLE'
+		ORDER BY table_name;
+	
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[1.493ms] [34;1m[rows:13][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'alerts'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.881ms] [34;1m[rows:9][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'events'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.872ms] [34;1m[rows:15][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'links'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.773ms] [34;1m[rows:8][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'metrics'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.971ms] [34;1m[rows:14][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'networks'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[1.000ms] [34;1m[rows:20][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'nodes'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.358ms] [34;1m[rows:12][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'policies'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.327ms] [34;1m[rows:10][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'task_executions'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.270ms] [34;1m[rows:8][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'users'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.327ms] [34;1m[rows:9][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'workflow_definitions'
+			ORDER BY ordinal_position;
+		
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/pkg/database/migrations.go:161
+[0m[33m[0.306ms] [34;1m[rows:8][0m 
+			SELECT column_name, data_type, is_nullable, column_default
+			FROM information_schema.columns
+			WHERE table_schema = 'public' AND table_name = 'workflow_executions'
+			ORDER BY ordinal_position;
+		
+{"level":"info","ts":1762283432.880498,"caller":"api-gateway/main.go:89","msg":"Database migration status","table_count":11,"tables":["alerts","events","links","metrics","networks","nodes","policies","task_executions","users","workflow_definitions","workflow_executions"]}
+{"level":"info","ts":1762283432.880513,"caller":"api-gateway/main.go:94","msg":"Database migrations completed successfully"}
+{"level":"info","ts":1762283432.882168,"caller":"api-gateway/main.go:104","msg":"Initializing Prometheus observability"}
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[0.617ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.545ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.486ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.517ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:40:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.452ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"info","ts":1762283432.884953,"caller":"observability/collector.go:52","msg":"Metrics collector started","interval":15}
+{"level":"info","ts":1762283432.8849652,"caller":"api-gateway/main.go:111","msg":"Metrics collector started with 15s interval"}
+{"level":"info","ts":1762283432.8849752,"caller":"api-gateway/main.go:114","msg":"Initializing real-time container metrics collector"}
+{"level":"info","ts":1762283432.90174,"caller":"observability/container_metrics_collector.go:65","msg":"Starting container metrics collector","engine":"docker","interval":10}
+{"level":"info","ts":1762283432.901833,"caller":"api-gateway/main.go:117","msg":"Container metrics collector started (10s interval) - collecting real metrics from Docker/Podman"}
+{"level":"info","ts":1762283432.901901,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"terraform"}
+{"level":"info","ts":1762283432.9019158,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"ansible"}
+{"level":"info","ts":1762283432.9019232,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"api_call"}
+{"level":"info","ts":1762283432.901931,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"script"}
+{"level":"info","ts":1762283432.901938,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"validation"}
+{"level":"info","ts":1762283432.901946,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"network_provision"}
+{"level":"info","ts":1762283432.901952,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"terraform"}
+{"level":"info","ts":1762283432.901957,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"ansible"}
+{"level":"info","ts":1762283432.901964,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"api_call"}
+{"level":"info","ts":1762283432.901969,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"script"}
+{"level":"info","ts":1762283432.901976,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"validation"}
+{"level":"info","ts":1762283432.9019809,"caller":"automation/engine.go:169","msg":"Registered task executor","type":"network_provision"}
+{"level":"info","ts":1762283432.902046,"caller":"api-gateway/main.go:138","msg":"AI integration enabled","provider":"gemini","model":"gemini-2.5-flash","configured":true}
+{"level":"info","ts":1762283432.902195,"caller":"containerlab/topology.go:128","msg":"Topology loaded","name":"netorchestrator-lab"}
+{"level":"info","ts":1762283433.120905,"caller":"api-gateway/main.go:185","msg":"NLP handlers connected to container provisioner - natural language will create real containers"}
+{"level":"info","ts":1762283433.121233,"caller":"api-gateway/main.go:217","msg":"Starting server","host":"0.0.0.0","port":"8080"}
+{"level":"warn","ts":1762283433.4321,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283433.954263,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283434.476893,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283435.0074291,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283435.5430532,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283436.077437,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283436.6040509,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283443.455629,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283443.991627,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283444.521224,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283445.0544808,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283445.581207,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283446.1176069,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283446.647807,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:40:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.981ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:40:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[1.156ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:40:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.654ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:40:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.525ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:40:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.539ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283453.455925,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283453.989623,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283454.522411,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283455.055468,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283455.59114,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283456.1279879,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283456.661563,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:41:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.003ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[1.149ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:41:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[1.173ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:41:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.806ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.890ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283463.461592,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283463.996145,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283464.533032,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283465.0670779,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283465.5889091,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283466.1104362,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283466.6428301,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+2025/11/05 00:41:13 AUDIT_LOG: {"id":"ab17966eb0e84994d308a6bfef6a41af","timestamp":"2025-11-05T00:41:13.219067+05:30","level":"WARNING","action":"security_event","resource":"system","ip_address":"::1","success":false,"error_message":"Authentication required","metadata":{"event_type":"missing_auth"}}
+{"level":"warn","ts":1762283473.455921,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283473.980473,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283474.5083258,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283475.0422988,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283475.5701818,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283476.103831,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283476.6375082,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:41:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[2.925ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.836ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:41:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.888ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:41:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.523ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.530ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283483.444913,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283483.975467,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283484.497044,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283485.029334,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283485.566292,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283486.099551,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283486.621554,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+2025/11/05 00:41:29 AUDIT_LOG: {"id":"9797ef84950ab982654022f0df45da3a","timestamp":"2025-11-05T00:41:29.623284+05:30","level":"INFO","username":"admin","action":"authenticate","resource":"user_session","ip_address":"::1","success":false,"error_message":"Invalid password"}
+
+2025/11/05 00:41:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[1.953ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.900ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:41:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.488ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:41:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.313ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.366ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283493.451767,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283493.981187,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283494.515053,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283495.05266,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283495.5863109,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283496.108515,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283496.6388521,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283503.46366,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283503.996705,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283504.5310342,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283505.061118,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283505.585591,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283506.11569,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283506.637301,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:41:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[2.195ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.669ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:41:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.789ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:41:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.489ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:41:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.550ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283513.44532,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283513.967853,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283514.499008,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283515.0331872,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283515.5600011,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283516.094482,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283516.631456,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:42:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.038ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.847ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:42:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.888ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:42:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.581ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.642ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283523.4601831,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283523.9967518,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283524.527531,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283525.0529861,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283525.576994,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283526.237229,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283526.772992,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283533.462542,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283533.9997618,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283534.5250618,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283535.04793,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283535.577156,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283536.099926,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283536.636586,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:42:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[1.241ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.378ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:42:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.435ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:42:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.300ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.331ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283543.439345,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283543.966604,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283544.504992,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283545.0373278,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283545.569491,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283546.095298,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283546.625716,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:42:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[2.617ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.922ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:42:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.863ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:42:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.737ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.522ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283553.455532,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283553.98482,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283554.515965,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283555.043545,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283555.582774,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283556.115654,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283556.6570082,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283557.193131,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283563.458669,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283563.977184,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283564.51581,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283565.054938,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283565.5869892,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283566.120849,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283566.656061,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283567.189982,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:42:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.096ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.938ms] [34;1m[rows:2][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:42:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.881ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:42:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.717ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:42:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.783ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283573.463725,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283573.996087,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283574.521353,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283575.042136,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283575.5709472,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283576.1012459,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283576.638262,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283577.1766028,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:43:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.016ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.800ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:43:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.720ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:43:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.508ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.493ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283583.466264,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283584.0002549,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283584.529522,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283585.063433,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283585.6000059,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283586.1313212,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+2025/11/05 00:43:06 AUDIT_LOG: {"id":"89d4e73d9ff42c295d3d0c23d159578d","timestamp":"2025-11-05T00:43:06.621529+05:30","level":"WARNING","action":"security_event","resource":"system","ip_address":"::1","success":false,"error_message":"Authentication required","metadata":{"event_type":"missing_auth"}}
+{"level":"warn","ts":1762283586.663247,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283587.18261,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283593.460135,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283593.992853,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283594.5255969,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283595.0485702,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283595.5766,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283596.108692,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283596.639932,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283597.177741,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:43:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[2.884ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.502ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:43:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.623ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:43:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.385ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.371ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283603.470826,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283604.006551,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283604.536195,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283605.0641541,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283605.5868852,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283606.118687,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283606.641269,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283607.16747,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:43:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.236ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[1.074ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:43:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.918ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:43:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.795ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.699ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283613.465127,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283613.997996,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283614.532515,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283615.060941,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283615.581868,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283616.1149068,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283616.646976,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283617.183748,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283623.460309,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283623.996536,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283624.532493,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283625.0642781,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283625.602944,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283626.140217,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283626.664945,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283627.1951842,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:43:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[1.308ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.578ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:43:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.563ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:43:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.481ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:43:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.420ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283633.441715,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283633.965065,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283634.488946,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283635.012214,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283635.5383208,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283636.059842,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283636.585263,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283637.1093152,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:44:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[1.674ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.543ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:44:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.622ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:44:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.567ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.430ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283643.449934,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283643.9784908,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283644.5083761,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283645.0381598,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283645.568631,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283646.096823,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283646.6170151,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283647.1399171,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283653.462479,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283653.9838002,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283654.504239,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283655.025356,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283655.561074,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283656.098575,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283656.6329632,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283657.165639,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:44:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.718ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.839ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:44:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.772ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:44:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.544ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.778ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283663.4660769,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283663.9993742,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283664.532305,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283665.0648892,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283665.6012201,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283666.137444,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283666.670259,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283667.1918342,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:44:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[1.775ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.971ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:44:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.857ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:44:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[1.016ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:32 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.491ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283673.451432,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283673.983427,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283674.5125399,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283675.046293,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283675.580876,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283676.119164,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283676.6546361,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283677.187327,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283683.466759,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283683.999517,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283684.535649,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283685.0619001,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283685.584428,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283686.1195142,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283686.6544309,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283687.1875079,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:44:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[3.403ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[1.096ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:44:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[1.038ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:44:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.784ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:44:47 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.746ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283693.44228,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283693.978688,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283694.511731,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283695.048001,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283695.583067,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283696.115818,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283696.6522949,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283697.181288,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:45:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[1.719ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:45:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.604ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:45:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.518ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:45:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.516ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:45:02 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.384ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status
+{"level":"warn","ts":1762283703.458542,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283703.994711,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283704.530517,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283705.061405,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283705.593407,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283706.1250072,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283706.660071,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283707.190629,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283713.45278,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"postgres","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283713.987803,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"redis","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283714.525843,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"influxdb","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283715.060148,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"prometheus","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283715.591135,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_79de5b28","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283716.125592,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"node_34f2a9b9","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283716.655127,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-node-full-params","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+{"level":"warn","ts":1762283717.1904168,"caller":"observability/container_metrics_collector.go:148","msg":"Failed to get stats for container","container":"test-enhanced-manual","error":"failed to parse stats JSON: json: cannot unmarshal object into Go value of type []map[string]interface {}"}
+
+2025/11/05 00:45:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:76
+[0m[33m[2.817ms] [34;1m[rows:2][0m SELECT status, count(*) as count FROM "networks" WHERE "networks"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:45:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:95
+[0m[33m[0.638ms] [34;1m[rows:3][0m SELECT node_type as type, status, count(*) as count FROM "nodes" WHERE "nodes"."deleted_at" IS NULL GROUP BY node_type, status
+
+2025/11/05 00:45:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:117
+[0m[33m[0.594ms] [34;1m[rows:1][0m SELECT node_type as type, count(*) as count FROM "nodes" WHERE status = 'active' AND "nodes"."deleted_at" IS NULL GROUP BY "node_type"
+
+2025/11/05 00:45:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:135
+[0m[33m[0.433ms] [34;1m[rows:0][0m SELECT status, count(*) as count FROM "links" WHERE "links"."deleted_at" IS NULL GROUP BY "status"
+
+2025/11/05 00:45:17 [32m/Users/kritripa/recent-netorch/netorchestrator/internal/observability/collector.go:154
+[0m[33m[0.385ms] [34;1m[rows:0][0m SELECT policy_type as type, status, count(*) as count FROM "policies" WHERE "policies"."deleted_at" IS NULL GROUP BY policy_type, status

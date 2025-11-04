@@ -217,6 +217,65 @@ func (cp *ContainerProvisioner) createNodeContainer(containerName, image, networ
 		"--network", networkName,
 	}
 
+	// 🚀 IMPLEMENT MISSING PARAMETERS: CPU, Memory, Storage, IP, Custom Attrs
+
+	// Add CPU limits if specified in node config
+	if node.Config.CPU > 0 {
+		args = append(args, "--cpus", fmt.Sprintf("%d", node.Config.CPU))
+		cp.logger.Info("Setting CPU limit for container",
+			zap.String("container", containerName),
+			zap.Int("cpu", node.Config.CPU))
+	}
+
+	// Add Memory limits if specified in node config (convert MB to bytes for podman)
+	if node.Config.Memory > 0 {
+		memoryBytes := fmt.Sprintf("%dm", node.Config.Memory) // podman accepts 'm' suffix for MB
+		args = append(args, "--memory", memoryBytes)
+		cp.logger.Info("Setting memory limit for container",
+			zap.String("container", containerName),
+			zap.Int("memory_mb", node.Config.Memory))
+	}
+
+	// Add Storage limits if specified in node config
+	if node.Config.Storage > 0 {
+		storageSize := fmt.Sprintf("%dg", node.Config.Storage) // podman accepts 'g' suffix for GB
+		args = append(args, "--storage-opt", fmt.Sprintf("size=%s", storageSize))
+		cp.logger.Info("Setting storage limit for container",
+			zap.String("container", containerName),
+			zap.Int("storage_gb", node.Config.Storage))
+	}
+
+	// Add Static IP assignment if specified
+	if node.IPAddress != "" {
+		args = append(args, "--ip", node.IPAddress)
+		cp.logger.Info("Setting static IP for container",
+			zap.String("container", containerName),
+			zap.String("ip_address", node.IPAddress))
+	}
+
+	// Add Custom Environment Variables from custom_attrs
+	if node.Config.CustomAttrs != nil {
+		for key, value := range node.Config.CustomAttrs {
+			envVar := fmt.Sprintf("%s=%s", strings.ToUpper(key), value)
+			args = append(args, "-e", envVar)
+		}
+		cp.logger.Info("Adding custom environment variables to container",
+			zap.String("container", containerName),
+			zap.Any("custom_attrs", node.Config.CustomAttrs))
+	}
+
+	// Add standard node information as environment variables
+	args = append(args, "-e", fmt.Sprintf("NODE_ID=%s", node.ID.String()))
+	args = append(args, "-e", fmt.Sprintf("NODE_NAME=%s", node.Name))
+	args = append(args, "-e", fmt.Sprintf("NODE_TYPE=%s", string(node.Type)))
+	args = append(args, "-e", fmt.Sprintf("NETWORK_ID=%s", node.NetworkID.String()))
+	if node.IPAddress != "" {
+		args = append(args, "-e", fmt.Sprintf("NODE_IP=%s", node.IPAddress))
+	}
+	if node.MACAddress != "" {
+		args = append(args, "-e", fmt.Sprintf("NODE_MAC=%s", node.MACAddress))
+	}
+
 	// Add node-specific configuration
 	if image == "frrouting/frr:latest" {
 		// FRRouting router - needs full network access for routing protocols and policy enforcement
