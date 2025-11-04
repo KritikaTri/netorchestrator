@@ -132,19 +132,19 @@ func main() {
 	// Initialize automation system
 	automationHandler := automation.NewHandler(db.GetDB(), logger)
 
-	// Initialize AI engine with OpenAI integration (now loads from .env file automatically)
-	openaiConfig := config.LoadOpenAIConfig()
-	if openaiConfig.IsConfigured() {
-		logger.Info("OpenAI integration enabled",
-			zap.String("model", openaiConfig.Model),
-			zap.Bool("configured", true),
-			zap.String("api_key_prefix", openaiConfig.APIKey[:12]+"..."))
+	// Initialize AI engine with multi-provider support (OpenAI, Gemini, or Mock)
+	aiConfig := config.LoadAIConfig()
+	if aiConfig.IsConfigured() {
+		logger.Info("AI integration enabled",
+			zap.String("provider", aiConfig.Provider),
+			zap.String("model", aiConfig.Model),
+			zap.Bool("configured", true))
 	} else {
-		logger.Info("OpenAI not configured, using mock AI responses")
-		logger.Info("To enable OpenAI: Create .env file with OPENAI_API_KEY or set environment variable")
+		logger.Info("AI not configured, using mock AI responses")
+		logger.Info("To enable AI: Add GEMINI_API_KEY or OPENAI_API_KEY to .env file")
 	}
 
-	aiEngine := ai.NewAIEngine(openaiConfig.APIKey)
+	aiEngine := ai.NewAIEngineWithProvider(aiConfig.OpenAIKey, aiConfig.GeminiKey, aiConfig.Provider)
 	intelligenceService := intelligence.NewNetworkIntelligenceService(aiEngine)
 	intelligenceHandlers := intelligence.NewIntelligenceHandlers(intelligenceService)
 
