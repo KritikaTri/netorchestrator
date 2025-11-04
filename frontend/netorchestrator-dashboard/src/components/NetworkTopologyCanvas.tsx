@@ -126,12 +126,6 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
 
   // Convert topology data to React Flow format
   const { initialNodes, initialEdges } = useMemo(() => {
-    console.log('🔍 DEBUG: Processing topology data', {
-      nodesCount: topologyData.nodes.length,
-      linksCount: topologyData.links.length,
-      sampleLink: topologyData.links[0]
-    });
-
     const positions = generateLayout(topologyData.nodes);
     
     const nodes: FlowNode[] = topologyData.nodes.map((node) => ({
@@ -146,44 +140,33 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
       draggable: true,
     }));
 
-    const edges: FlowEdge[] = topologyData.links.map((link) => {
-      console.log('🔗 Creating edge:', {
-        id: link.id,
-        source: link.source_node_id,
-        target: link.target_node_id,
-        status: link.status
-      });
-      
-      return {
-        id: link.id,
-        source: link.source_node_id,
-        target: link.target_node_id,
-        type: 'default', // Changed from 'smoothstep' to 'default'
-        animated: link.status === 'active',
-        style: {
-          stroke: link.status === 'active' ? '#10b981' : '#ef4444',
-          strokeWidth: 3, // Increased thickness
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: link.status === 'active' ? '#10b981' : '#ef4444',
-          width: 20,
-          height: 20,
-        },
-        label: link.link_type || 'ethernet',
-        labelStyle: {
-          fontSize: 12,
-          fontWeight: 600,
-          fill: '#ffffff',
-        },
-        labelBgStyle: {
-          fill: '#1a1b23',
-          fillOpacity: 0.8,
-        },
-      };
-    });
-
-    console.log('✅ Generated edges:', edges.length, edges);
+    const edges: FlowEdge[] = topologyData.links.map((link) => ({
+      id: link.id,
+      source: link.source_node_id,
+      target: link.target_node_id,
+      type: 'default', // Changed from 'smoothstep' to 'default'
+      animated: link.status === 'active',
+      style: {
+        stroke: link.status === 'active' ? '#10b981' : '#ef4444',
+        strokeWidth: 3, // Increased thickness
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: link.status === 'active' ? '#10b981' : '#ef4444',
+        width: 20,
+        height: 20,
+      },
+      label: '', // Remove labels entirely for cleaner look
+      labelStyle: {
+        fontSize: 10,
+        fontWeight: 300,
+        fill: '#6b7280',
+      },
+      labelBgStyle: {
+        fill: 'transparent',
+        fillOpacity: 0,
+      },
+    }));
 
     return { initialNodes: nodes, initialEdges: edges };
   }, [topologyData, metricsData, selectedNode]);
@@ -223,22 +206,17 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
         width: 20,
         height: 20,
       },
-      label: link.link_type || 'ethernet',
+      label: '', // Remove labels entirely for cleaner look
       labelStyle: {
-        fontSize: 12,
-        fontWeight: 600,
-        fill: '#ffffff',
+        fontSize: 10,
+        fontWeight: 300,
+        fill: '#6b7280',
       },
       labelBgStyle: {
-        fill: '#1a1b23',
-        fillOpacity: 0.8,
+        fill: 'transparent',
+        fillOpacity: 0,
       },
     }));
-
-    console.log('🔄 Updating React Flow state:', {
-      nodes: updatedNodes.length,
-      edges: updatedEdges.length
-    });
 
     setNodes(updatedNodes);
     setEdges(updatedEdges);
@@ -260,7 +238,9 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
     <Box sx={{ 
       width: '100%', 
       height: '100%', 
-      backgroundColor: '#1a1b23',
+      backgroundColor: '#0f172a',
+      backgroundImage: 'radial-gradient(circle, #1e293b 1px, transparent 1px)',
+      backgroundSize: '20px 20px',
       position: 'relative',
       '& .react-flow__edge': {
         strokeWidth: '3px !important',
@@ -273,6 +253,12 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
       },
       '& .react-flow__arrowhead': {
         fill: '#10b981 !important',
+      },
+      '& .react-flow__edge-text': {
+        display: 'none !important',
+      },
+      '& .react-flow__edge-textbg': {
+        display: 'none !important',
       },
     }}>
       <ReactFlow
@@ -291,20 +277,20 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
         attributionPosition="bottom-left"
       >
         <Background 
-          color="#4a5568" 
-          size={20} 
-          style={{ backgroundColor: '#1a1b23' }}
+          color="#1e293b" 
+          size={1} 
+          style={{ backgroundColor: '#0f172a' }}
         />
         <Controls 
           style={{
-            background: 'rgba(45, 55, 72, 0.8)',
-            border: '1px solid #4a5568',
+            background: 'rgba(30, 41, 59, 0.8)',
+            border: '1px solid #1e293b',
           }}
         />
         <MiniMap 
           style={{
-            background: 'rgba(45, 55, 72, 0.8)',
-            border: '1px solid #4a5568',
+            background: 'rgba(30, 41, 59, 0.8)',
+            border: '1px solid #1e293b',
           }}
           nodeColor={(node) => {
             switch (node.data.status) {
@@ -324,7 +310,7 @@ const NetworkTopologyCanvas: React.FC<NetworkTopologyCanvasProps> = ({
           top: 16, 
           left: 16, 
           zIndex: 10,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(30, 41, 59, 0.9)',
           padding: '8px 16px',
           borderRadius: 1,
           color: 'white',

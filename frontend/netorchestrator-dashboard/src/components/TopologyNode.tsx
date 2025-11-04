@@ -67,7 +67,7 @@ const TopologyNode: React.FC<TopologyNodeProps> = ({ data }) => {
       sx={{
         position: 'relative',
         minWidth: 120,
-        minHeight: 80,
+        minHeight: 90,
         backgroundColor: '#2d3748',
         border: `2px solid ${data.isSelected ? '#3b82f6' : statusColor}`,
         borderRadius: '50%',
@@ -129,8 +129,20 @@ const TopologyNode: React.FC<TopologyNodeProps> = ({ data }) => {
       />
 
       {/* Node Icon */}
-      <Box sx={{ color: 'white', mb: 0.5 }}>
+      <Box sx={{ color: 'white', mb: 0.2 }}>
         {getNodeIcon(data.type)}
+      </Box>
+
+      {/* Device Type Text */}
+      <Box sx={{ 
+        color: '#a0aec0', 
+        fontSize: '10px', 
+        fontWeight: 500,
+        textTransform: 'capitalize',
+        lineHeight: 1,
+        textAlign: 'center',
+      }}>
+        {data.type}
       </Box>
 
       {/* Utilization Percentage */}
