@@ -1,6 +1,7 @@
 package intelligence
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -58,12 +59,12 @@ type AnomalyDetectionRequest struct {
 
 // IntelligenceResponse represents AI intelligence response
 type IntelligenceResponse struct {
-	Success     bool                   `json:"success"`
-	Data        interface{}            `json:"data,omitempty"`
-	Insights    []string               `json:"insights,omitempty"`
-	Confidence  float64                `json:"confidence"`
-	ProcessingTime string              `json:"processing_time"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Success        bool                   `json:"success"`
+	Data           interface{}            `json:"data,omitempty"`
+	Insights       []string               `json:"insights,omitempty"`
+	Confidence     float64                `json:"confidence"`
+	ProcessingTime string                 `json:"processing_time"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // AnalyzeNetwork performs AI-powered network analysis
@@ -106,27 +107,159 @@ func (h *IntelligenceHandlers) AnalyzeNetwork(c *gin.Context) {
 		return
 	}
 
-	// Extract insights from AI response
-	insights := []string{
-		"Network latency shows 15% improvement opportunity",
-		"Bandwidth utilization indicates potential bottlenecks during peak hours",
-		"CPU usage patterns suggest auto-scaling configuration optimization",
-	}
+	// Generate dynamic insights based on actual metrics
+	insights := h.generateDynamicInsights(metrics)
+
+	// Calculate dynamic confidence based on metrics quality and range
+	confidence := h.calculateConfidence(metrics)
 
 	response := IntelligenceResponse{
 		Success:        true,
 		Data:           result,
 		Insights:       insights,
-		Confidence:     0.92,
+		Confidence:     confidence,
 		ProcessingTime: time.Since(startTime).String(),
 		Metadata: map[string]interface{}{
-			"analysis_type": "network_performance",
-			"model_version": "v2.1",
-			"features_analyzed": len(req.Metrics),
+			"analysis_type":      "network_performance",
+			"model_version":      "v2.1",
+			"features_analyzed":  len(req.Metrics),
+			"input_metrics":      metrics,
+			"analysis_timestamp": time.Now().Unix(),
 		},
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// generateDynamicInsights creates insights based on actual metric values
+func (h *IntelligenceHandlers) generateDynamicInsights(metrics map[string]interface{}) []string {
+	insights := []string{}
+
+	// Analyze CPU usage
+	if cpu, ok := metrics["cpu_usage"].(float64); ok {
+		if cpu > 80 {
+			insights = append(insights, fmt.Sprintf("High CPU usage detected (%.1f%%) - consider scaling or load balancing", cpu))
+		} else if cpu < 20 {
+			insights = append(insights, fmt.Sprintf("Low CPU usage (%.1f%%) - potential for resource consolidation", cpu))
+		} else if cpu > 60 {
+			insights = append(insights, fmt.Sprintf("Moderate CPU usage (%.1f%%) - monitor for peak hour spikes", cpu))
+		} else {
+			insights = append(insights, fmt.Sprintf("Optimal CPU usage (%.1f%%) - performance within normal range", cpu))
+		}
+	}
+
+	// Analyze latency
+	if latency, ok := metrics["latency"].(float64); ok {
+		if latency > 100 {
+			insights = append(insights, fmt.Sprintf("High network latency (%.1fms) - investigate routing and bandwidth", latency))
+		} else if latency > 50 {
+			insights = append(insights, fmt.Sprintf("Moderate latency (%.1fms) - %.0f%% improvement opportunity available", latency, (latency-20)/latency*100))
+		} else if latency < 10 {
+			insights = append(insights, fmt.Sprintf("Excellent low latency (%.1fms) - network performing optimally", latency))
+		} else {
+			insights = append(insights, fmt.Sprintf("Good latency (%.1fms) - within acceptable range", latency))
+		}
+	}
+
+	// Analyze throughput
+	if throughput, ok := metrics["throughput"].(float64); ok {
+		if throughput < 500 {
+			insights = append(insights, fmt.Sprintf("Low throughput (%.0f Mbps) - potential bandwidth bottleneck", throughput))
+		} else if throughput > 2000 {
+			insights = append(insights, fmt.Sprintf("High throughput (%.0f Mbps) - excellent network capacity", throughput))
+		} else {
+			insights = append(insights, fmt.Sprintf("Moderate throughput (%.0f Mbps) - consider scaling for peak loads", throughput))
+		}
+	}
+
+	// Analyze packet loss
+	if packetLoss, ok := metrics["packet_loss"].(float64); ok {
+		if packetLoss > 1.0 {
+			insights = append(insights, fmt.Sprintf("Critical packet loss (%.2f%%) - immediate network investigation required", packetLoss))
+		} else if packetLoss > 0.5 {
+			insights = append(insights, fmt.Sprintf("Elevated packet loss (%.2f%%) - monitor link quality and congestion", packetLoss))
+		} else if packetLoss > 0.1 {
+			insights = append(insights, fmt.Sprintf("Minor packet loss (%.2f%%) - within acceptable range but monitor trends", packetLoss))
+		} else {
+			insights = append(insights, "Excellent network stability - no significant packet loss detected")
+		}
+	}
+
+	// Add contextual insights based on metric combinations
+	if cpu, cpuOk := metrics["cpu_usage"].(float64); cpuOk {
+		if latency, latencyOk := metrics["latency"].(float64); latencyOk {
+			if cpu > 70 && latency > 50 {
+				insights = append(insights, "High CPU and latency correlation detected - consider CPU offloading or caching")
+			} else if cpu < 30 && latency > 80 {
+				insights = append(insights, "High latency despite low CPU - investigate network infrastructure")
+			}
+		}
+	}
+
+	// Ensure we always have at least one insight
+	if len(insights) == 0 {
+		insights = append(insights, "Network metrics analysis completed - all parameters within normal operating ranges")
+	}
+
+	return insights
+}
+
+// calculateConfidence determines confidence based on metric quality and consistency
+func (h *IntelligenceHandlers) calculateConfidence(metrics map[string]interface{}) float64 {
+	confidence := 0.5 // Base confidence
+	metricCount := len(metrics)
+
+	// Higher confidence with more metrics
+	if metricCount >= 4 {
+		confidence += 0.2
+	} else if metricCount >= 2 {
+		confidence += 0.1
+	}
+
+	// Analyze metric values for realistic ranges
+	realisticCount := 0
+
+	if cpu, ok := metrics["cpu_usage"].(float64); ok && cpu >= 0 && cpu <= 100 {
+		realisticCount++
+		// Very high or very low CPU affects confidence
+		if cpu > 95 || cpu < 1 {
+			confidence -= 0.1
+		}
+	}
+
+	if latency, ok := metrics["latency"].(float64); ok && latency >= 0 && latency < 1000 {
+		realisticCount++
+		// Extremely high latency affects confidence
+		if latency > 500 {
+			confidence -= 0.1
+		}
+	}
+
+	if throughput, ok := metrics["throughput"].(float64); ok && throughput >= 0 {
+		realisticCount++
+	}
+
+	if packetLoss, ok := metrics["packet_loss"].(float64); ok && packetLoss >= 0 && packetLoss <= 100 {
+		realisticCount++
+		// High packet loss affects confidence
+		if packetLoss > 5 {
+			confidence -= 0.15
+		}
+	}
+
+	// Boost confidence if all metrics are realistic
+	if realisticCount == metricCount && metricCount > 0 {
+		confidence += 0.2
+	}
+
+	// Ensure confidence is within bounds
+	if confidence > 1.0 {
+		confidence = 1.0
+	} else if confidence < 0.3 {
+		confidence = 0.3
+	}
+
+	return confidence
 }
 
 // PredictCapacity performs AI-powered capacity prediction
@@ -235,7 +368,7 @@ func (h *IntelligenceHandlers) OptimizeCosts(c *gin.Context) {
 		Confidence:     0.89,
 		ProcessingTime: time.Since(startTime).String(),
 		Metadata: map[string]interface{}{
-			"optimization_type": "multi_objective",
+			"optimization_type":  "multi_objective",
 			"resources_analyzed": len(req.Resources),
 			"roi_estimate":       "285%",
 			"payback_period":     "3.2 months",
@@ -327,7 +460,7 @@ func (h *IntelligenceHandlers) DetectAnomalies(c *gin.Context) {
 			"critical_anomalies":  criticalCount,
 			"high_anomalies":      highCount,
 			"sensitivity_setting": req.Sensitivity,
-			"algorithm":         "hybrid_statistical_ml",
+			"algorithm":           "hybrid_statistical_ml",
 		},
 	}
 
@@ -346,32 +479,32 @@ func (h *IntelligenceHandlers) DetectAnomalies(c *gin.Context) {
 func (h *IntelligenceHandlers) GetMLModels(c *gin.Context) {
 	models := map[string]interface{}{
 		"anomaly_detection": map[string]interface{}{
-			"name":        "Network Anomaly Detector",
-			"version":     "v2.1.0",
-			"accuracy":    0.94,
+			"name":         "Network Anomaly Detector",
+			"version":      "v2.1.0",
+			"accuracy":     0.94,
 			"last_trained": "2025-10-25T10:30:00Z",
-			"metrics":     []string{"latency", "throughput", "error_rate", "cpu_usage"},
+			"metrics":      []string{"latency", "throughput", "error_rate", "cpu_usage"},
 		},
 		"capacity_forecasting": map[string]interface{}{
-			"name":        "Capacity Forecasting Engine",
-			"version":     "v1.8.2",
-			"accuracy":    0.89,
+			"name":         "Capacity Forecasting Engine",
+			"version":      "v1.8.2",
+			"accuracy":     0.89,
 			"last_trained": "2025-10-24T15:45:00Z",
-			"horizon":     "30 days",
+			"horizon":      "30 days",
 		},
 		"cost_optimization": map[string]interface{}{
-			"name":        "Cost Optimization Advisor",
-			"version":     "v3.0.1",
-			"accuracy":    0.91,
+			"name":         "Cost Optimization Advisor",
+			"version":      "v3.0.1",
+			"accuracy":     0.91,
 			"last_trained": "2025-10-26T09:15:00Z",
-			"avg_savings": "28%",
+			"avg_savings":  "28%",
 		},
 		"performance_optimization": map[string]interface{}{
-			"name":        "Performance Optimizer",
-			"version":     "v2.5.0",
-			"accuracy":    0.87,
+			"name":         "Performance Optimizer",
+			"version":      "v2.5.0",
+			"accuracy":     0.87,
 			"last_trained": "2025-10-23T14:20:00Z",
-			"improvement": "35%",
+			"improvement":  "35%",
 		},
 	}
 
@@ -393,21 +526,21 @@ func (h *IntelligenceHandlers) GetMLModels(c *gin.Context) {
 // @Router /api/v1/intelligence/chains [get]
 func (h *IntelligenceHandlers) GetAIChains(c *gin.Context) {
 	chains := h.intelligenceService.aiEngine.ListChains()
-	
+
 	chainSummary := make(map[string]interface{})
 	for id, chain := range chains {
 		chainSummary[id] = map[string]interface{}{
-			"name":         chain.Name,
-			"description":  chain.Description,
-			"steps":        len(chain.Steps),
-			"created_at":   chain.CreatedAt,
+			"name":        chain.Name,
+			"description": chain.Description,
+			"steps":       len(chain.Steps),
+			"created_at":  chain.CreatedAt,
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"chains":     chainSummary,
-		"total":      len(chains),
-		"available":  true,
+		"chains":    chainSummary,
+		"total":     len(chains),
+		"available": true,
 	})
 }
 
@@ -425,7 +558,7 @@ func (h *IntelligenceHandlers) GetAIChains(c *gin.Context) {
 func (h *IntelligenceHandlers) GetInsights(c *gin.Context) {
 	category := c.Query("category")
 	limitStr := c.Query("limit")
-	
+
 	limit := 10
 	if limitStr != "" {
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
@@ -437,9 +570,9 @@ func (h *IntelligenceHandlers) GetInsights(c *gin.Context) {
 	insights := h.generateInsights(category, limit)
 
 	c.JSON(http.StatusOK, gin.H{
-		"insights":   insights,
-		"category":   category,
-		"count":      len(insights),
+		"insights":     insights,
+		"category":     category,
+		"count":        len(insights),
 		"generated_at": time.Now(),
 	})
 }
@@ -449,64 +582,64 @@ func (h *IntelligenceHandlers) generateInsights(category string, limit int) []ma
 	allInsights := map[string][]map[string]interface{}{
 		"performance": {
 			{
-				"title":       "Network Latency Optimization",
-				"description": "CDN implementation could reduce average latency by 45%",
-				"impact":      "high",
-				"confidence":  0.92,
-				"actions":     []string{"Deploy edge servers", "Optimize routing"},
+				"title":             "Network Latency Optimization",
+				"description":       "CDN implementation could reduce average latency by 45%",
+				"impact":            "high",
+				"confidence":        0.92,
+				"actions":           []string{"Deploy edge servers", "Optimize routing"},
 				"estimated_benefit": "$25,000/month",
 			},
 			{
-				"title":       "Database Query Optimization",
-				"description": "15 slow queries identified affecting response times",
-				"impact":      "medium",
-				"confidence":  0.88,
-				"actions":     []string{"Add indexes", "Query optimization"},
+				"title":             "Database Query Optimization",
+				"description":       "15 slow queries identified affecting response times",
+				"impact":            "medium",
+				"confidence":        0.88,
+				"actions":           []string{"Add indexes", "Query optimization"},
 				"estimated_benefit": "30% faster responses",
 			},
 		},
 		"cost": {
 			{
-				"title":       "Reserved Instance Optimization",
-				"description": "Switch to reserved instances for 70% cost savings",
-				"impact":      "high",
-				"confidence":  0.95,
-				"actions":     []string{"Purchase 3-year RIs", "Right-size instances"},
+				"title":             "Reserved Instance Optimization",
+				"description":       "Switch to reserved instances for 70% cost savings",
+				"impact":            "high",
+				"confidence":        0.95,
+				"actions":           []string{"Purchase 3-year RIs", "Right-size instances"},
 				"estimated_benefit": "$180,000/year",
 			},
 			{
-				"title":       "Storage Cleanup Opportunity",
-				"description": "2.3TB of unused storage detected across regions",
-				"impact":      "medium",
-				"confidence":  0.91,
-				"actions":     []string{"Remove unused volumes", "Implement lifecycle policies"},
+				"title":             "Storage Cleanup Opportunity",
+				"description":       "2.3TB of unused storage detected across regions",
+				"impact":            "medium",
+				"confidence":        0.91,
+				"actions":           []string{"Remove unused volumes", "Implement lifecycle policies"},
 				"estimated_benefit": "$8,400/year",
 			},
 		},
 		"security": {
 			{
-				"title":       "Unusual Access Patterns",
-				"description": "Anomalous login patterns detected from new geographic locations",
-				"impact":      "high",
-				"confidence":  0.89,
-				"actions":     []string{"Enable MFA", "Review access logs"},
+				"title":             "Unusual Access Patterns",
+				"description":       "Anomalous login patterns detected from new geographic locations",
+				"impact":            "high",
+				"confidence":        0.89,
+				"actions":           []string{"Enable MFA", "Review access logs"},
 				"estimated_benefit": "Enhanced security posture",
 			},
 		},
 		"capacity": {
 			{
-				"title":       "Proactive Scaling Recommendation",
-				"description": "CPU utilization trending up - scale before hitting limits",
-				"impact":      "medium",
-				"confidence":  0.87,
-				"actions":     []string{"Add 2 instances", "Update auto-scaling policy"},
+				"title":             "Proactive Scaling Recommendation",
+				"description":       "CPU utilization trending up - scale before hitting limits",
+				"impact":            "medium",
+				"confidence":        0.87,
+				"actions":           []string{"Add 2 instances", "Update auto-scaling policy"},
 				"estimated_benefit": "Prevent performance degradation",
 			},
 		},
 	}
 
 	var insights []map[string]interface{}
-	
+
 	if category == "" {
 		// Return insights from all categories
 		for _, categoryInsights := range allInsights {

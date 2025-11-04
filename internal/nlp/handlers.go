@@ -18,12 +18,18 @@ type Handlers struct {
 	networkService       *services.NetworkService
 	logger               *zap.Logger
 	containerProvisioner ContainerProvisioner
+	policyEnforcer       PolicyEnforcer
 }
 
 // ContainerProvisioner interface for container provisioning
 type ContainerProvisioner interface {
 	ProvisionNetworkInfrastructure(network *models.Network) error
 	ProvisionNodeContainer(node *models.Node, network *models.Network) error
+}
+
+// PolicyEnforcer interface for policy enforcement
+type PolicyEnforcer interface {
+	EnforcePolicy(policy *models.Policy) error
 }
 
 // NewHandlers creates new NLP handlers
@@ -40,9 +46,19 @@ func (h *Handlers) SetContainerProvisioner(provisioner ContainerProvisioner) {
 	h.containerProvisioner = provisioner
 }
 
+// SetPolicyEnforcer sets the policy enforcer (injected from main)
+func (h *Handlers) SetPolicyEnforcer(enforcer PolicyEnforcer) {
+	h.policyEnforcer = enforcer
+}
+
 // getContainerProvisioner returns the container provisioner if available
 func (h *Handlers) getContainerProvisioner() ContainerProvisioner {
 	return h.containerProvisioner
+}
+
+// getPolicyEnforcer returns the policy enforcer if available
+func (h *Handlers) getPolicyEnforcer() PolicyEnforcer {
+	return h.policyEnforcer
 }
 
 // ProvisionFromNaturalLanguage handles natural language provisioning requests
@@ -212,26 +228,94 @@ func (h *Handlers) ProvisionFromNaturalLanguage(c *gin.Context) {
 		createdNodes = append(createdNodes, *node)
 	}
 
+	// 🚀 CREATE AND ENFORCE POLICIES FROM NLP SPECIFICATION!
+	createdPolicies := []models.Policy{}
+	policyEnforcer := h.getPolicyEnforcer()
+
+	for _, policySpec := range spec.Policies {
+		// Convert PolicySpec to models.Policy
+		policy := &models.Policy{
+			NetworkID: network.ID,
+			Name:      policySpec.Name,
+			Type:      models.PolicyType(policySpec.Type),
+			Status:    models.PolicyStatusPending,
+			Config: models.PolicyConfig{
+				Rules:    make([]models.PolicyRule, len(policySpec.Rules)),
+				Priority: 100, // Default priority
+			},
+		}
+
+		// Convert rules from PolicySpec format to models.PolicyRule format
+		for i, ruleSpec := range policySpec.Rules {
+			policy.Config.Rules[i] = models.PolicyRule{
+				ID:   fmt.Sprintf("rule-%d", i+1),
+				Name: fmt.Sprintf("%v", ruleSpec["name"]),
+				Condition: map[string]string{
+					"protocol": fmt.Sprintf("%v", ruleSpec["protocol"]),
+					"port":     fmt.Sprintf("%v", ruleSpec["port"]),
+				},
+				Action: map[string]string{
+					"action": fmt.Sprintf("%v", ruleSpec["action"]),
+				},
+				Priority: i*10 + 100, // Increment priority for each rule
+			}
+		}
+
+		// Create policy in database
+		if err := h.networkService.CreatePolicy(c.Request.Context(), policy); err != nil {
+			h.logger.Warn("Failed to create policy from NLP",
+				zap.String("policy_name", policySpec.Name),
+				zap.Error(err))
+			continue
+		}
+
+		h.logger.Info("Policy created from NLP",
+			zap.String("policy_id", policy.ID.String()),
+			zap.String("policy_name", policy.Name),
+			zap.String("policy_type", string(policy.Type)))
+
+		// 🔥 ENFORCE POLICY ON REAL CONTAINER INFRASTRUCTURE!
+		if policyEnforcer != nil {
+			if err := policyEnforcer.EnforcePolicy(policy); err != nil {
+				h.logger.Warn("Failed to enforce policy from NLP on containers",
+					zap.String("policy_id", policy.ID.String()),
+					zap.String("policy_name", policy.Name),
+					zap.Error(err))
+				// Don't fail - policy is created, enforcement is best-effort
+			} else {
+				h.logger.Info("Policy enforced from NLP on container infrastructure",
+					zap.String("policy_id", policy.ID.String()),
+					zap.String("policy_name", policy.Name),
+					zap.String("policy_type", string(policy.Type)))
+			}
+		}
+
+		createdPolicies = append(createdPolicies, *policy)
+	}
+
 	// Return successful response
 	c.JSON(http.StatusCreated, gin.H{
-		"success":       true,
-		"message":       "Network provisioned from natural language",
-		"network":       network,
-		"nodes_created": len(createdNodes),
-		"nodes":         createdNodes,
-		"spec":          spec,
-		"original_text": req.Text,
+		"success":          true,
+		"message":          "Network provisioned from natural language with policy enforcement",
+		"network":          network,
+		"nodes_created":    len(createdNodes),
+		"nodes":            createdNodes,
+		"policies_created": len(createdPolicies),
+		"policies":         createdPolicies,
+		"spec":             spec,
+		"original_text":    req.Text,
 		"validation": gin.H{
 			"valid":      spec.Valid,
 			"confidence": spec.Confidence,
 			"errors":     spec.ValidationErrors,
 		},
 		"parsing_stats": gin.H{
-			"topology":     spec.Topology,
-			"nodes_parsed": len(spec.Nodes),
-			"policies":     len(spec.Policies),
-			"config_items": len(spec.Config),
-			"ai_enhanced":  spec.Confidence > 0.7,
+			"topology":         spec.Topology,
+			"nodes_parsed":     len(spec.Nodes),
+			"policies_parsed":  len(spec.Policies),
+			"policies_created": len(createdPolicies),
+			"config_items":     len(spec.Config),
+			"ai_enhanced":      spec.Confidence > 0.7,
 		},
 	})
 }

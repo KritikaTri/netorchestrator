@@ -311,11 +311,17 @@ func (cp *ContainerProvisioner) createNodeContainer(containerName, image, networ
 	}
 
 	cmd := exec.Command("podman", args...)
-	output, err := cmd.CombinedOutput()
+	output, err := cmd.Output() // Use Output() to get only stdout (clean container ID)
 
 	if err != nil {
+		// Get stderr for error reporting
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			stderr := string(exitErr.Stderr)
+			observability.GetMetrics().RecordPodmanError("container_create")
+			return "", fmt.Errorf("container creation failed: %s", stderr)
+		}
 		observability.GetMetrics().RecordPodmanError("container_create")
-		return "", fmt.Errorf("container creation failed: %s", output)
+		return "", fmt.Errorf("container creation failed: %w", err)
 	}
 
 	containerID := strings.TrimSpace(string(output))

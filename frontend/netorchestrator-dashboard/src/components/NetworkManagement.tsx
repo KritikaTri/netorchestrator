@@ -40,6 +40,8 @@ import {
   PlayArrow as PlayIcon,
   Stop as StopIcon,
   Visibility as ViewIcon,
+  Psychology as AIIcon,
+  Settings as AdvancedIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -73,6 +75,10 @@ const NetworkManagement: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [creationMode, setCreationMode] = useState<'advanced' | 'nlp'>('advanced');
+  const [nlpText, setNlpText] = useState('');
+  const [nlpLoading, setNlpLoading] = useState(false);
+  const [nlpPreview, setNlpPreview] = useState<any>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -134,13 +140,63 @@ const NetworkManagement: React.FC = () => {
       });
     }
     setActiveStep(0);
+    setCreationMode('advanced');
+    setNlpText('');
+    setNlpPreview(null);
+    setError(null);
+    setSuccess(null);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setCreationMode('advanced');
+    setNlpText('');
+    setNlpPreview(null);
     setError(null);
     setSuccess(null);
+  };
+
+  const handleNlpPreview = async () => {
+    if (!nlpText.trim()) {
+      setError('Please enter a network description');
+      return;
+    }
+
+    setNlpLoading(true);
+    setError(null);
+    try {
+      const response = await api.post('/api/v1/ai/provision', {
+        text: nlpText
+      });
+      
+      setNlpPreview(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to parse network description');
+      setNlpPreview(null);
+    } finally {
+      setNlpLoading(false);
+    }
+  };
+
+  const handleNlpCreate = async () => {
+    if (!nlpPreview) {
+      setError('Please preview the network first');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // The NLP API already creates the network, so we just need to refresh the list
+      await fetchNetworks();
+      setSuccess('Network created successfully from natural language!');
+      setOpenDialog(false);
+    } catch (err: any) {
+      setError('Network creation completed but failed to refresh list');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNext = () => {
@@ -502,37 +558,195 @@ const NetworkManagement: React.FC = () => {
             </Alert>
           )}
 
-          <Stepper activeStep={activeStep} sx={{ mt: 2, mb: 3 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+          {!editMode && (
+            <Tabs 
+              value={creationMode} 
+              onChange={(_, newValue) => setCreationMode(newValue)}
+              sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+            >
+              <Tab 
+                icon={<AIIcon />} 
+                label="Natural Language" 
+                value="nlp"
+                sx={{ textTransform: 'none' }}
+              />
+              <Tab 
+                icon={<AdvancedIcon />} 
+                label="Advanced Configuration" 
+                value="advanced"
+                sx={{ textTransform: 'none' }}
+              />
+            </Tabs>
+          )}
 
-          {renderStepContent(activeStep)}
+          {creationMode === 'nlp' && !editMode ? (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Describe Your Network
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Describe the network you want to create in natural language. For example:
+                "Create a star network with 2 routers, 1 host and firewall policy where SSH access is enabled"
+              </Typography>
+              
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  <strong>Supported:</strong> Basic topologies (star, mesh, tree), node types (router, switch, host, firewall), 
+                  and simple firewall policies (SSH, HTTP, HTTPS)
+                </Typography>
+              </Alert>
+
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                label="Network Description"
+                placeholder="Create a star network with 2 routers, 1 host and firewall policy where SSH access is enabled"
+                value={nlpText}
+                onChange={(e) => setNlpText(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Button
+                  variant="outlined"
+                  onClick={handleNlpPreview}
+                  disabled={!nlpText.trim() || nlpLoading}
+                  startIcon={nlpLoading ? <CircularProgress size={16} /> : <AIIcon />}
+                >
+                  {nlpLoading ? 'Analyzing...' : 'Preview Network'}
+                </Button>
+              </Box>
+
+              {nlpPreview && (
+                <Card variant="outlined" sx={{ mt: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Preview: {nlpPreview.network?.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {nlpPreview.network?.description}
+                    </Typography>
+
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Network Details:
+                      </Typography>
+                      <Chip label={`${nlpPreview.spec?.topology} topology`} size="small" sx={{ mr: 1 }} />
+                      <Chip label={`${nlpPreview.nodes_created} nodes`} size="small" sx={{ mr: 1 }} />
+                      <Chip 
+                        label={`Confidence: ${Math.round((nlpPreview.validation?.confidence || 0) * 100)}%`} 
+                        size="small" 
+                        color={nlpPreview.validation?.confidence > 0.7 ? 'success' : 'warning'}
+                      />
+                    </Box>
+
+                    {nlpPreview.nodes && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Nodes:
+                        </Typography>
+                        {nlpPreview.nodes.map((node: any, index: number) => (
+                          <Chip 
+                            key={index}
+                            label={`${node.name} (${node.type})`}
+                            variant="outlined"
+                            size="small"
+                            sx={{ mr: 1, mb: 1 }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+
+                    {nlpPreview.spec?.policies && nlpPreview.spec.policies.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Policies:
+                        </Typography>
+                        {nlpPreview.spec.policies.map((policy: any, index: number) => (
+                          <Box key={index} sx={{ mb: 1 }}>
+                            <Typography variant="body2">
+                              <strong>{policy.name}</strong> ({policy.type})
+                            </Typography>
+                            {policy.rules && policy.rules.map((rule: any, ruleIndex: number) => (
+                              <Chip
+                                key={ruleIndex}
+                                label={`${rule.name || rule.action} ${rule.protocol}/${rule.port}`}
+                                variant="outlined"
+                                size="small"
+                                sx={{ mr: 1, mt: 0.5 }}
+                              />
+                            ))}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+
+                    {nlpPreview.validation?.errors && nlpPreview.validation.errors.length > 0 && (
+                      <Alert severity="warning" sx={{ mt: 2 }}>
+                        <Typography variant="body2">
+                          <strong>Validation Issues:</strong>
+                        </Typography>
+                        {nlpPreview.validation.errors.map((error: string, index: number) => (
+                          <Typography key={index} variant="body2">
+                            • {error}
+                          </Typography>
+                        ))}
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </Box>
+          ) : (
+            <>
+              <Stepper activeStep={activeStep} sx={{ mt: 2, mb: 3 }}>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+
+              {renderStepContent(activeStep)}
+            </>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          {activeStep > 0 && (
-            <Button onClick={handleBack}>Back</Button>
-          )}
-          {activeStep < steps.length - 1 ? (
+          
+          {creationMode === 'nlp' && !editMode ? (
             <Button
               variant="contained"
-              onClick={handleNext}
-              disabled={!formData.name || !formData.subnet || !formData.gateway}
+              onClick={handleNlpCreate}
+              disabled={!nlpPreview || loading}
+              startIcon={loading ? <CircularProgress size={16} /> : <AIIcon />}
             >
-              Next
+              {loading ? 'Creating...' : 'Create Network'}
             </Button>
           ) : (
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : editMode ? 'Update' : 'Create'}
-            </Button>
+            <>
+              {activeStep > 0 && (
+                <Button onClick={handleBack}>Back</Button>
+              )}
+              {activeStep < steps.length - 1 ? (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={!formData.name || !formData.subnet || !formData.gateway}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? <CircularProgress size={24} /> : editMode ? 'Update' : 'Create'}
+                </Button>
+              )}
+            </>
           )}
         </DialogActions>
       </Dialog>

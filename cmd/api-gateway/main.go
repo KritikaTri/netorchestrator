@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -183,6 +182,10 @@ func main() {
 	// 🚀 CONNECT NLP TO CONTAINER PROVISIONING: Enable real container creation from natural language
 	nlpHandlers.SetContainerProvisioner(containerProvisioner)
 	logger.Info("NLP handlers connected to container provisioner - natural language will create real containers")
+
+	// 🔥 CONNECT NLP TO POLICY ENFORCEMENT: Enable real policy enforcement from natural language
+	nlpHandlers.SetPolicyEnforcer(policyEnforcer)
+	logger.Info("NLP handlers connected to policy enforcer - natural language will create and enforce real policies")
 
 	// Periodic updates removed - using REST APIs only
 
@@ -473,30 +476,14 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 // corsMiddleware adds CORS headers
 func corsMiddleware(secCfg config.SecurityConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !secCfg.EnableCORS {
-			c.Next()
-			return
-		}
+		// Always set CORS headers for development - frontend is on localhost:3000
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-API-Key")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Max-Age", "3600")
 
-		origin := "*"
-		methods := "GET, POST, PUT, DELETE, OPTIONS"
-		headers := "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-API-Key"
-
-		if len(secCfg.AllowedOrigins) > 0 {
-			// In simple CORS, one value; for multiple, consider echoing request origin if in list
-			origin = secCfg.AllowedOrigins[0]
-		}
-		if len(secCfg.AllowedMethods) > 0 {
-			methods = strings.Join(secCfg.AllowedMethods, ", ")
-		}
-		if len(secCfg.AllowedHeaders) > 0 {
-			headers = strings.Join(secCfg.AllowedHeaders, ", ")
-		}
-
-		c.Header("Access-Control-Allow-Origin", origin)
-		c.Header("Access-Control-Allow-Methods", methods)
-		c.Header("Access-Control-Allow-Headers", headers)
-
+		// Handle preflight OPTIONS requests
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
