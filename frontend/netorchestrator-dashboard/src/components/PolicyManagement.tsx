@@ -53,9 +53,9 @@ interface PolicyConfig {
 interface Policy {
   id: string;
   network_id: string;
-  policy_type: string;
+  type: string;  // Changed from policy_type to match backend
   name: string;
-  description: string;
+  description?: string;
   status: string;
   config: PolicyConfig;
   created_at: string;
@@ -84,14 +84,16 @@ const PolicyManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    policy_type: 'firewall',
-    action: 'allow',
+    type: 'firewall',  // Changed from policy_type to type
     priority: 100,
     enabled: true,
-    source_ip: '',
-    destination_ip: '',
-    port: '',
-    protocol: 'tcp',
+    rules: [{
+      id: '',
+      name: '',
+      protocol: 'tcp',
+      port: '22',
+      action: 'allow'
+    }]
   });
 
   useEffect(() => {
@@ -138,15 +140,23 @@ const PolicyManagement: React.FC = () => {
       setSelectedPolicy(policy);
       setFormData({
         name: policy.name,
-        description: policy.description,
-        policy_type: policy.policy_type,
-        action: policy.config.action || 'allow',
+        description: policy.description || '',
+        type: policy.type,  // Changed from policy_type to type
         priority: policy.config.priority || 100,
-        enabled: policy.config.enabled !== false,
-        source_ip: '',
-        destination_ip: '',
-        port: '',
-        protocol: 'tcp',
+        enabled: policy.status === 'active',
+        rules: policy.config.rules?.map(rule => ({
+          id: rule.id || '',
+          name: rule.name || '',
+          protocol: rule.condition?.protocol || 'tcp',
+          port: rule.condition?.port || '22',
+          action: rule.action?.action || 'allow'
+        })) || [{
+          id: '',
+          name: '',
+          protocol: 'tcp',
+          port: '22',
+          action: 'allow'
+        }]
       });
     } else {
       setEditMode(false);
@@ -154,14 +164,16 @@ const PolicyManagement: React.FC = () => {
       setFormData({
         name: '',
         description: '',
-        policy_type: 'firewall',
-        action: 'allow',
+        type: 'firewall',  // Changed from policy_type to type
         priority: 100,
         enabled: true,
-        source_ip: '',
-        destination_ip: '',
-        port: '',
-        protocol: 'tcp',
+        rules: [{
+          id: '',
+          name: '',
+          protocol: 'tcp',
+          port: '22',
+          action: 'allow'
+        }]
       });
     }
     setOpenDialog(true);
@@ -191,24 +203,28 @@ const PolicyManagement: React.FC = () => {
     try {
       const policyData = {
         name: formData.name,
-        description: formData.description,
-        policy_type: formData.policy_type,
-        status: formData.enabled ? 'active' : 'inactive',
+        type: formData.type,  // Changed from policy_type to type
         config: {
-          priority: formData.priority,
-          action: formData.action,
-          enabled: formData.enabled,
-          rules: [
-            {
-              source_ip: formData.source_ip || '*',
-              destination_ip: formData.destination_ip || '*',
-              port: formData.port || '*',
-              protocol: formData.protocol,
-              action: formData.action,
+          rules: formData.rules.map((rule, index) => ({
+            id: rule.id || `rule-${index + 1}`,
+            name: rule.name || `Rule ${index + 1}`,
+            condition: {
+              protocol: rule.protocol,
+              port: rule.port
             },
-          ],
+            action: {
+              action: rule.action
+            },
+            priority: formData.priority + index * 10  // Increment priority for multiple rules
+          })),
+          priority: formData.priority
         },
       };
+      
+      // Add description if provided
+      if (formData.description) {
+        policyData.description = formData.description;
+      }
 
       if (editMode && selectedPolicy) {
         // Update policy
@@ -261,7 +277,8 @@ const PolicyManagement: React.FC = () => {
       qos: 'warning',
       routing: 'info',
       security: 'secondary',
-      access_control: 'primary',
+      traffic: 'success',
+      access: 'primary',
     };
     return colors[type] || 'default';
   };
@@ -359,8 +376,8 @@ const PolicyManagement: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={policy.policy_type}
-                          color={getPolicyTypeColor(policy.policy_type)}
+                          label={policy.type}
+                          color={getPolicyTypeColor(policy.type)}
                           size="small"
                         />
                       </TableCell>
@@ -433,36 +450,21 @@ const PolicyManagement: React.FC = () => {
               rows={2}
             />
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Policy Type</InputLabel>
-                <Select
-                  value={formData.policy_type}
-                  label="Policy Type"
-                  onChange={(e) => setFormData({ ...formData, policy_type: e.target.value })}
-                >
-                  <MenuItem value="firewall">Firewall</MenuItem>
-                  <MenuItem value="qos">Quality of Service (QoS)</MenuItem>
-                  <MenuItem value="routing">Routing</MenuItem>
-                  <MenuItem value="security">Security</MenuItem>
-                  <MenuItem value="access_control">Access Control</MenuItem>
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth>
-                <InputLabel>Action</InputLabel>
-                <Select
-                  value={formData.action}
-                  label="Action"
-                  onChange={(e) => setFormData({ ...formData, action: e.target.value })}
-                >
-                  <MenuItem value="allow">Allow</MenuItem>
-                  <MenuItem value="deny">Deny</MenuItem>
-                  <MenuItem value="redirect">Redirect</MenuItem>
-                  <MenuItem value="log">Log</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+            <FormControl fullWidth>
+              <InputLabel>Policy Type</InputLabel>
+              <Select
+                value={formData.type}
+                label="Policy Type"
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              >
+                <MenuItem value="firewall">Firewall</MenuItem>
+                <MenuItem value="qos">Quality of Service (QoS)</MenuItem>
+                <MenuItem value="routing">Routing</MenuItem>
+                <MenuItem value="security">Security</MenuItem>
+                <MenuItem value="traffic">Traffic</MenuItem>
+                <MenuItem value="access">Access Control</MenuItem>
+              </Select>
+            </FormControl>
 
             <TextField
               label="Priority"
@@ -476,51 +478,122 @@ const PolicyManagement: React.FC = () => {
 
             <Divider>
               <Typography variant="body2" color="text.secondary">
-                Rule Configuration
+                Policy Rules
               </Typography>
             </Divider>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Source IP"
-                value={formData.source_ip}
-                onChange={(e) => setFormData({ ...formData, source_ip: e.target.value })}
-                fullWidth
-                placeholder="e.g., 10.0.0.0/24 or * for any"
-              />
-
-              <TextField
-                label="Destination IP"
-                value={formData.destination_ip}
-                onChange={(e) => setFormData({ ...formData, destination_ip: e.target.value })}
-                fullWidth
-                placeholder="e.g., 10.0.1.0/24 or * for any"
-              />
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Port"
-                value={formData.port}
-                onChange={(e) => setFormData({ ...formData, port: e.target.value })}
-                fullWidth
-                placeholder="e.g., 80, 443, 8080-8090 or * for any"
-              />
-
-              <FormControl fullWidth>
-                <InputLabel>Protocol</InputLabel>
-                <Select
-                  value={formData.protocol}
-                  label="Protocol"
-                  onChange={(e) => setFormData({ ...formData, protocol: e.target.value })}
-                >
-                  <MenuItem value="tcp">TCP</MenuItem>
-                  <MenuItem value="udp">UDP</MenuItem>
-                  <MenuItem value="icmp">ICMP</MenuItem>
-                  <MenuItem value="any">Any</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+            {formData.rules.map((rule, index) => (
+              <Card key={index} variant="outlined" sx={{ p: 2 }}>
+                <Stack spacing={2}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2">Rule {index + 1}</Typography>
+                    {formData.rules.length > 1 && (
+                      <IconButton 
+                        size="small" 
+                        onClick={() => {
+                          const newRules = formData.rules.filter((_, i) => i !== index);
+                          setFormData({ ...formData, rules: newRules });
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="Rule ID"
+                      value={rule.id}
+                      onChange={(e) => {
+                        const newRules = [...formData.rules];
+                        newRules[index] = { ...rule, id: e.target.value };
+                        setFormData({ ...formData, rules: newRules });
+                      }}
+                      fullWidth
+                      placeholder="e.g., ssh-allow, http-allow"
+                    />
+                    
+                    <TextField
+                      label="Rule Name"
+                      value={rule.name}
+                      onChange={(e) => {
+                        const newRules = [...formData.rules];
+                        newRules[index] = { ...rule, name: e.target.value };
+                        setFormData({ ...formData, rules: newRules });
+                      }}
+                      fullWidth
+                      placeholder="e.g., Allow SSH, Allow HTTP"
+                    />
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Protocol</InputLabel>
+                      <Select
+                        value={rule.protocol}
+                        label="Protocol"
+                        onChange={(e) => {
+                          const newRules = [...formData.rules];
+                          newRules[index] = { ...rule, protocol: e.target.value };
+                          setFormData({ ...formData, rules: newRules });
+                        }}
+                      >
+                        <MenuItem value="tcp">TCP</MenuItem>
+                        <MenuItem value="udp">UDP</MenuItem>
+                        <MenuItem value="icmp">ICMP</MenuItem>
+                        <MenuItem value="any">Any</MenuItem>
+                      </Select>
+                    </FormControl>
+                    
+                    <TextField
+                      label="Port"
+                      value={rule.port}
+                      onChange={(e) => {
+                        const newRules = [...formData.rules];
+                        newRules[index] = { ...rule, port: e.target.value };
+                        setFormData({ ...formData, rules: newRules });
+                      }}
+                      fullWidth
+                      placeholder="e.g., 22, 80, 443"
+                    />
+                    
+                    <FormControl fullWidth>
+                      <InputLabel>Action</InputLabel>
+                      <Select
+                        value={rule.action}
+                        label="Action"
+                        onChange={(e) => {
+                          const newRules = [...formData.rules];
+                          newRules[index] = { ...rule, action: e.target.value };
+                          setFormData({ ...formData, rules: newRules });
+                        }}
+                      >
+                        <MenuItem value="allow">Allow</MenuItem>
+                        <MenuItem value="deny">Deny</MenuItem>
+                        <MenuItem value="drop">Drop</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Stack>
+              </Card>
+            ))}
+            
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                const newRule = {
+                  id: '',
+                  name: '',
+                  protocol: 'tcp',
+                  port: '',
+                  action: 'allow'
+                };
+                setFormData({ ...formData, rules: [...formData.rules, newRule] });
+              }}
+            >
+              Add Another Rule
+            </Button>
 
             <FormControlLabel
               control={
