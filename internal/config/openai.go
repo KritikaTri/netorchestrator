@@ -58,7 +58,7 @@ func LoadAIConfig() *AIConfig {
 	if config.Provider == "" {
 		if config.GeminiKey != "" {
 			config.Provider = "gemini"
-			config.Model = "gemini-pro"
+			config.Model = "gemini-2.5-flash"
 		} else if config.OpenAIKey != "" {
 			config.Provider = "openai"
 			config.Model = "gpt-3.5-turbo"
@@ -72,7 +72,7 @@ func LoadAIConfig() *AIConfig {
 	if config.Model == "" {
 		switch config.Provider {
 		case "gemini":
-			config.Model = "gemini-pro"
+			config.Model = "gemini-2.5-flash"
 		case "openai":
 			config.Model = "gpt-3.5-turbo"
 		default:
