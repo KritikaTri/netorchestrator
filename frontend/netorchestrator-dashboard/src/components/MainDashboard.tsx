@@ -46,6 +46,7 @@ import LinkManagement from './LinkManagement';
 import PolicyManagement from './PolicyManagement';
 import MetricsMonitoring from './MetricsMonitoring';
 import NetworkMetricsView from './NetworkMetricsView';
+import NetworkTopology from './NetworkTopology';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -113,6 +114,7 @@ const MainDashboard: React.FC = () => {
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: <DashboardIcon /> },
+    { id: 'topology', label: 'Network Topology', icon: <NetworkIcon /> },
     { id: 'networks', label: 'Networks', icon: <NetworkIcon /> },
     { id: 'nodes', label: 'Nodes', icon: <NodeIcon /> },
     { id: 'links', label: 'Links', icon: <LinkIcon /> },
@@ -263,6 +265,9 @@ const MainDashboard: React.FC = () => {
             )}
           </Box>
         );
+      
+      case 'topology':
+        return <NetworkTopology />;
       
       case 'networks':
         return <NetworkManagement />;

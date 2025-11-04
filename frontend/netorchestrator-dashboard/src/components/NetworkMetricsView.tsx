@@ -270,9 +270,9 @@ const NetworkMetricsView: React.FC = () => {
                 No nodes found in this network. Create some nodes first!
               </Alert>
             ) : (
-              <Grid container spacing={2}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {nodes.map((node) => (
-                  <Grid item xs={12} sm={6} md={4} key={node.id}>
+                  <Box key={node.id} sx={{ minWidth: 300, flex: '1 1 300px' }}>
                     <Paper
                       sx={{
                         p: 2,
@@ -315,9 +315,9 @@ const NetworkMetricsView: React.FC = () => {
                         Entity ID: {node.entity_id ? node.entity_id.substring(0, 12) + '...' : 'None'}
                       </Typography>
                     </Paper>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             )}
           </CardContent>
         </Card>
@@ -337,9 +337,9 @@ const NetworkMetricsView: React.FC = () => {
             }
           />
           <CardContent>
-            <Grid container spacing={3}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
               {/* Metric Type Selection */}
-              <Grid item xs={12} md={4}>
+              <Box sx={{ flex: { md: '0 0 300px' } }}>
                 <FormControl component="fieldset">
                   <Typography variant="h6" sx={{ mb: 2 }}>
                     Select Metric Type
@@ -371,10 +371,10 @@ const NetworkMetricsView: React.FC = () => {
                     ))}
                   </RadioGroup>
                 </FormControl>
-              </Grid>
+              </Box>
 
               {/* Metric Visualization */}
-              <Grid item xs={12} md={8}>
+              <Box sx={{ flex: 1 }}>
                 {loading && !metricData ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                     <CircularProgress />
@@ -427,7 +427,7 @@ const NetworkMetricsView: React.FC = () => {
                               cx="50%"
                               cy="50%"
                               labelLine={false}
-                              label={({ name, value }) => `${name}: ${formatValue(value, metricData.unit)}`}
+                              label={({ name, value }) => `${name}: ${formatValue(Number(value), metricData.unit)}`}
                               outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
@@ -483,8 +483,8 @@ const NetworkMetricsView: React.FC = () => {
                     }
                   </Alert>
                 )}
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </CardContent>
         </Card>
       )}

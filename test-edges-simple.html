@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Link Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1b23;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            width: 800px;
+            height: 600px;
+            background: #2d3748;
+            border: 2px solid #4a5568;
+            position: relative;
+            overflow: hidden;
+        }
+        .node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #3b82f6;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .link {
+            position: absolute;
+            background: #10b981;
+            height: 4px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+        .link::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: -6px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid #10b981;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+        #node1 { top: 100px; left: 100px; }
+        #node2 { top: 100px; left: 300px; }
+        #node3 { top: 250px; left: 500px; }
+        #node4 { top: 400px; left: 300px; }
+        #node5 { top: 400px; left: 100px; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Emergency Link Visibility Test</h1>
+    <p>If you can see GREEN LINES connecting the blue nodes below, your browser can render links properly.</p>
+    <p>If React Flow links aren't showing, it's a React Flow specific issue.</p>
+    
+    <div class="test-container">
+        <div class="node" id="node1">R1</div>
+        <div class="node" id="node2">S1</div>  
+        <div class="node" id="node3">H1</div>
+        <div class="node" id="node4">H2</div>
+        <div class="node" id="node5">FW</div>
+        
+        <!-- Manual links -->
+        <div class="link" style="top: 128px; left: 130px; width: 170px;"></div>
+        <div class="link" style="top: 128px; left: 330px; width: 170px; transform: rotate(30deg);"></div>
+        <div class="link" style="top: 180px; left: 130px; width: 200px; transform: rotate(60deg);"></div>
+        <div class="link" style="top: 350px; left: 130px; width: 170px; transform: rotate(-30deg);"></div>
+    </div>
+    
+    <p><strong>Expected:</strong> You should see 4 bright green lines connecting the nodes.</p>
+    <p><strong>If visible here but not in React Flow:</strong> The issue is React Flow configuration.</p>
+    <p><strong>If not visible here:</strong> Browser/CSS rendering issue.</p>
+</body>
+</html>
