@@ -27,7 +27,10 @@ func main() {
 		Idempotent: true, // pure analysis: safe to retry on another replica
 	}}
 	if u := platform.Env("GATEWAY_CHANGE_UPSTREAMS", ""); u != "" {
-		routes = append(routes, gateway.Route{Prefix: "/v1/changes", Upstream: split(u)})
+		// Stateful, non-idempotent: never retried on another replica.
+		routes = append(routes,
+			gateway.Route{Prefix: "/v1/changes", Upstream: split(u)},
+			gateway.Route{Prefix: "/v1/audit/", Upstream: split(u)})
 	}
 
 	gw, err := gateway.New(gateway.Config{
