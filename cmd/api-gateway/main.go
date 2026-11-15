@@ -127,7 +127,8 @@ func main() {
 	)
 
 	// Setup Gin router
-	router := setupRouter(apiHandlers, authHandlers, securityManager, monitor, wsHub)
+	preflightHandlers := api.NewPreflightHandlers(networkService, logger)
+	router := setupRouter(apiHandlers, preflightHandlers, authHandlers, securityManager, monitor, wsHub)
 
 	// Start server
 	server := &http.Server{
@@ -188,7 +189,7 @@ func initLogger(cfg config.LoggingConfig) (*zap.Logger, error) {
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, prometheus *monitoring.Prometheus, wsHub *websocket.Hub) *gin.Engine {
+func setupRouter(handlers *api.Handlers, preflightHandlers *api.PreflightHandlers, authHandlers *security.AuthHandlers, securityManager *security.SecurityManager, prometheus *monitoring.Prometheus, wsHub *websocket.Hub) *gin.Engine {
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -270,6 +271,10 @@ func setupRouter(handlers *api.Handlers, authHandlers *security.AuthHandlers, se
 				networks.POST("/:id/nodes", handlers.CreateNode)
 				networks.GET("/:id/links", handlers.ListLinks)
 				networks.POST("/:id/links", handlers.CreateLink)
+				// Change-impact analysis over the network's topology
+				networks.POST("/:id/preflight", preflightHandlers.Preflight)
+				networks.GET("/:id/resilience", preflightHandlers.Resilience)
+
 				networks.GET("/:id/policies", handlers.ListPolicies)
 				networks.POST("/:id/policies", handlers.CreatePolicy)
 			}
