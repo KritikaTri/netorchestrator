@@ -40,3 +40,6 @@ loadtest:        ## end-to-end load test: 3 replicas behind the gateway (prints 
 
 bench-core:      ## algorithm benchmarks on 100/1k/10k-node topologies
 	$(GO) test -run xxx -bench . -benchtime 20x ./internal/preflight
+
+demo-services:   ## full change workflow through gateway -> change-svc -> topology-svc (real binaries)
+	./scripts/demo.sh

@@ -1,0 +1,45 @@
+# Local multi-service stack:  GATEWAY_JWT_SECRET=$(openssl rand -base64 32) docker compose -f deploy/compose.yml up --build
+# gateway -> change-svc -> topology-svc (x3 replicas, listed explicitly so the
+# gateway can keep a circuit breaker per replica), plus Prometheus.
+x-topology: &topology
+  build: { context: .., dockerfile: deploy/Dockerfile, args: { SERVICE: topology-svc } }
+  environment: { ADDR: ":8081" }
+  restart: unless-stopped
+  read_only: true
+
+services:
+  topology-1: *topology
+  topology-2: *topology
+  topology-3: *topology
+
+  change:
+    build: { context: .., dockerfile: deploy/Dockerfile, args: { SERVICE: change-svc } }
+    environment:
+      ADDR: ":8082"
+      CHANGE_LOG_PATH: /data/change-audit.jsonl
+      CHANGE_TOPOLOGY_URL: http://topology-1:8081
+    volumes: [ "change-data:/data" ]
+    restart: unless-stopped
+    read_only: true
+
+  gateway:
+    build: { context: .., dockerfile: deploy/Dockerfile, args: { SERVICE: gateway } }
+    environment:
+      ADDR: ":8080"
+      GATEWAY_JWT_SECRET: ${GATEWAY_JWT_SECRET:?set GATEWAY_JWT_SECRET (32+ random bytes)}
+      GATEWAY_TOPOLOGY_UPSTREAMS: http://topology-1:8081,http://topology-2:8081,http://topology-3:8081
+      GATEWAY_CHANGE_UPSTREAMS: http://change:8082
+    ports: [ "8080:8080" ]
+    depends_on: [ topology-1, topology-2, topology-3, change ]
+    restart: unless-stopped
+    read_only: true
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports: [ "9090:9090" ]
+
+volumes:
+  change-data:
