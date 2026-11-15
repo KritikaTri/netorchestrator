@@ -17,13 +17,12 @@ jobs:
       - run: make test
 
   whole-module:
-    name: whole module build + vet (informational)
+    name: whole module build + vet (required)
     runs-on: ubuntu-latest
-    continue-on-error: true   # flip to required once `go vet ./...` is green
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: go build ./...
+      - run: go build -gcflags=-e ./...   # -e: report every error, not just the first 10
       - run: go vet ./...

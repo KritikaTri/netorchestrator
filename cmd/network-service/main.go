@@ -14,8 +14,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
-
-	"netorchestrator/internal/services"
 )
 
 // NetworkService provides network automation and management capabilities
