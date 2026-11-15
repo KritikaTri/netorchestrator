@@ -40,17 +40,17 @@ type ChainStep struct {
 
 // Tool represents an AI tool for specific tasks
 type Tool struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
+	Name        string                                                             `json:"name"`
+	Description string                                                             `json:"description"`
 	Function    func(context.Context, map[string]interface{}) (interface{}, error) `json:"-"`
-	Schema      map[string]interface{} `json:"schema"`
+	Schema      map[string]interface{}                                             `json:"schema"`
 }
 
 // ConversationMemory manages context and conversation history
 type ConversationMemory struct {
-	Messages    []Message             `json:"messages"`
-	Summary     string                `json:"summary"`
-	MaxMessages int                   `json:"max_messages"`
+	Messages    []Message              `json:"messages"`
+	Summary     string                 `json:"summary"`
+	MaxMessages int                    `json:"max_messages"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
@@ -77,9 +77,9 @@ type EmbeddingService struct {
 
 // LanguageModel interface for LLM interactions
 type LanguageModel struct {
-	ModelName   string `json:"model_name"`
+	ModelName   string  `json:"model_name"`
 	Temperature float64 `json:"temperature"`
-	MaxTokens   int    `json:"max_tokens"`
+	MaxTokens   int     `json:"max_tokens"`
 }
 
 // AIRequest represents an AI processing request
@@ -149,7 +149,7 @@ func NewLanguageModel(model string, temperature float64, maxTokens int) *Languag
 // ProcessRequest processes an AI request through the specified chain
 func (e *AIEngine) ProcessRequest(ctx context.Context, req *AIRequest) (*AIResponse, error) {
 	startTime := time.Now()
-	
+
 	chain, exists := e.chains[req.ChainID]
 	if !exists {
 		return nil, fmt.Errorf("chain %s not found", req.ChainID)
@@ -168,10 +168,10 @@ func (e *AIEngine) ProcessRequest(ctx context.Context, req *AIRequest) (*AIRespo
 		if err != nil {
 			return nil, fmt.Errorf("error in step %s: %w", step.ID, err)
 		}
-		
+
 		currentInput = stepOutput
 		response.Reasoning = append(response.Reasoning, fmt.Sprintf("Step %s: %s", step.Type, step.ID))
-		
+
 		if step.Tool != nil {
 			response.Tools = append(response.Tools, step.Tool.Name)
 		}
@@ -210,16 +210,16 @@ func (e *AIEngine) processLLMStep(ctx context.Context, step ChainStep, input str
 	if template == "" {
 		template = "Process the following input: {input}"
 	}
-	
+
 	// Simple template substitution
 	processed := strings.ReplaceAll(template, "{input}", input)
-	
+
 	// Add context variables
 	for key, value := range context {
 		placeholder := fmt.Sprintf("{%s}", key)
 		processed = strings.ReplaceAll(processed, placeholder, fmt.Sprintf("%v", value))
 	}
-	
+
 	// Mock intelligent response
 	return fmt.Sprintf("AI Analysis: %s. Based on the input pattern, I recommend monitoring this network component for potential issues.", processed), nil
 }
@@ -229,19 +229,19 @@ func (e *AIEngine) processToolStep(ctx context.Context, step ChainStep, input st
 	if step.Tool == nil {
 		return input, fmt.Errorf("no tool specified for tool step")
 	}
-	
+
 	tool := step.Tool
 	toolInput := map[string]interface{}{
 		"input":   input,
 		"context": context,
 		"config":  step.Config,
 	}
-	
+
 	result, err := tool.Function(ctx, toolInput)
 	if err != nil {
 		return input, fmt.Errorf("tool execution failed: %w", err)
 	}
-	
+
 	return fmt.Sprintf("%v", result), nil
 }
 
@@ -254,9 +254,9 @@ func (e *AIEngine) processMemoryStep(ctx context.Context, step ChainStep, input 
 		Timestamp: time.Now(),
 		Metadata:  context,
 	}
-	
+
 	e.memory.AddMessage(message)
-	
+
 	// Return context-aware response
 	return fmt.Sprintf("Context-aware response: %s (considering %d previous messages)", input, len(e.memory.Messages)), nil
 }
@@ -289,18 +289,18 @@ func (e *AIEngine) processVectorSearchStep(ctx context.Context, step ChainStep, 
 	// Mock vector search - in production this would use actual embeddings
 	embedding := e.generateMockEmbedding(input)
 	results := e.vectorStore.Search(embedding, 5)
-	
+
 	if len(results) > 0 {
 		return fmt.Sprintf("Found %d similar entries: %v", len(results), results), nil
 	}
-	
+
 	return fmt.Sprintf("No similar entries found for: %s", input), nil
 }
 
 // AddMessage adds a message to conversation memory
 func (m *ConversationMemory) AddMessage(message Message) {
 	m.Messages = append(m.Messages, message)
-	
+
 	// Maintain max messages limit
 	if len(m.Messages) > m.MaxMessages {
 		m.Messages = m.Messages[1:]
@@ -312,7 +312,7 @@ func (vs *VectorStore) Search(vector []float64, limit int) []string {
 	// Mock vector search implementation
 	results := make([]string, 0)
 	count := 0
-	
+
 	for id := range vs.vectors {
 		if count >= limit {
 			break
@@ -320,7 +320,7 @@ func (vs *VectorStore) Search(vector []float64, limit int) []string {
 		results = append(results, id)
 		count++
 	}
-	
+
 	return results
 }
 

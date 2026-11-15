@@ -36,27 +36,27 @@ type PredictCapacityRequest struct {
 
 // OptimizeCostRequest represents cost optimization request
 type OptimizeCostRequest struct {
-	Resources    map[string]interface{} `json:"resources" binding:"required"`
-	Constraints  []string               `json:"constraints,omitempty"`
-	Objectives   []string               `json:"objectives,omitempty"`
-	MaxSavings   float64                `json:"max_savings,omitempty"`
+	Resources   map[string]interface{} `json:"resources" binding:"required"`
+	Constraints []string               `json:"constraints,omitempty"`
+	Objectives  []string               `json:"objectives,omitempty"`
+	MaxSavings  float64                `json:"max_savings,omitempty"`
 }
 
 // AnomalyDetectionRequest represents anomaly detection request
 type AnomalyDetectionRequest struct {
-	MetricName string    `json:"metric_name" binding:"required"`
-	Values     []float64 `json:"values" binding:"required"`
-	Sensitivity float64  `json:"sensitivity,omitempty"`
+	MetricName  string    `json:"metric_name" binding:"required"`
+	Values      []float64 `json:"values" binding:"required"`
+	Sensitivity float64   `json:"sensitivity,omitempty"`
 }
 
 // IntelligenceResponse represents AI intelligence response
 type IntelligenceResponse struct {
-	Success     bool                   `json:"success"`
-	Data        interface{}            `json:"data,omitempty"`
-	Insights    []string               `json:"insights,omitempty"`
-	Confidence  float64                `json:"confidence"`
-	ProcessingTime string              `json:"processing_time"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Success        bool                   `json:"success"`
+	Data           interface{}            `json:"data,omitempty"`
+	Insights       []string               `json:"insights,omitempty"`
+	Confidence     float64                `json:"confidence"`
+	ProcessingTime string                 `json:"processing_time"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // AnalyzeNetwork performs AI-powered network analysis
@@ -102,8 +102,8 @@ func (h *IntelligenceHandlers) AnalyzeNetwork(c *gin.Context) {
 		Confidence:     0.92,
 		ProcessingTime: time.Since(startTime).String(),
 		Metadata: map[string]interface{}{
-			"analysis_type": "network_performance",
-			"model_version": "v2.1",
+			"analysis_type":     "network_performance",
+			"model_version":     "v2.1",
 			"features_analyzed": len(req.Metrics),
 		},
 	}
@@ -217,7 +217,7 @@ func (h *IntelligenceHandlers) OptimizeCosts(c *gin.Context) {
 		Confidence:     0.89,
 		ProcessingTime: time.Since(startTime).String(),
 		Metadata: map[string]interface{}{
-			"optimization_type": "multi_objective",
+			"optimization_type":  "multi_objective",
 			"resources_analyzed": len(req.Resources),
 			"roi_estimate":       "285%",
 			"payback_period":     "3.2 months",
@@ -294,12 +294,12 @@ func (h *IntelligenceHandlers) DetectAnomalies(c *gin.Context) {
 		Confidence:     req.Sensitivity,
 		ProcessingTime: time.Since(startTime).String(),
 		Metadata: map[string]interface{}{
-			"metric_analyzed":   req.MetricName,
-			"data_points":       len(req.Values),
-			"total_anomalies":   len(anomalies),
+			"metric_analyzed":    req.MetricName,
+			"data_points":        len(req.Values),
+			"total_anomalies":    len(anomalies),
 			"critical_anomalies": criticalCount,
-			"high_anomalies":    highCount,
-			"algorithm":         "hybrid_statistical_ml",
+			"high_anomalies":     highCount,
+			"algorithm":          "hybrid_statistical_ml",
 		},
 	}
 
@@ -318,32 +318,32 @@ func (h *IntelligenceHandlers) DetectAnomalies(c *gin.Context) {
 func (h *IntelligenceHandlers) GetMLModels(c *gin.Context) {
 	models := map[string]interface{}{
 		"anomaly_detection": map[string]interface{}{
-			"name":        "Network Anomaly Detector",
-			"version":     "v2.1.0",
-			"accuracy":    0.94,
+			"name":         "Network Anomaly Detector",
+			"version":      "v2.1.0",
+			"accuracy":     0.94,
 			"last_trained": "2025-10-25T10:30:00Z",
-			"metrics":     []string{"latency", "throughput", "error_rate", "cpu_usage"},
+			"metrics":      []string{"latency", "throughput", "error_rate", "cpu_usage"},
 		},
 		"capacity_forecasting": map[string]interface{}{
-			"name":        "Capacity Forecasting Engine",
-			"version":     "v1.8.2",
-			"accuracy":    0.89,
+			"name":         "Capacity Forecasting Engine",
+			"version":      "v1.8.2",
+			"accuracy":     0.89,
 			"last_trained": "2025-10-24T15:45:00Z",
-			"horizon":     "30 days",
+			"horizon":      "30 days",
 		},
 		"cost_optimization": map[string]interface{}{
-			"name":        "Cost Optimization Advisor",
-			"version":     "v3.0.1",
-			"accuracy":    0.91,
+			"name":         "Cost Optimization Advisor",
+			"version":      "v3.0.1",
+			"accuracy":     0.91,
 			"last_trained": "2025-10-26T09:15:00Z",
-			"avg_savings": "28%",
+			"avg_savings":  "28%",
 		},
 		"performance_optimization": map[string]interface{}{
-			"name":        "Performance Optimizer",
-			"version":     "v2.5.0",
-			"accuracy":    0.87,
+			"name":         "Performance Optimizer",
+			"version":      "v2.5.0",
+			"accuracy":     0.87,
 			"last_trained": "2025-10-23T14:20:00Z",
-			"improvement": "35%",
+			"improvement":  "35%",
 		},
 	}
 
@@ -365,21 +365,21 @@ func (h *IntelligenceHandlers) GetMLModels(c *gin.Context) {
 // @Router /api/v1/intelligence/chains [get]
 func (h *IntelligenceHandlers) GetAIChains(c *gin.Context) {
 	chains := h.intelligenceService.aiEngine.ListChains()
-	
+
 	chainSummary := make(map[string]interface{})
 	for id, chain := range chains {
 		chainSummary[id] = map[string]interface{}{
-			"name":         chain.Name,
-			"description":  chain.Description,
-			"steps":        len(chain.Steps),
-			"created_at":   chain.CreatedAt,
+			"name":        chain.Name,
+			"description": chain.Description,
+			"steps":       len(chain.Steps),
+			"created_at":  chain.CreatedAt,
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"chains":     chainSummary,
-		"total":      len(chains),
-		"available":  true,
+		"chains":    chainSummary,
+		"total":     len(chains),
+		"available": true,
 	})
 }
 
@@ -397,7 +397,7 @@ func (h *IntelligenceHandlers) GetAIChains(c *gin.Context) {
 func (h *IntelligenceHandlers) GetInsights(c *gin.Context) {
 	category := c.Query("category")
 	limitStr := c.Query("limit")
-	
+
 	limit := 10
 	if limitStr != "" {
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
@@ -409,9 +409,9 @@ func (h *IntelligenceHandlers) GetInsights(c *gin.Context) {
 	insights := h.generateInsights(category, limit)
 
 	c.JSON(http.StatusOK, gin.H{
-		"insights":   insights,
-		"category":   category,
-		"count":      len(insights),
+		"insights":     insights,
+		"category":     category,
+		"count":        len(insights),
 		"generated_at": time.Now(),
 	})
 }
@@ -421,64 +421,64 @@ func (h *IntelligenceHandlers) generateInsights(category string, limit int) []ma
 	allInsights := map[string][]map[string]interface{}{
 		"performance": {
 			{
-				"title":       "Network Latency Optimization",
-				"description": "CDN implementation could reduce average latency by 45%",
-				"impact":      "high",
-				"confidence":  0.92,
-				"actions":     []string{"Deploy edge servers", "Optimize routing"},
+				"title":             "Network Latency Optimization",
+				"description":       "CDN implementation could reduce average latency by 45%",
+				"impact":            "high",
+				"confidence":        0.92,
+				"actions":           []string{"Deploy edge servers", "Optimize routing"},
 				"estimated_benefit": "$25,000/month",
 			},
 			{
-				"title":       "Database Query Optimization",
-				"description": "15 slow queries identified affecting response times",
-				"impact":      "medium",
-				"confidence":  0.88,
-				"actions":     []string{"Add indexes", "Query optimization"},
+				"title":             "Database Query Optimization",
+				"description":       "15 slow queries identified affecting response times",
+				"impact":            "medium",
+				"confidence":        0.88,
+				"actions":           []string{"Add indexes", "Query optimization"},
 				"estimated_benefit": "30% faster responses",
 			},
 		},
 		"cost": {
 			{
-				"title":       "Reserved Instance Optimization",
-				"description": "Switch to reserved instances for 70% cost savings",
-				"impact":      "high",
-				"confidence":  0.95,
-				"actions":     []string{"Purchase 3-year RIs", "Right-size instances"},
+				"title":             "Reserved Instance Optimization",
+				"description":       "Switch to reserved instances for 70% cost savings",
+				"impact":            "high",
+				"confidence":        0.95,
+				"actions":           []string{"Purchase 3-year RIs", "Right-size instances"},
 				"estimated_benefit": "$180,000/year",
 			},
 			{
-				"title":       "Storage Cleanup Opportunity",
-				"description": "2.3TB of unused storage detected across regions",
-				"impact":      "medium",
-				"confidence":  0.91,
-				"actions":     []string{"Remove unused volumes", "Implement lifecycle policies"},
+				"title":             "Storage Cleanup Opportunity",
+				"description":       "2.3TB of unused storage detected across regions",
+				"impact":            "medium",
+				"confidence":        0.91,
+				"actions":           []string{"Remove unused volumes", "Implement lifecycle policies"},
 				"estimated_benefit": "$8,400/year",
 			},
 		},
 		"security": {
 			{
-				"title":       "Unusual Access Patterns",
-				"description": "Anomalous login patterns detected from new geographic locations",
-				"impact":      "high",
-				"confidence":  0.89,
-				"actions":     []string{"Enable MFA", "Review access logs"},
+				"title":             "Unusual Access Patterns",
+				"description":       "Anomalous login patterns detected from new geographic locations",
+				"impact":            "high",
+				"confidence":        0.89,
+				"actions":           []string{"Enable MFA", "Review access logs"},
 				"estimated_benefit": "Enhanced security posture",
 			},
 		},
 		"capacity": {
 			{
-				"title":       "Proactive Scaling Recommendation",
-				"description": "CPU utilization trending up - scale before hitting limits",
-				"impact":      "medium",
-				"confidence":  0.87,
-				"actions":     []string{"Add 2 instances", "Update auto-scaling policy"},
+				"title":             "Proactive Scaling Recommendation",
+				"description":       "CPU utilization trending up - scale before hitting limits",
+				"impact":            "medium",
+				"confidence":        0.87,
+				"actions":           []string{"Add 2 instances", "Update auto-scaling policy"},
 				"estimated_benefit": "Prevent performance degradation",
 			},
 		},
 	}
 
 	var insights []map[string]interface{}
-	
+
 	if category == "" {
 		// Return insights from all categories
 		for _, categoryInsights := range allInsights {

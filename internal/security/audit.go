@@ -16,20 +16,20 @@ const (
 )
 
 type AuditEvent struct {
-	ID          string                 `json:"id"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Level       AuditLogLevel          `json:"level"`
-	UserID      string                 `json:"user_id,omitempty"`
-	Username    string                 `json:"username,omitempty"`
-	Action      string                 `json:"action"`
-	Resource    string                 `json:"resource"`
-	ResourceID  string                 `json:"resource_id,omitempty"`
-	IPAddress   string                 `json:"ip_address,omitempty"`
-	UserAgent   string                 `json:"user_agent,omitempty"`
-	Success     bool                   `json:"success"`
-	ErrorMsg    string                 `json:"error_message,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
-	Duration    time.Duration          `json:"duration,omitempty"`
+	ID         string                 `json:"id"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Level      AuditLogLevel          `json:"level"`
+	UserID     string                 `json:"user_id,omitempty"`
+	Username   string                 `json:"username,omitempty"`
+	Action     string                 `json:"action"`
+	Resource   string                 `json:"resource"`
+	ResourceID string                 `json:"resource_id,omitempty"`
+	IPAddress  string                 `json:"ip_address,omitempty"`
+	UserAgent  string                 `json:"user_agent,omitempty"`
+	Success    bool                   `json:"success"`
+	ErrorMsg   string                 `json:"error_message,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	Duration   time.Duration          `json:"duration,omitempty"`
 }
 
 type AuditLogger struct {

@@ -1,0 +1,13 @@
+{
+  "links": [
+    {"a": "core1", "b": "core2", "cost": 1},
+    {"a": "core1", "b": "dist1", "cost": 10},
+    {"a": "core2", "b": "dist1", "cost": 10},
+    {"a": "core1", "b": "dist2", "cost": 10},
+    {"a": "core2", "b": "dist2", "cost": 10},
+    {"a": "dist1", "b": "access1", "cost": 100},
+    {"a": "dist2", "b": "access2", "cost": 100},
+    {"a": "dist2", "b": "access3", "cost": 100},
+    {"a": "access3", "b": "printer-vlan", "cost": 100}
+  ]
+}

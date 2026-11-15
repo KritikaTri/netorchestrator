@@ -37,42 +37,42 @@ type OrchestrationService struct {
 
 // OrchestrationConfig holds the configuration for orchestration service
 type OrchestrationConfig struct {
-	Port                int           `json:"port"`
-	LogLevel            string        `json:"log_level"`
-	ShutdownTimeout     time.Duration `json:"shutdown_timeout"`
-	EnableWorkflows     bool          `json:"enable_workflows"`
-	EnableScheduling    bool          `json:"enable_scheduling"`
-	EnableParallelExec  bool          `json:"enable_parallel_execution"`
-	MaxConcurrentTasks  int           `json:"max_concurrent_tasks"`
-	TaskTimeout         time.Duration `json:"task_timeout"`
-	WorkflowTimeout     time.Duration `json:"workflow_timeout"`
-	RetryEnabled        bool          `json:"retry_enabled"`
-	MaxRetries          int           `json:"max_retries"`
-	MonitoringEnabled   bool          `json:"monitoring_enabled"`
+	Port               int           `json:"port"`
+	LogLevel           string        `json:"log_level"`
+	ShutdownTimeout    time.Duration `json:"shutdown_timeout"`
+	EnableWorkflows    bool          `json:"enable_workflows"`
+	EnableScheduling   bool          `json:"enable_scheduling"`
+	EnableParallelExec bool          `json:"enable_parallel_execution"`
+	MaxConcurrentTasks int           `json:"max_concurrent_tasks"`
+	TaskTimeout        time.Duration `json:"task_timeout"`
+	WorkflowTimeout    time.Duration `json:"workflow_timeout"`
+	RetryEnabled       bool          `json:"retry_enabled"`
+	MaxRetries         int           `json:"max_retries"`
+	MonitoringEnabled  bool          `json:"monitoring_enabled"`
 }
 
 // OrchestrationMetrics holds Prometheus metrics
 type OrchestrationMetrics struct {
-	RequestsTotal          *prometheus.CounterVec
-	RequestDuration        *prometheus.HistogramVec
-	ActiveWorkflows        prometheus.Gauge
-	TotalWorkflows         prometheus.Counter
-	CompletedWorkflows     prometheus.Counter
-	FailedWorkflows        prometheus.Counter
-	ActiveTasks            prometheus.Gauge
-	TasksExecuted          prometheus.Counter
-	TaskExecutionDuration  *prometheus.HistogramVec
-	WorkflowExecutionTime  *prometheus.HistogramVec
-	ExecutionErrors        *prometheus.CounterVec
+	RequestsTotal         *prometheus.CounterVec
+	RequestDuration       *prometheus.HistogramVec
+	ActiveWorkflows       prometheus.Gauge
+	TotalWorkflows        prometheus.Counter
+	CompletedWorkflows    prometheus.Counter
+	FailedWorkflows       prometheus.Counter
+	ActiveTasks           prometheus.Gauge
+	TasksExecuted         prometheus.Counter
+	TaskExecutionDuration *prometheus.HistogramVec
+	WorkflowExecutionTime *prometheus.HistogramVec
+	ExecutionErrors       *prometheus.CounterVec
 }
 
 // WorkflowEngine handles workflow execution logic
 type WorkflowEngine struct {
-	workflows         map[string]*Workflow
-	activeExecutions  map[string]*WorkflowExecution
-	templates         map[string]*WorkflowTemplate
-	triggers          map[string]*WorkflowTrigger
-	logger            *zap.Logger
+	workflows        map[string]*Workflow
+	activeExecutions map[string]*WorkflowExecution
+	templates        map[string]*WorkflowTemplate
+	triggers         map[string]*WorkflowTrigger
+	logger           *zap.Logger
 }
 
 // TaskScheduler handles task scheduling and execution
@@ -86,11 +86,11 @@ type TaskScheduler struct {
 
 // ExecutionManager manages workflow and task executions
 type ExecutionManager struct {
-	executions        map[string]*Execution
-	executionHistory  []*Execution
-	activeExecutions  map[string]*Execution
-	executionPool     *ExecutionPool
-	logger            *zap.Logger
+	executions       map[string]*Execution
+	executionHistory []*Execution
+	activeExecutions map[string]*Execution
+	executionPool    *ExecutionPool
+	logger           *zap.Logger
 }
 
 // TemplateManager handles workflow and task templates
@@ -103,22 +103,22 @@ type TemplateManager struct {
 
 // Data structures
 type Workflow struct {
-	ID           string                 `json:"id"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	Version      string                 `json:"version"`
-	Status       string                 `json:"status"` // draft, active, inactive, deprecated
-	Type         string                 `json:"type"`   // sequential, parallel, conditional, loop
-	Priority     int                    `json:"priority"`
-	Tasks        []*WorkflowTask        `json:"tasks"`
-	Dependencies []*TaskDependency      `json:"dependencies"`
-	Triggers     []*WorkflowTrigger     `json:"triggers"`
-	Variables    map[string]interface{} `json:"variables"`
-	Configuration *WorkflowConfig       `json:"configuration"`
-	Metadata     map[string]interface{} `json:"metadata"`
-	CreatedBy    string                 `json:"created_by"`
-	CreatedAt    time.Time              `json:"created_at"`
-	UpdatedAt    time.Time              `json:"updated_at"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	Version       string                 `json:"version"`
+	Status        string                 `json:"status"` // draft, active, inactive, deprecated
+	Type          string                 `json:"type"`   // sequential, parallel, conditional, loop
+	Priority      int                    `json:"priority"`
+	Tasks         []*WorkflowTask        `json:"tasks"`
+	Dependencies  []*TaskDependency      `json:"dependencies"`
+	Triggers      []*WorkflowTrigger     `json:"triggers"`
+	Variables     map[string]interface{} `json:"variables"`
+	Configuration *WorkflowConfig        `json:"configuration"`
+	Metadata      map[string]interface{} `json:"metadata"`
+	CreatedBy     string                 `json:"created_by"`
+	CreatedAt     time.Time              `json:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at"`
 }
 
 type WorkflowTask struct {
@@ -192,36 +192,36 @@ type TaskExecution struct {
 // NewOrchestrationService creates a new orchestration service
 func NewOrchestrationService(config *OrchestrationConfig, logger *zap.Logger) *OrchestrationService {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	service := &OrchestrationService{
 		logger: logger,
 		config: config,
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	
+
 	// Initialize metrics
 	service.initializeMetrics()
-	
+
 	// Initialize engines and managers
 	service.workflowEngine = NewWorkflowEngine(logger.Named("workflow"))
 	service.taskScheduler = NewTaskScheduler(config.MaxConcurrentTasks, logger.Named("scheduler"))
 	service.executionManager = NewExecutionManager(logger.Named("execution"))
 	service.templateManager = NewTemplateManager(logger.Named("template"))
-	
+
 	// Initialize orchestration engine
 	orchConfig := orchestration.DefaultOrchestrationConfig()
 	service.orchestrationEngine = orchestration.NewOrchestrationEngine(orchConfig, logger.Named("orchestration"))
-	
+
 	// Setup HTTP router
 	service.setupRouter()
-	
+
 	// Setup HTTP server
 	service.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Port),
 		Handler: service.router,
 	}
-	
+
 	return service
 }
 
@@ -303,7 +303,7 @@ func (os *OrchestrationService) initializeMetrics() {
 			[]string{"type", "component"},
 		),
 	}
-	
+
 	// Register metrics
 	prometheus.MustRegister(
 		os.metrics.RequestsTotal,
@@ -327,17 +327,17 @@ func (os *OrchestrationService) setupRouter() {
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	
+
 	os.router = gin.New()
 	os.router.Use(gin.Logger(), gin.Recovery())
 	os.router.Use(os.metricsMiddleware())
-	
+
 	// Health check
 	os.router.GET("/health", os.healthCheck)
-	
+
 	// Metrics endpoint
 	os.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
-	
+
 	// API endpoints
 	api := os.router.Group("/api/v1")
 	{
@@ -356,7 +356,7 @@ func (os *OrchestrationService) setupRouter() {
 			workflows.GET("/:id/status", os.getWorkflowStatus)
 			workflows.GET("/:id/executions", os.getWorkflowExecutions)
 		}
-		
+
 		// Task management
 		tasks := api.Group("/tasks")
 		{
@@ -370,7 +370,7 @@ func (os *OrchestrationService) setupRouter() {
 			tasks.GET("/:id/status", os.getTaskStatus)
 			tasks.GET("/:id/executions", os.getTaskExecutions)
 		}
-		
+
 		// Template management
 		templates := api.Group("/templates")
 		{
@@ -381,7 +381,7 @@ func (os *OrchestrationService) setupRouter() {
 			templates.DELETE("/:id", os.deleteTemplate)
 			templates.GET("/:id/versions", os.getTemplateVersions)
 		}
-		
+
 		// Execution management
 		executions := api.Group("/executions")
 		{
@@ -391,7 +391,7 @@ func (os *OrchestrationService) setupRouter() {
 			executions.GET("/:id/logs", os.getExecutionLogs)
 			executions.GET("/:id/status", os.getExecutionStatus)
 		}
-		
+
 		// Scheduling
 		schedules := api.Group("/schedules")
 		{
@@ -403,7 +403,7 @@ func (os *OrchestrationService) setupRouter() {
 			schedules.POST("/:id/enable", os.enableSchedule)
 			schedules.POST("/:id/disable", os.disableSchedule)
 		}
-		
+
 		// Monitoring and reporting
 		monitoring := api.Group("/monitoring")
 		{
@@ -419,18 +419,18 @@ func (os *OrchestrationService) setupRouter() {
 func (os *OrchestrationService) metricsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		
+
 		c.Next()
-		
+
 		duration := time.Since(start).Seconds()
 		status := fmt.Sprintf("%d", c.Writer.Status())
-		
+
 		os.metrics.RequestsTotal.WithLabelValues(
 			c.Request.Method,
 			c.FullPath(),
 			status,
 		).Inc()
-		
+
 		os.metrics.RequestDuration.WithLabelValues(
 			c.Request.Method,
 			c.FullPath(),
@@ -446,13 +446,13 @@ func (os *OrchestrationService) healthCheck(c *gin.Context) {
 		"timestamp": time.Now().UTC(),
 		"version":   "1.0.0",
 		"components": map[string]string{
-			"workflow_engine":    "healthy",
-			"task_scheduler":     "healthy",
-			"execution_manager":  "healthy",
-			"template_manager":   "healthy",
+			"workflow_engine":   "healthy",
+			"task_scheduler":    "healthy",
+			"execution_manager": "healthy",
+			"template_manager":  "healthy",
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, health)
 }
 
@@ -483,7 +483,7 @@ func (os *OrchestrationService) getWorkflows(c *gin.Context) {
 			UpdatedAt:   time.Now().UTC().Add(-2 * time.Hour),
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"workflows": workflows,
 		"total":     len(workflows),
@@ -496,20 +496,20 @@ func (os *OrchestrationService) createWorkflow(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
-	
+
 	workflow.ID = fmt.Sprintf("workflow-%d", time.Now().Unix())
 	workflow.Status = "draft"
 	workflow.CreatedAt = time.Now().UTC()
 	workflow.UpdatedAt = time.Now().UTC()
-	
+
 	os.metrics.TotalWorkflows.Inc()
-	
+
 	c.JSON(http.StatusCreated, workflow)
 }
 
 func (os *OrchestrationService) getWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	workflow := &Workflow{
 		ID:          workflowID,
 		Name:        "Sample Workflow",
@@ -540,28 +540,28 @@ func (os *OrchestrationService) getWorkflow(c *gin.Context) {
 		CreatedAt: time.Now().UTC().Add(-24 * time.Hour),
 		UpdatedAt: time.Now().UTC(),
 	}
-	
+
 	c.JSON(http.StatusOK, workflow)
 }
 
 func (os *OrchestrationService) updateWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	var updates map[string]interface{}
 	if err := c.ShouldBindJSON(&updates); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
-	
+
 	updates["id"] = workflowID
 	updates["updated_at"] = time.Now().UTC()
-	
+
 	c.JSON(http.StatusOK, updates)
 }
 
 func (os *OrchestrationService) deleteWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"message":     "Workflow deleted successfully",
 		"workflow_id": workflowID,
@@ -571,7 +571,7 @@ func (os *OrchestrationService) deleteWorkflow(c *gin.Context) {
 
 func (os *OrchestrationService) executeWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	execution := &WorkflowExecution{
 		ID:         fmt.Sprintf("exec-%d", time.Now().Unix()),
 		WorkflowID: workflowID,
@@ -581,15 +581,15 @@ func (os *OrchestrationService) executeWorkflow(c *gin.Context) {
 		CreatedAt:  time.Now().UTC(),
 		UpdatedAt:  time.Now().UTC(),
 	}
-	
+
 	os.metrics.ActiveWorkflows.Inc()
-	
+
 	c.JSON(http.StatusAccepted, execution)
 }
 
 func (os *OrchestrationService) pauseWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"message":     "Workflow paused",
 		"workflow_id": workflowID,
@@ -600,7 +600,7 @@ func (os *OrchestrationService) pauseWorkflow(c *gin.Context) {
 
 func (os *OrchestrationService) resumeWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"message":     "Workflow resumed",
 		"workflow_id": workflowID,
@@ -611,9 +611,9 @@ func (os *OrchestrationService) resumeWorkflow(c *gin.Context) {
 
 func (os *OrchestrationService) cancelWorkflow(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	os.metrics.ActiveWorkflows.Dec()
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"message":     "Workflow cancelled",
 		"workflow_id": workflowID,
@@ -624,42 +624,42 @@ func (os *OrchestrationService) cancelWorkflow(c *gin.Context) {
 
 func (os *OrchestrationService) getWorkflowStatus(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	status := map[string]interface{}{
-		"workflow_id": workflowID,
-		"status":      "running",
-		"progress":    75.5,
+		"workflow_id":     workflowID,
+		"status":          "running",
+		"progress":        75.5,
 		"tasks_completed": 3,
 		"tasks_total":     4,
-		"start_time":  time.Now().UTC().Add(-30 * time.Minute),
-		"duration":    "30m15s",
-		"timestamp":   time.Now().UTC(),
+		"start_time":      time.Now().UTC().Add(-30 * time.Minute),
+		"duration":        "30m15s",
+		"timestamp":       time.Now().UTC(),
 	}
-	
+
 	c.JSON(http.StatusOK, status)
 }
 
 func (os *OrchestrationService) getWorkflowExecutions(c *gin.Context) {
 	workflowID := c.Param("id")
-	
+
 	executions := []map[string]interface{}{
 		{
-			"id":         "exec-001",
+			"id":          "exec-001",
 			"workflow_id": workflowID,
-			"status":     "completed",
-			"start_time": time.Now().UTC().Add(-2 * time.Hour),
-			"end_time":   time.Now().UTC().Add(-1 * time.Hour),
-			"duration":   "1h5m",
+			"status":      "completed",
+			"start_time":  time.Now().UTC().Add(-2 * time.Hour),
+			"end_time":    time.Now().UTC().Add(-1 * time.Hour),
+			"duration":    "1h5m",
 		},
 		{
-			"id":         "exec-002",
+			"id":          "exec-002",
 			"workflow_id": workflowID,
-			"status":     "running",
-			"start_time": time.Now().UTC().Add(-30 * time.Minute),
-			"progress":   75.5,
+			"status":      "running",
+			"start_time":  time.Now().UTC().Add(-30 * time.Minute),
+			"progress":    75.5,
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"executions": executions,
 		"total":      len(executions),
@@ -907,23 +907,23 @@ func NewTemplateManager(logger *zap.Logger) *TemplateManager {
 // Start starts the orchestration service
 func (os *OrchestrationService) Start() error {
 	os.logger.Info("Starting orchestration service", zap.Int("port", os.config.Port))
-	
+
 	// Start orchestration engine
 	if err := os.orchestrationEngine.Start(os.ctx); err != nil {
 		return fmt.Errorf("failed to start orchestration engine: %w", err)
 	}
-	
+
 	// Initialize sample metrics
 	os.metrics.ActiveWorkflows.Set(5)
 	os.metrics.ActiveTasks.Set(15)
-	
+
 	// Start HTTP server
 	go func() {
 		if err := os.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			os.logger.Error("Failed to start HTTP server", zap.Error(err))
 		}
 	}()
-	
+
 	os.logger.Info("Orchestration service started successfully")
 	return nil
 }
@@ -931,15 +931,15 @@ func (os *OrchestrationService) Start() error {
 // Stop gracefully shuts down the orchestration service
 func (os *OrchestrationService) Stop() error {
 	os.logger.Info("Stopping orchestration service")
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), os.config.ShutdownTimeout)
 	defer cancel()
-	
+
 	if err := os.server.Shutdown(ctx); err != nil {
 		os.logger.Error("Failed to shutdown HTTP server", zap.Error(err))
 		return err
 	}
-	
+
 	os.cancel()
 	os.logger.Info("Orchestration service stopped")
 	return nil
@@ -987,29 +987,29 @@ func main() {
 		log.Fatal("Failed to create logger:", err)
 	}
 	defer logger.Sync()
-	
+
 	// Load configuration
 	config := DefaultOrchestrationConfig()
-	
+
 	// Create orchestration service
 	service := NewOrchestrationService(config, logger)
-	
+
 	// Start service
 	if err := service.Start(); err != nil {
 		logger.Fatal("Failed to start orchestration service", zap.Error(err))
 	}
-	
+
 	// Wait for shutdown signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	
+
 	logger.Info("Orchestration service is running. Press Ctrl+C to stop.")
 	<-sigChan
-	
+
 	// Stop service
 	if err := service.Stop(); err != nil {
 		logger.Error("Error stopping orchestration service", zap.Error(err))
 	}
-	
+
 	logger.Info("Orchestration service shutdown complete")
 }

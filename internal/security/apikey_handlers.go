@@ -21,8 +21,8 @@ func NewAPIKeyHandlers(apiKeyManager *APIKeyManager, auditLogger *AuditLogger) *
 
 // CreateAPIKeyRequest represents the request to create an API key
 type CreateAPIKeyRequest struct {
-	Name        string    `json:"name" binding:"required"`
-	Permissions []string  `json:"permissions"`
+	Name        string     `json:"name" binding:"required"`
+	Permissions []string   `json:"permissions"`
 	ExpiresAt   *time.Time `json:"expires_at"`
 }
 
@@ -178,10 +178,10 @@ func (h *APIKeyHandlers) RevokeAPIKey(c *gin.Context) {
 // RegisterAPIKeyRoutes registers API key management routes
 func RegisterAPIKeyRoutes(router *gin.RouterGroup, apiKeyManager *APIKeyManager, auditLogger *AuditLogger, authMiddleware gin.HandlerFunc) {
 	handlers := NewAPIKeyHandlers(apiKeyManager, auditLogger)
-	
+
 	apiKeys := router.Group("/api-keys")
 	apiKeys.Use(authMiddleware) // Require authentication for all API key operations
-	
+
 	apiKeys.POST("", handlers.CreateAPIKey)
 	apiKeys.GET("", handlers.ListAPIKeys)
 	apiKeys.DELETE("/:id", handlers.RevokeAPIKey)

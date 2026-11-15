@@ -23,11 +23,11 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-	TokenType    string    `json:"token_type"`
-	ExpiresIn    int       `json:"expires_in"`
-	User         UserInfo  `json:"user"`
+	AccessToken  string   `json:"access_token"`
+	RefreshToken string   `json:"refresh_token"`
+	TokenType    string   `json:"token_type"`
+	ExpiresIn    int      `json:"expires_in"`
+	User         UserInfo `json:"user"`
 }
 
 type UserInfo struct {
@@ -42,8 +42,8 @@ type RefreshRequest struct {
 }
 
 type APIKeyRequest struct {
-	Name        string    `json:"name" binding:"required"`
-	Permissions []string  `json:"permissions"`
+	Name        string     `json:"name" binding:"required"`
+	Permissions []string   `json:"permissions"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
 }
 

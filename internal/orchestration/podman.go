@@ -115,16 +115,16 @@ func (p *PodmanOrchestrator) GetNodeStatus(ctx context.Context, nodeID uuid.UUID
 
 func (p *PodmanOrchestrator) createPodmanNetwork(network *models.Network) error {
 	networkName := fmt.Sprintf("netorch_%s", network.ID.String()[:8])
-	
+
 	args := []string{"network", "create"}
-	
+
 	if network.Subnet != "" {
 		args = append(args, "--subnet", network.Subnet)
 	}
 	if network.Gateway != "" {
 		args = append(args, "--gateway", network.Gateway)
 	}
-	
+
 	args = append(args, networkName)
 
 	cmd := exec.Command("podman", args...)
@@ -195,7 +195,7 @@ func (p *PodmanOrchestrator) startNode(ctx context.Context, node *models.Node, n
 		return fmt.Errorf("failed to start container: %w", err)
 	}
 
-	p.logger.Info("Node started successfully", 
+	p.logger.Info("Node started successfully",
 		zap.String("node_id", node.ID.String()),
 		zap.String("container_name", containerName))
 	return nil
@@ -226,7 +226,7 @@ func (p *PodmanOrchestrator) removePodmanNetwork(ctx context.Context, networkID 
 func (p *PodmanOrchestrator) GetContainerStats(ctx context.Context, nodeID uuid.UUID) (map[string]interface{}, error) {
 	cmd := exec.CommandContext(ctx, "podman", "stats", "--format", "json", "--no-stream",
 		"--filter", fmt.Sprintf("label=node_id=%s", nodeID.String()))
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get container stats: %w", err)

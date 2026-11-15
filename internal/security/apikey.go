@@ -8,17 +8,17 @@ import (
 )
 
 type APIKey struct {
-	ID          string    `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name" gorm:"not null"`
-	Key         string    `json:"key" gorm:"unique;not null"`
-	HashedKey   string    `json:"-" gorm:"not null"`
-	UserID      string    `json:"user_id" gorm:"not null"`
-	Permissions []string  `json:"permissions" gorm:"type:json"`
-	IsActive    bool      `json:"is_active" gorm:"default:true"`
+	ID          string     `json:"id" gorm:"primaryKey"`
+	Name        string     `json:"name" gorm:"not null"`
+	Key         string     `json:"key" gorm:"unique;not null"`
+	HashedKey   string     `json:"-" gorm:"not null"`
+	UserID      string     `json:"user_id" gorm:"not null"`
+	Permissions []string   `json:"permissions" gorm:"type:json"`
+	IsActive    bool       `json:"is_active" gorm:"default:true"`
 	ExpiresAt   *time.Time `json:"expires_at"`
 	LastUsedAt  *time.Time `json:"last_used_at"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 type APIKeyManager struct {
@@ -40,7 +40,7 @@ func (m *APIKeyManager) GenerateAPIKey(name, userID string, permissions []string
 	}
 
 	key := "neto_" + hex.EncodeToString(keyBytes)
-	
+
 	// Hash the key for storage
 	hashedKey, err := m.authService.HashPassword(key)
 	if err != nil {
@@ -84,13 +84,13 @@ func generateID() string {
 
 // Common API key permissions
 var (
-	PermissionReadNetworks    = "networks:read"
-	PermissionWriteNetworks   = "networks:write"
-	PermissionDeleteNetworks  = "networks:delete"
-	PermissionReadWorkflows   = "workflows:read"
-	PermissionWriteWorkflows  = "workflows:write"
+	PermissionReadNetworks     = "networks:read"
+	PermissionWriteNetworks    = "networks:write"
+	PermissionDeleteNetworks   = "networks:delete"
+	PermissionReadWorkflows    = "workflows:read"
+	PermissionWriteWorkflows   = "workflows:write"
 	PermissionExecuteWorkflows = "workflows:execute"
-	PermissionReadMetrics     = "metrics:read"
-	PermissionManageUsers     = "users:manage"
-	PermissionSystemAdmin     = "system:admin"
+	PermissionReadMetrics      = "metrics:read"
+	PermissionManageUsers      = "users:manage"
+	PermissionSystemAdmin      = "system:admin"
 )

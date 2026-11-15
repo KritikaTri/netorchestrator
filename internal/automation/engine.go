@@ -112,12 +112,12 @@ type TaskExecution struct {
 
 // AutomationEngine manages workflow execution and task orchestration
 type AutomationEngine struct {
-	db                *gorm.DB
-	logger            *zap.Logger
-	taskExecutors     map[string]TaskExecutor
-	runningWorkflows  map[string]*WorkflowRunner
+	db               *gorm.DB
+	logger           *zap.Logger
+	taskExecutors    map[string]TaskExecutor
+	runningWorkflows map[string]*WorkflowRunner
 	// workflowScheduler will be added later
-	mutex             sync.RWMutex
+	mutex sync.RWMutex
 }
 
 // TaskExecutor interface for different task types
@@ -153,8 +153,8 @@ func NewAutomationEngine(db *gorm.DB, logger *zap.Logger) *AutomationEngine {
 	engine.RegisterTaskExecutor("validation", NewValidationExecutor(logger))
 	engine.RegisterTaskExecutor("network_provision", NewNetworkProvisionExecutor(db, logger))
 
-		// Scheduler will be initialized separately if needed
-	
+	// Scheduler will be initialized separately if needed
+
 	return engine
 }
 
@@ -287,15 +287,15 @@ func (wr *WorkflowRunner) executeTasks() error {
 
 	// Execute tasks in dependency order
 	executed := make(map[string]bool)
-	
+
 	for len(executed) < len(workflow.Tasks) {
 		progress := false
-		
+
 		for _, taskDef := range workflow.Tasks {
 			if executed[taskDef.ID] {
 				continue
 			}
-			
+
 			// Check if all dependencies are completed
 			canExecute := true
 			for _, depID := range taskDef.Dependencies {
@@ -304,10 +304,10 @@ func (wr *WorkflowRunner) executeTasks() error {
 					break
 				}
 			}
-			
+
 			if canExecute {
 				taskExec := taskExecMap[taskDef.ID]
-				
+
 				// Check task conditions
 				if !wr.evaluateTaskConditions(taskDef.Conditions) {
 					taskExec.Status = TaskStatusSkipped
@@ -316,7 +316,7 @@ func (wr *WorkflowRunner) executeTasks() error {
 					progress = true
 					continue
 				}
-				
+
 				// Execute task
 				if err := wr.executeTask(taskExec, &taskDef); err != nil {
 					if taskDef.OnFailure == "continue" {
@@ -327,34 +327,34 @@ func (wr *WorkflowRunner) executeTasks() error {
 						return fmt.Errorf("task %s failed: %w", taskDef.Name, err)
 					}
 				}
-				
+
 				executed[taskDef.ID] = true
 				progress = true
 			}
 		}
-		
+
 		if !progress {
 			return fmt.Errorf("circular dependency detected or missing dependencies")
 		}
 	}
-	
+
 	return nil
 }
 
 // executeTask executes a single task
 func (wr *WorkflowRunner) executeTask(taskExec *TaskExecution, taskDef *TaskDefinition) error {
 	wr.logger.Info("Executing task", zap.String("task", taskDef.Name))
-	
+
 	taskExec.Status = TaskStatusRunning
 	taskExec.StartTime = time.Now()
 	wr.updateExecution()
-	
+
 	// Get task executor
 	executor, exists := wr.engine.taskExecutors[taskDef.Type]
 	if !exists {
 		return fmt.Errorf("unknown task type: %s", taskDef.Type)
 	}
-	
+
 	// Set up task context with timeout
 	ctx := wr.ctx
 	if taskDef.Timeout > 0 {
@@ -362,7 +362,7 @@ func (wr *WorkflowRunner) executeTask(taskExec *TaskExecution, taskDef *TaskDefi
 		ctx, cancel = context.WithTimeout(wr.ctx, taskDef.Timeout)
 		defer cancel()
 	}
-	
+
 	// Execute task with retry logic
 	var err error
 	for attempt := 0; attempt <= taskDef.RetryCount; attempt++ {
@@ -371,26 +371,26 @@ func (wr *WorkflowRunner) executeTask(taskExec *TaskExecution, taskDef *TaskDefi
 			taskExec.RetryCount = attempt
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff
 		}
-		
+
 		err = executor.Execute(ctx, taskExec, taskDef)
 		if err == nil {
 			break
 		}
-		
+
 		taskExec.Logs = append(taskExec.Logs, fmt.Sprintf("Attempt %d failed: %v", attempt+1, err))
 	}
-	
+
 	// Update task status
 	now := time.Now()
 	taskExec.EndTime = &now
-	
+
 	if err != nil {
 		taskExec.Status = TaskStatusFailed
 		taskExec.ErrorMessage = err.Error()
 	} else {
 		taskExec.Status = TaskStatusCompleted
 	}
-	
+
 	wr.updateExecution()
 	return err
 }
@@ -412,7 +412,7 @@ func (wr *WorkflowRunner) evaluateCondition(condition TaskCondition) bool {
 	if !exists {
 		return false
 	}
-	
+
 	switch condition.Operator {
 	case "eq":
 		return value == condition.Value
@@ -437,7 +437,7 @@ func (wr *WorkflowRunner) evaluateCondition(condition TaskCondition) bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -454,19 +454,19 @@ func (ae *AutomationEngine) validateWorkflow(workflow *WorkflowDefinition) error
 	if err := ae.checkCircularDependencies(workflow.Tasks); err != nil {
 		return err
 	}
-	
+
 	// Validate each task
 	for _, task := range workflow.Tasks {
 		executor, exists := ae.taskExecutors[task.Type]
 		if !exists {
 			return fmt.Errorf("unknown task type: %s", task.Type)
 		}
-		
+
 		if err := executor.Validate(&task); err != nil {
 			return fmt.Errorf("task %s validation failed: %w", task.Name, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -477,11 +477,11 @@ func (ae *AutomationEngine) checkCircularDependencies(tasks []TaskDefinition) er
 	for _, task := range tasks {
 		graph[task.ID] = task.Dependencies
 	}
-	
+
 	// DFS to detect cycles
 	visited := make(map[string]bool)
 	recStack := make(map[string]bool)
-	
+
 	for taskID := range graph {
 		if !visited[taskID] {
 			if ae.hasCycle(taskID, graph, visited, recStack) {
@@ -489,7 +489,7 @@ func (ae *AutomationEngine) checkCircularDependencies(tasks []TaskDefinition) er
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -497,7 +497,7 @@ func (ae *AutomationEngine) checkCircularDependencies(tasks []TaskDefinition) er
 func (ae *AutomationEngine) hasCycle(taskID string, graph map[string][]string, visited, recStack map[string]bool) bool {
 	visited[taskID] = true
 	recStack[taskID] = true
-	
+
 	for _, dep := range graph[taskID] {
 		if !visited[dep] {
 			if ae.hasCycle(dep, graph, visited, recStack) {
@@ -507,7 +507,7 @@ func (ae *AutomationEngine) hasCycle(taskID string, graph map[string][]string, v
 			return true
 		}
 	}
-	
+
 	recStack[taskID] = false
 	return false
 }
@@ -523,11 +523,11 @@ func (ae *AutomationEngine) GetWorkflowExecution(executionID string) (*WorkflowE
 func (ae *AutomationEngine) ListWorkflowExecutions(filters map[string]interface{}) ([]WorkflowExecution, error) {
 	var executions []WorkflowExecution
 	query := ae.db.Preload("Tasks")
-	
+
 	for field, value := range filters {
 		query = query.Where(fmt.Sprintf("%s = ?", field), value)
 	}
-	
+
 	err := query.Find(&executions).Error
 	return executions, err
 }
@@ -537,14 +537,14 @@ func (ae *AutomationEngine) CancelWorkflow(executionID string) error {
 	ae.mutex.RLock()
 	runner, exists := ae.runningWorkflows[executionID]
 	ae.mutex.RUnlock()
-	
+
 	if exists {
 		runner.cancel()
 		runner.execution.Status = WorkflowStatusCancelled
 		runner.updateExecution()
 		ae.logger.Info("Workflow cancelled", zap.String("execution_id", executionID))
 	}
-	
+
 	return nil
 }
 

@@ -55,14 +55,14 @@ func (s *MonitoringService) GetNetworkMetrics(ctx context.Context, networkID uui
 
 	// Calculate basic metrics
 	metrics := map[string]interface{}{
-		"network_id":    networkID.String(),
-		"network_name":  network.Name,
-		"status":        network.Status,
-		"node_count":    len(network.Nodes),
-		"link_count":    len(network.Links),
-		"created_at":    network.CreatedAt,
-		"updated_at":    network.UpdatedAt,
-		"timestamp":     time.Now(),
+		"network_id":   networkID.String(),
+		"network_name": network.Name,
+		"status":       network.Status,
+		"node_count":   len(network.Nodes),
+		"link_count":   len(network.Links),
+		"created_at":   network.CreatedAt,
+		"updated_at":   network.UpdatedAt,
+		"timestamp":    time.Now(),
 	}
 
 	// Add node status breakdown
@@ -171,17 +171,17 @@ func (s *MonitoringService) GetNodeMetrics(ctx context.Context, nodeID uuid.UUID
 
 	// Calculate node metrics
 	metrics := map[string]interface{}{
-		"node_id":      nodeID.String(),
-		"node_name":    node.Name,
-		"node_type":    node.Type,
-		"status":       node.Status,
-		"ip_address":   node.IPAddress,
-		"mac_address":  node.MACAddress,
-		"network_id":   node.NetworkID.String(),
-		"created_at":   node.CreatedAt,
-		"updated_at":   node.UpdatedAt,
-		"timestamp":    time.Now(),
-		"link_count":   len(node.Links),
+		"node_id":     nodeID.String(),
+		"node_name":   node.Name,
+		"node_type":   node.Type,
+		"status":      node.Status,
+		"ip_address":  node.IPAddress,
+		"mac_address": node.MACAddress,
+		"network_id":  node.NetworkID.String(),
+		"created_at":  node.CreatedAt,
+		"updated_at":  node.UpdatedAt,
+		"timestamp":   time.Now(),
+		"link_count":  len(node.Links),
 	}
 
 	// Add configuration metrics

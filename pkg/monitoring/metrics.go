@@ -15,33 +15,33 @@ type MetricsCollector struct {
 	HTTPRequestsInFlight prometheus.Gauge
 
 	// Network Metrics
-	NetworksTotal     prometheus.Gauge
-	NetworksActive    prometheus.Gauge
-	NodesTotal        prometheus.Gauge
-	NodesActive       prometheus.Gauge
-	LinksTotal        prometheus.Gauge
-	LinksActive       prometheus.Gauge
-	PoliciesTotal     prometheus.Gauge
-	PoliciesActive    prometheus.Gauge
+	NetworksTotal  prometheus.Gauge
+	NetworksActive prometheus.Gauge
+	NodesTotal     prometheus.Gauge
+	NodesActive    prometheus.Gauge
+	LinksTotal     prometheus.Gauge
+	LinksActive    prometheus.Gauge
+	PoliciesTotal  prometheus.Gauge
+	PoliciesActive prometheus.Gauge
 
 	// System Metrics
 	WebSocketConnections prometheus.Gauge
 	DatabaseConnections  prometheus.Gauge
-	CacheHitRate        prometheus.Gauge
-	EventsProcessed     *prometheus.CounterVec
-	AlertsTriggered     *prometheus.CounterVec
+	CacheHitRate         prometheus.Gauge
+	EventsProcessed      *prometheus.CounterVec
+	AlertsTriggered      *prometheus.CounterVec
 
 	// Performance Metrics
-	NetworkLatency      *prometheus.HistogramVec
-	NetworkThroughput   *prometheus.GaugeVec
-	NodeCPUUsage        *prometheus.GaugeVec
-	NodeMemoryUsage     *prometheus.GaugeVec
-	NodeDiskUsage       *prometheus.GaugeVec
+	NetworkLatency    *prometheus.HistogramVec
+	NetworkThroughput *prometheus.GaugeVec
+	NodeCPUUsage      *prometheus.GaugeVec
+	NodeMemoryUsage   *prometheus.GaugeVec
+	NodeDiskUsage     *prometheus.GaugeVec
 
 	// Business Metrics
 	NetworkProvisioningTime *prometheus.HistogramVec
 	PolicyViolations        *prometheus.CounterVec
-	SLACompliance          *prometheus.GaugeVec
+	SLACompliance           *prometheus.GaugeVec
 }
 
 // NewMetricsCollector creates a new metrics collector with all Prometheus metrics

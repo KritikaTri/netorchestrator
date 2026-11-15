@@ -132,7 +132,7 @@ func (s *ValidationService) ValidateLink(ctx context.Context, link *models.Link)
 
 	// Check if link already exists between these nodes
 	var existingLink models.Link
-	if err := s.db.WithContext(ctx).Where("(source_node_id = ? AND target_node_id = ?) OR (source_node_id = ? AND target_node_id = ?)", 
+	if err := s.db.WithContext(ctx).Where("(source_node_id = ? AND target_node_id = ?) OR (source_node_id = ? AND target_node_id = ?)",
 		link.SourceNodeID, link.TargetNodeID, link.TargetNodeID, link.SourceNodeID).First(&existingLink).Error; err == nil {
 		if existingLink.ID != link.ID {
 			return fmt.Errorf("link already exists between these nodes")

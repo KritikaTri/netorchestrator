@@ -64,10 +64,10 @@ func (rl *RateLimiter) cleanupVisitors() {
 var (
 	// Standard API rate limiting: 100 requests per minute
 	StandardRateLimit = rate.Every(time.Minute / 100)
-	
+
 	// Strict rate limiting for sensitive endpoints: 10 requests per minute
 	StrictRateLimit = rate.Every(time.Minute / 10)
-	
+
 	// Burst allowance
 	StandardBurst = 10
 	StrictBurst   = 3

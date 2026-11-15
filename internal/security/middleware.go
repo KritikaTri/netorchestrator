@@ -8,10 +8,10 @@ import (
 )
 
 type SecurityManager struct {
-	authService  *AuthService
-	rateLimiter  *RateLimiter
-	apiKeyMgr    *APIKeyManager
-	auditLogger  *AuditLogger
+	authService *AuthService
+	rateLimiter *RateLimiter
+	apiKeyMgr   *APIKeyManager
+	auditLogger *AuditLogger
 }
 
 func NewSecurityManager(secretKey string) *SecurityManager {
@@ -118,7 +118,7 @@ func (sm *SecurityManager) RateLimitMiddleware() gin.HandlerFunc {
 				AuditWarning,
 			)
 			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error":     "Rate limit exceeded",
+				"error":       "Rate limit exceeded",
 				"retry_after": "60s",
 			})
 			c.Abort()
@@ -131,7 +131,7 @@ func (sm *SecurityManager) RateLimitMiddleware() gin.HandlerFunc {
 // StrictRateLimitMiddleware applies stricter rate limiting for sensitive endpoints
 func (sm *SecurityManager) StrictRateLimitMiddleware() gin.HandlerFunc {
 	strictLimiter := NewRateLimiter(StrictRateLimit, StrictBurst)
-	
+
 	return func(c *gin.Context) {
 		limiter := strictLimiter.GetLimiter(c.ClientIP())
 		if !limiter.Allow() {
@@ -169,7 +169,7 @@ func (sm *SecurityManager) AuditMiddleware() gin.HandlerFunc {
 			param.StatusCode,
 			param.Latency,
 		)
-		
+
 		// Return empty string since we're doing custom logging
 		return ""
 	})

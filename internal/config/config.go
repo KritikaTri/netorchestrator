@@ -75,11 +75,11 @@ type JWTConfig struct {
 
 // SecurityConfig holds security configuration
 type SecurityConfig struct {
-	JWTSecret         string `mapstructure:"jwt_secret"`
-	RateLimitRPS      int    `mapstructure:"rate_limit_rps"`
-	RateLimitBurst    int    `mapstructure:"rate_limit_burst"`
+	JWTSecret          string `mapstructure:"jwt_secret"`
+	RateLimitRPS       int    `mapstructure:"rate_limit_rps"`
+	RateLimitBurst     int    `mapstructure:"rate_limit_burst"`
 	EnableAuditLogging bool   `mapstructure:"enable_audit_logging"`
-	EncryptionKey     string `mapstructure:"encryption_key"`
+	EncryptionKey      string `mapstructure:"encryption_key"`
 }
 
 // LoggingConfig holds logging configuration
@@ -90,10 +90,10 @@ type LoggingConfig struct {
 
 // ServicesConfig holds microservices configuration
 type ServicesConfig struct {
-	NetworkService      ServiceConfig `mapstructure:"network_service"`
-	MonitoringService   ServiceConfig `mapstructure:"monitoring_service"`
+	NetworkService       ServiceConfig `mapstructure:"network_service"`
+	MonitoringService    ServiceConfig `mapstructure:"monitoring_service"`
 	OrchestrationService ServiceConfig `mapstructure:"orchestration_service"`
-	ValidationService   ServiceConfig `mapstructure:"validation_service"`
+	ValidationService    ServiceConfig `mapstructure:"validation_service"`
 }
 
 // ServiceConfig holds individual service configuration
