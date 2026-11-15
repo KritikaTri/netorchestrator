@@ -70,6 +70,8 @@ func main() {
 		monitoringService,
 		orchestrationService,
 		validationService,
+		nil, // automation routes are not served by this binary
+		nil, // intelligence routes are not served by this binary
 		logger,
 	)
 

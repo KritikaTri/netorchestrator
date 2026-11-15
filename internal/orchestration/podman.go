@@ -118,11 +118,11 @@ func (p *PodmanOrchestrator) createPodmanNetwork(network *models.Network) error 
 
 	args := []string{"network", "create"}
 
-	if network.Subnet != "" {
-		args = append(args, "--subnet", network.Subnet)
+	if network.Config.Subnet != "" {
+		args = append(args, "--subnet", network.Config.Subnet)
 	}
-	if network.Gateway != "" {
-		args = append(args, "--gateway", network.Gateway)
+	if network.Config.Gateway != "" {
+		args = append(args, "--gateway", network.Config.Gateway)
 	}
 
 	args = append(args, networkName)
@@ -165,25 +165,34 @@ func (p *PodmanOrchestrator) startNode(ctx context.Context, node *models.Node, n
 	}
 
 	// Set resource limits
-	if node.CPUCores > 0 {
-		args = append(args, "--cpus", fmt.Sprintf("%d", node.CPUCores))
+	if node.Config.CPU > 0 {
+		args = append(args, "--cpus", fmt.Sprintf("%d", node.Config.CPU))
 	}
-	if node.MemoryMB > 0 {
-		args = append(args, "--memory", fmt.Sprintf("%dm", node.MemoryMB))
-	}
-
-	// Add port mappings
-	for portStr := range node.Ports {
-		args = append(args, "-p", portStr)
+	if node.Config.Memory > 0 { // MB
+		args = append(args, "--memory", fmt.Sprintf("%dm", node.Config.Memory))
 	}
 
-	// Add environment variables
-	for key, value := range node.Environment {
-		args = append(args, "-e", fmt.Sprintf("%s=%s", key, value))
+	// Publish each declared service port (same port on host and container).
+	for _, svc := range node.Config.Services {
+		if svc.Port <= 0 {
+			continue
+		}
+		proto := strings.ToLower(svc.Protocol)
+		if proto != "udp" {
+			proto = "tcp"
+		}
+		args = append(args, "-p", fmt.Sprintf("%d:%d/%s", svc.Port, svc.Port, proto))
+	}
+
+	// Environment variables come from Config.CustomAttrs keys prefixed "env.".
+	for key, value := range node.Config.CustomAttrs {
+		if name, ok := strings.CutPrefix(key, "env."); ok && name != "" {
+			args = append(args, "-e", fmt.Sprintf("%s=%s", name, value))
+		}
 	}
 
 	// Use specified image or default
-	image := node.Image
+	image := node.Config.Image
 	if image == "" {
 		image = "nginx:alpine" // Default image
 	}
