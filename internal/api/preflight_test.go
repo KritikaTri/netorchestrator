@@ -30,7 +30,9 @@ func (f *fakeSource) GetNetwork(context.Context, uuid.UUID) (*models.Network, er
 func (f *fakeSource) ListNodes(context.Context, uuid.UUID) ([]models.Node, error) {
 	return f.nodes, f.nodesErr
 }
-func (f *fakeSource) ListLinks(context.Context, uuid.UUID) ([]models.Link, error) { return f.links, nil }
+func (f *fakeSource) ListLinks(context.Context, uuid.UUID) ([]models.Link, error) {
+	return f.links, nil
+}
 
 // hub-and-spoke: hub -- leafA, hub -- leafB
 func fixture() (*fakeSource, map[string]uuid.UUID) {
