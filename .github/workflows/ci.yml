@@ -58,7 +58,7 @@ jobs:
       - name: smoke test (container starts, serves /healthz as non-root)
         if: matrix.service == 'topology-svc'
         run: |
-          docker run -d --name t -p 8081:8081 netorch/topology-svc
+          docker run -d --name topo -p 8081:8081 netorch/topology-svc
           for i in $(seq 1 20); do curl -sf localhost:8081/healthz && break; sleep 0.5; done
           curl -sf localhost:8081/healthz
           docker inspect -f '{{.Config.User}}' netorch/topology-svc | grep -q nonroot
