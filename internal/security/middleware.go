@@ -86,19 +86,18 @@ func (sm *SecurityManager) APIKeyAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Validate API key (this would check against database in production)
-		// For demo, we'll accept any key starting with "neto_"
-		if !strings.HasPrefix(apiKey, "neto_") {
-			sm.auditLogger.LogSecurityEvent("", "", "invalid_api_key", "Invalid API key format", c.ClientIP(), AuditWarning)
+		rec, err := sm.apiKeyMgr.ValidateAPIKey(apiKey)
+		if err != nil {
+			sm.auditLogger.LogSecurityEvent("", "", "invalid_api_key", "Rejected API key", c.ClientIP(), AuditWarning)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid API key"})
 			c.Abort()
 			return
 		}
 
-		// Mock user for API key (in production, this would be looked up from database)
-		c.Set("user_id", "api_user")
-		c.Set("username", "API User")
+		c.Set("user_id", rec.UserID)
+		c.Set("username", rec.Name)
 		c.Set("auth_method", "api_key")
+		c.Set("api_key_permissions", rec.Permissions)
 
 		c.Next()
 	}

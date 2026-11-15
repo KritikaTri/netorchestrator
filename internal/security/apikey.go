@@ -2,10 +2,23 @@ package security
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"sync"
 	"time"
 )
+
+// ErrInvalidAPIKey is returned for unknown, revoked or expired keys. The
+// message is deliberately uniform so callers cannot probe which case applied.
+var ErrInvalidAPIKey = errors.New("invalid api key")
+
+func digestKey(key string) string {
+	sum := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(sum[:])
+}
 
 type APIKey struct {
 	ID          string     `json:"id" gorm:"primaryKey"`
@@ -23,11 +36,17 @@ type APIKey struct {
 
 type APIKeyManager struct {
 	authService *AuthService
+
+	mu     sync.RWMutex
+	byHash map[string]*APIKey // sha256(key) -> record (plaintext never stored)
+	byID   map[string]*APIKey
 }
 
 func NewAPIKeyManager(authService *AuthService) *APIKeyManager {
 	return &APIKeyManager{
 		authService: authService,
+		byHash:      map[string]*APIKey{},
+		byID:        map[string]*APIKey{},
 	}
 }
 
@@ -41,11 +60,9 @@ func (m *APIKeyManager) GenerateAPIKey(name, userID string, permissions []string
 
 	key := "neto_" + hex.EncodeToString(keyBytes)
 
-	// Hash the key for storage
-	hashedKey, err := m.authService.HashPassword(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash API key: %w", err)
-	}
+	// API keys are 256-bit random values, so a fast SHA-256 digest is enough
+	// and lets us look keys up by digest (bcrypt could not be indexed).
+	hashedKey := digestKey(key)
 
 	apiKey := &APIKey{
 		ID:          generateID(),
@@ -60,20 +77,47 @@ func (m *APIKeyManager) GenerateAPIKey(name, userID string, permissions []string
 		UpdatedAt:   time.Now(),
 	}
 
+	// Keep only the digest server-side; the plaintext is returned once to the caller.
+	stored := *apiKey
+	stored.Key = ""
+	m.mu.Lock()
+	m.byHash[hashedKey] = &stored
+	m.byID[stored.ID] = &stored
+	m.mu.Unlock()
+
 	return apiKey, nil
 }
 
-// ValidateAPIKey checks if an API key is valid
+// ValidateAPIKey returns the key record if key is known, active and unexpired.
 func (m *APIKeyManager) ValidateAPIKey(key string) (*APIKey, error) {
-	// In a real implementation, this would query the database
-	// For now, we'll return a mock validation
-	return nil, fmt.Errorf("API key validation not implemented - requires database integration")
+	d := digestKey(key)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	rec, ok := m.byHash[d]
+	// constant-time compare as defence in depth against map-lookup timing
+	if !ok || subtle.ConstantTimeCompare([]byte(rec.HashedKey), []byte(d)) != 1 {
+		return nil, ErrInvalidAPIKey
+	}
+	now := time.Now()
+	if !rec.IsActive || (rec.ExpiresAt != nil && !now.Before(*rec.ExpiresAt)) {
+		return nil, ErrInvalidAPIKey
+	}
+	rec.LastUsedAt = &now
+	cp := *rec
+	return &cp, nil
 }
 
-// RevokeAPIKey deactivates an API key
+// RevokeAPIKey deactivates an API key by ID.
 func (m *APIKeyManager) RevokeAPIKey(keyID string) error {
-	// Implementation would update the database to set IsActive = false
-	return fmt.Errorf("API key revocation not implemented - requires database integration")
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	rec, ok := m.byID[keyID]
+	if !ok {
+		return fmt.Errorf("api key %q not found", keyID)
+	}
+	rec.IsActive = false
+	rec.UpdatedAt = time.Now()
+	return nil
 }
 
 func generateID() string {

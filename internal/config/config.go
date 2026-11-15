@@ -161,15 +161,15 @@ func setDefaults() {
 	viper.SetDefault("nats.url", "nats://localhost:4222")
 
 	// JWT defaults
-	viper.SetDefault("jwt.secret", "your-secret-key")
+	viper.SetDefault("jwt.secret", "")
 	viper.SetDefault("jwt.expiration", 3600)
 
 	// Security defaults
-	viper.SetDefault("security.jwt_secret", "netorchestrator-super-secret-jwt-key-2024")
+	viper.SetDefault("security.jwt_secret", "") // required: see Config.Validate
 	viper.SetDefault("security.rate_limit_rps", 100)
 	viper.SetDefault("security.rate_limit_burst", 10)
 	viper.SetDefault("security.enable_audit_logging", true)
-	viper.SetDefault("security.encryption_key", "netorchestrator-encryption-key-32-byte")
+	viper.SetDefault("security.encryption_key", "")
 
 	// Logging defaults
 	viper.SetDefault("logging.level", "info")
