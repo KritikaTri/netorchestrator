@@ -113,3 +113,11 @@ docs/site/
 dev/
 docker-compose.override.yml
 Docker.dmg
+# Built binaries (never commit these)
+/api-gateway
+/api-gateway-full
+/api-gateway-simple
+/netorchestrator
+/netorchctl
+*.tar.gz
+coverage.txt

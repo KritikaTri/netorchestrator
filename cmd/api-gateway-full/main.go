@@ -17,8 +17,8 @@ import (
 	"netorchestrator/internal/api"
 	"netorchestrator/internal/config"
 	"netorchestrator/internal/services"
-	"netorchestrator/pkg/database"
 	"netorchestrator/pkg/cache"
+	"netorchestrator/pkg/database"
 	"netorchestrator/pkg/monitoring"
 )
 
@@ -87,7 +87,7 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		logger.Info("Starting server", 
+		logger.Info("Starting server",
 			zap.String("host", cfg.Server.Host),
 			zap.String("port", cfg.Server.Port),
 		)
@@ -218,9 +218,9 @@ func setupRouter(handlers *api.Handlers, monitor *monitoring.Prometheus) *gin.En
 			{
 				users.GET("/profile", handlers.GetProfile)
 				users.PUT("/profile", handlers.UpdateProfile)
-				users.GET("", handlers.ListUsers) // Admin only
-				users.POST("", handlers.CreateUser) // Admin only
-				users.PUT("/:id", handlers.UpdateUser) // Admin only
+				users.GET("", handlers.ListUsers)         // Admin only
+				users.POST("", handlers.CreateUser)       // Admin only
+				users.PUT("/:id", handlers.UpdateUser)    // Admin only
 				users.DELETE("/:id", handlers.DeleteUser) // Admin only
 			}
 		}

@@ -31,8 +31,8 @@ func (s *EventService) BroadcastNetworkUpdate(networkID string, status string, d
 	}
 
 	s.wsHub.BroadcastEvent("network_update", event)
-	s.logger.Info("Broadcasted network update", 
-		zap.String("network_id", networkID), 
+	s.logger.Info("Broadcasted network update",
+		zap.String("network_id", networkID),
 		zap.String("status", status))
 }
 
@@ -47,27 +47,27 @@ func (s *EventService) BroadcastNodeStatusUpdate(nodeID string, networkID string
 	}
 
 	s.wsHub.BroadcastEvent("node_status", event)
-	s.logger.Info("Broadcasted node status update", 
-		zap.String("node_id", nodeID), 
-		zap.String("network_id", networkID), 
+	s.logger.Info("Broadcasted node status update",
+		zap.String("node_id", nodeID),
+		zap.String("network_id", networkID),
 		zap.String("status", status))
 }
 
 // BroadcastMetricUpdate broadcasts real-time metrics
 func (s *EventService) BroadcastMetricUpdate(sourceType string, sourceID string, metricName string, value float64) {
 	event := map[string]interface{}{
-		"source_type":  sourceType,
-		"source_id":    sourceID,
-		"metric_name":  metricName,
-		"value":        value,
-		"timestamp":    time.Now().Unix(),
+		"source_type": sourceType,
+		"source_id":   sourceID,
+		"metric_name": metricName,
+		"value":       value,
+		"timestamp":   time.Now().Unix(),
 	}
 
 	s.wsHub.BroadcastEvent("metric_update", event)
-	s.logger.Debug("Broadcasted metric update", 
-		zap.String("source_type", sourceType), 
-		zap.String("source_id", sourceID), 
-		zap.String("metric_name", metricName), 
+	s.logger.Debug("Broadcasted metric update",
+		zap.String("source_type", sourceType),
+		zap.String("source_id", sourceID),
+		zap.String("metric_name", metricName),
 		zap.Float64("value", value))
 }
 
@@ -82,9 +82,9 @@ func (s *EventService) BroadcastAlert(severity string, message string, source st
 	}
 
 	s.wsHub.BroadcastEvent("alert", event)
-	s.logger.Warn("Broadcasted alert", 
-		zap.String("severity", severity), 
-		zap.String("message", message), 
+	s.logger.Warn("Broadcasted alert",
+		zap.String("severity", severity),
+		zap.String("message", message),
 		zap.String("source", source))
 }
 
@@ -98,8 +98,8 @@ func (s *EventService) BroadcastTopologyUpdate(networkID string, changeType stri
 	}
 
 	s.wsHub.BroadcastEvent("topology_update", event)
-	s.logger.Info("Broadcasted topology update", 
-		zap.String("network_id", networkID), 
+	s.logger.Info("Broadcasted topology update",
+		zap.String("network_id", networkID),
 		zap.String("change_type", changeType))
 }
 
@@ -110,9 +110,9 @@ func (s *EventService) StartPeriodicUpdates() {
 		for range ticker.C {
 			// Send periodic system status
 			systemStatus := map[string]interface{}{
-				"uptime":           time.Now().Unix(),
+				"uptime":            time.Now().Unix(),
 				"connected_clients": s.getConnectedClientCount(),
-				"status":           "operational",
+				"status":            "operational",
 			}
 
 			s.wsHub.BroadcastEvent("system_status", systemStatus)

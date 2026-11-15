@@ -17,7 +17,7 @@ type Handler struct {
 // NewHandler creates a new automation handler
 func NewHandler(db *gorm.DB, logger *zap.Logger) *Handler {
 	wrapper := NewCompatibilityWrapper(db, logger)
-	
+
 	// Register executors
 	wrapper.RegisterExecutor("terraform", NewTerraformExecutor(logger))
 	wrapper.RegisterExecutor("ansible", NewAnsibleExecutor(logger))
@@ -182,7 +182,7 @@ func (h *Handler) ListWorkflows(c *gin.Context) {
 // @Router /api/v1/automation/workflows/{id} [get]
 func (h *Handler) GetWorkflow(c *gin.Context) {
 	id := c.Param("id")
-	
+
 	workflow, err := h.wrapper.GetWorkflowCompat(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -280,14 +280,14 @@ func (h *Handler) ListTemplates(c *gin.Context) {
 func (h *Handler) GetTemplate(c *gin.Context) {
 	name := c.Param("name")
 	templates := h.getWorkflowTemplates()
-	
+
 	for _, template := range templates {
 		if template["name"] == name {
 			c.JSON(http.StatusOK, template)
 			return
 		}
 	}
-	
+
 	c.JSON(http.StatusNotFound, gin.H{"error": "Template not found"})
 }
 

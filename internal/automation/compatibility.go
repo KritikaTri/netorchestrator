@@ -26,19 +26,19 @@ func NewCompatibilityWrapper(db *gorm.DB, logger *zap.Logger) *CompatibilityWrap
 // EnhancedWorkflowDefinition extends the basic definition with additional fields
 type EnhancedWorkflowDefinition struct {
 	WorkflowDefinition
-	Schedule    string                 `json:"schedule"`
-	Enabled     bool                   `json:"enabled"`
-	Variables   map[string]interface{} `json:"variables"`
-	Status      string                 `json:"status"`
-	NumericID   uint                   `json:"numeric_id"`
-	NumericVersion int                 `json:"numeric_version"`
+	Schedule       string                 `json:"schedule"`
+	Enabled        bool                   `json:"enabled"`
+	Variables      map[string]interface{} `json:"variables"`
+	Status         string                 `json:"status"`
+	NumericID      uint                   `json:"numeric_id"`
+	NumericVersion int                    `json:"numeric_version"`
 }
 
 // CreateWorkflowCompat creates a workflow with compatibility layer
 func (cw *CompatibilityWrapper) CreateWorkflowCompat(req *CreateWorkflowRequest) (*EnhancedWorkflowDefinition, error) {
 	// Generate UUID for ID
 	workflowID := uuid.New().String()
-	
+
 	workflow := &WorkflowDefinition{
 		ID:          workflowID,
 		Name:        req.Name,

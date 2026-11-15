@@ -14,343 +14,343 @@ import (
 
 // ComplianceSuite provides comprehensive compliance and certification management
 type ComplianceSuite struct {
-	complianceManager   *ComplianceManager
-	auditManager        *AuditManager
-	certificationEngine *CertificationEngine
-	riskManager         *RiskManager
-	policyEngine        *PolicyEngine
-	controlsManager     *ControlsManager
-	dataGovernance      *DataGovernance
-	privacyManager      *PrivacyManager
-	securityCompliance  *SecurityCompliance
+	complianceManager    *ComplianceManager
+	auditManager         *AuditManager
+	certificationEngine  *CertificationEngine
+	riskManager          *RiskManager
+	policyEngine         *PolicyEngine
+	controlsManager      *ControlsManager
+	dataGovernance       *DataGovernance
+	privacyManager       *PrivacyManager
+	securityCompliance   *SecurityCompliance
 	regulatoryCompliance *RegulatoryCompliance
-	industryCompliance  *IndustryCompliance
-	auditTrail          *AuditTrail
-	complianceReporting *ComplianceReporting
+	industryCompliance   *IndustryCompliance
+	auditTrail           *AuditTrail
+	complianceReporting  *ComplianceReporting
 	complianceMonitoring *ComplianceMonitoring
-	remediationEngine   *RemediationEngine
-	trainingManager     *ComplianceTraining
-	vendorManagement    *VendorCompliance
-	incidentManagement  *ComplianceIncident
-	assessmentEngine    *ComplianceAssessment
+	remediationEngine    *RemediationEngine
+	trainingManager      *ComplianceTraining
+	vendorManagement     *VendorCompliance
+	incidentManagement   *ComplianceIncident
+	assessmentEngine     *ComplianceAssessment
 	continuousMonitoring *ContinuousMonitoring
-	certificationPortal *CertificationPortal
-	complianceAnalytics *ComplianceAnalytics
-	config              *ComplianceConfig
-	logger              *zap.Logger
-	mu                  sync.RWMutex
+	certificationPortal  *CertificationPortal
+	complianceAnalytics  *ComplianceAnalytics
+	config               *ComplianceConfig
+	logger               *zap.Logger
+	mu                   sync.RWMutex
 }
 
 // ComplianceManager handles comprehensive compliance management
 type ComplianceManager struct {
-	frameworks          map[string]*ComplianceFramework
-	standards           map[string]*ComplianceStandard
-	regulations         map[string]*Regulation
-	requirements        map[string]*ComplianceRequirement
-	controls            map[string]*Control
-	policies            map[string]*Policy
-	procedures          map[string]*Procedure
-	evidenceManager     *EvidenceManager
-	gapAnalysis         *GapAnalysis
-	maturityAssessment  *MaturityAssessment
-	riskAssessment      *RiskAssessmentEngine
-	complianceScore     *ComplianceScoring
-	benchmarking        *ComplianceBenchmarking
-	roadmapManager      *ComplianceRoadmap
-	stakeholderManager  *StakeholderManager
+	frameworks           map[string]*ComplianceFramework
+	standards            map[string]*ComplianceStandard
+	regulations          map[string]*Regulation
+	requirements         map[string]*ComplianceRequirement
+	controls             map[string]*Control
+	policies             map[string]*Policy
+	procedures           map[string]*Procedure
+	evidenceManager      *EvidenceManager
+	gapAnalysis          *GapAnalysis
+	maturityAssessment   *MaturityAssessment
+	riskAssessment       *RiskAssessmentEngine
+	complianceScore      *ComplianceScoring
+	benchmarking         *ComplianceBenchmarking
+	roadmapManager       *ComplianceRoadmap
+	stakeholderManager   *StakeholderManager
 	communicationManager *ComplianceCommunication
-	workflowEngine      *ComplianceWorkflow
-	approvalEngine      *ApprovalEngine
-	documentManager     *DocumentManager
-	config              *ComplianceManagerConfig
-	logger              *zap.Logger
-	mu                  sync.RWMutex
+	workflowEngine       *ComplianceWorkflow
+	approvalEngine       *ApprovalEngine
+	documentManager      *DocumentManager
+	config               *ComplianceManagerConfig
+	logger               *zap.Logger
+	mu                   sync.RWMutex
 }
 
 // AuditManager provides comprehensive audit capabilities
 type AuditManager struct {
-	auditEngines        map[string]*AuditEngine
-	auditTypes          map[string]*AuditType
-	auditPlans          map[string]*AuditPlan
-	auditExecutions     map[string]*AuditExecution
-	auditFindings       map[string]*AuditFinding
-	auditReports        map[string]*AuditReport
-	auditEvidence       map[string]*AuditEvidence
-	auditWorkpapers     map[string]*AuditWorkpaper
-	internalAudit       *InternalAuditEngine
-	externalAudit       *ExternalAuditEngine
-	continuousAudit     *ContinuousAuditEngine
-	riskBasedAudit      *RiskBasedAuditEngine
-	complianceAudit     *ComplianceAuditEngine
-	securityAudit       *SecurityAuditEngine
-	auditAutomation     *AuditAutomation
-	auditAnalytics      *AuditAnalytics
-	auditReporting      *AuditReporting
-	auditWorkflow       *AuditWorkflow
-	auditScheduler      *AuditScheduler
-	auditNotifications  *AuditNotifications
-	followUpManager     *AuditFollowUp
-	qualityAssurance    *AuditQA
-	config              *AuditManagerConfig
-	logger              *zap.Logger
-	mu                  sync.RWMutex
+	auditEngines       map[string]*AuditEngine
+	auditTypes         map[string]*AuditType
+	auditPlans         map[string]*AuditPlan
+	auditExecutions    map[string]*AuditExecution
+	auditFindings      map[string]*AuditFinding
+	auditReports       map[string]*AuditReport
+	auditEvidence      map[string]*AuditEvidence
+	auditWorkpapers    map[string]*AuditWorkpaper
+	internalAudit      *InternalAuditEngine
+	externalAudit      *ExternalAuditEngine
+	continuousAudit    *ContinuousAuditEngine
+	riskBasedAudit     *RiskBasedAuditEngine
+	complianceAudit    *ComplianceAuditEngine
+	securityAudit      *SecurityAuditEngine
+	auditAutomation    *AuditAutomation
+	auditAnalytics     *AuditAnalytics
+	auditReporting     *AuditReporting
+	auditWorkflow      *AuditWorkflow
+	auditScheduler     *AuditScheduler
+	auditNotifications *AuditNotifications
+	followUpManager    *AuditFollowUp
+	qualityAssurance   *AuditQA
+	config             *AuditManagerConfig
+	logger             *zap.Logger
+	mu                 sync.RWMutex
 }
 
 // CertificationEngine manages enterprise certifications
 type CertificationEngine struct {
-	certifications      map[string]*Certification
-	certificationPaths  map[string]*CertificationPath
-	certificationPlans  map[string]*CertificationPlan
-	certificationStatus map[string]*CertificationStatus
-	soc2Manager         *SOC2Manager
-	iso27001Manager     *ISO27001Manager
-	hipaaManager        *HIPAAManager
-	gdprManager         *GDPRManager
-	fedrampManager      *FedRAMPManager
-	pciDssManager       *PCIDSSManager
-	iso9001Manager      *ISO9001Manager
-	iso14001Manager     *ISO14001Manager
-	cmmiManager         *CMMIManager
-	cobitManager        *COBITManager
-	itilManager         *ITILManager
+	certifications       map[string]*Certification
+	certificationPaths   map[string]*CertificationPath
+	certificationPlans   map[string]*CertificationPlan
+	certificationStatus  map[string]*CertificationStatus
+	soc2Manager          *SOC2Manager
+	iso27001Manager      *ISO27001Manager
+	hipaaManager         *HIPAAManager
+	gdprManager          *GDPRManager
+	fedrampManager       *FedRAMPManager
+	pciDssManager        *PCIDSSManager
+	iso9001Manager       *ISO9001Manager
+	iso14001Manager      *ISO14001Manager
+	cmmiManager          *CMMIManager
+	cobitManager         *COBITManager
+	itilManager          *ITILManager
 	certificationTracker *CertificationTracker
-	renewalManager      *CertificationRenewal
-	assessmentEngine    *CertificationAssessment
-	gapAnalysisEngine   *CertificationGapAnalysis
-	preparationEngine   *CertificationPreparation
-	auditCoordination   *CertificationAuditCoordination
-	documentationEngine *CertificationDocumentation
-	trainingEngine      *CertificationTraining
-	config              *CertificationConfig
-	logger              *zap.Logger
-	mu                  sync.RWMutex
+	renewalManager       *CertificationRenewal
+	assessmentEngine     *CertificationAssessment
+	gapAnalysisEngine    *CertificationGapAnalysis
+	preparationEngine    *CertificationPreparation
+	auditCoordination    *CertificationAuditCoordination
+	documentationEngine  *CertificationDocumentation
+	trainingEngine       *CertificationTraining
+	config               *CertificationConfig
+	logger               *zap.Logger
+	mu                   sync.RWMutex
 }
 
 // Core compliance data structures
 type ComplianceFramework struct {
-	ID                  string                    `json:"id"`
-	Name               string                    `json:"name"`
-	Version            string                    `json:"version"`
-	Description        string                    `json:"description"`
-	Type               string                    `json:"type"` // regulatory, industry, internal, international
-	Scope              string                    `json:"scope"`
-	Applicability      []string                  `json:"applicability"`
-	Jurisdiction       []string                  `json:"jurisdiction"`
-	Industry           []string                  `json:"industry"`
-	Organization       string                    `json:"organization"`
-	PublishedDate      time.Time                 `json:"published_date"`
-	EffectiveDate      time.Time                 `json:"effective_date"`
-	ReviewDate         time.Time                 `json:"review_date"`
-	Requirements       []*ComplianceRequirement  `json:"requirements"`
-	Controls           []*Control                `json:"controls"`
-	Standards          []*ComplianceStandard     `json:"standards"`
-	Procedures         []*Procedure              `json:"procedures"`
-	Documentation      []*Document               `json:"documentation"`
-	TrainingRequirements []*TrainingRequirement  `json:"training_requirements"`
-	AuditRequirements  []*AuditRequirement       `json:"audit_requirements"`
-	ReportingRequirements []*ReportingRequirement `json:"reporting_requirements"`
-	Penalties          []*Penalty                `json:"penalties"`
-	Dependencies       []string                  `json:"dependencies"`
-	References         []*Reference              `json:"references"`
-	Mappings           map[string]*Mapping       `json:"mappings"`
-	MaturityModel      *MaturityModel            `json:"maturity_model"`
-	AssessmentCriteria *AssessmentCriteria       `json:"assessment_criteria"`
-	Status             string                    `json:"status"` // active, deprecated, draft, pending
-	Priority           string                    `json:"priority"` // critical, high, medium, low
-	Owner              string                    `json:"owner"`
-	Stakeholders       []*Stakeholder            `json:"stakeholders"`
-	Tags               []string                  `json:"tags"`
-	Metadata           map[string]interface{}    `json:"metadata"`
-	CreatedAt          time.Time                 `json:"created_at"`
-	UpdatedAt          time.Time                 `json:"updated_at"`
+	ID                    string                   `json:"id"`
+	Name                  string                   `json:"name"`
+	Version               string                   `json:"version"`
+	Description           string                   `json:"description"`
+	Type                  string                   `json:"type"` // regulatory, industry, internal, international
+	Scope                 string                   `json:"scope"`
+	Applicability         []string                 `json:"applicability"`
+	Jurisdiction          []string                 `json:"jurisdiction"`
+	Industry              []string                 `json:"industry"`
+	Organization          string                   `json:"organization"`
+	PublishedDate         time.Time                `json:"published_date"`
+	EffectiveDate         time.Time                `json:"effective_date"`
+	ReviewDate            time.Time                `json:"review_date"`
+	Requirements          []*ComplianceRequirement `json:"requirements"`
+	Controls              []*Control               `json:"controls"`
+	Standards             []*ComplianceStandard    `json:"standards"`
+	Procedures            []*Procedure             `json:"procedures"`
+	Documentation         []*Document              `json:"documentation"`
+	TrainingRequirements  []*TrainingRequirement   `json:"training_requirements"`
+	AuditRequirements     []*AuditRequirement      `json:"audit_requirements"`
+	ReportingRequirements []*ReportingRequirement  `json:"reporting_requirements"`
+	Penalties             []*Penalty               `json:"penalties"`
+	Dependencies          []string                 `json:"dependencies"`
+	References            []*Reference             `json:"references"`
+	Mappings              map[string]*Mapping      `json:"mappings"`
+	MaturityModel         *MaturityModel           `json:"maturity_model"`
+	AssessmentCriteria    *AssessmentCriteria      `json:"assessment_criteria"`
+	Status                string                   `json:"status"`   // active, deprecated, draft, pending
+	Priority              string                   `json:"priority"` // critical, high, medium, low
+	Owner                 string                   `json:"owner"`
+	Stakeholders          []*Stakeholder           `json:"stakeholders"`
+	Tags                  []string                 `json:"tags"`
+	Metadata              map[string]interface{}   `json:"metadata"`
+	CreatedAt             time.Time                `json:"created_at"`
+	UpdatedAt             time.Time                `json:"updated_at"`
 }
 
 type Certification struct {
-	ID                  string                    `json:"id"`
-	Name               string                    `json:"name"`
-	Type               string                    `json:"type"` // soc2, iso27001, hipaa, gdpr, fedramp, pci_dss
-	Status             string                    `json:"status"` // not_started, in_progress, audit_ready, certified, expired, suspended
-	CurrentPhase       string                    `json:"current_phase"`
-	Framework          string                    `json:"framework"`
-	Standard           string                    `json:"standard"`
-	Version            string                    `json:"version"`
-	Scope              *CertificationScope       `json:"scope"`
-	Requirements       []*CertificationRequirement `json:"requirements"`
-	Controls           []*CertificationControl   `json:"controls"`
-	Assessments        []*Assessment             `json:"assessments"`
-	AuditHistory       []*AuditRecord            `json:"audit_history"`
-	Evidence           []*Evidence               `json:"evidence"`
-	Findings           []*Finding                `json:"findings"`
-	Remediation        []*RemediationAction      `json:"remediation"`
-	Documentation      []*CertificationDocument  `json:"documentation"`
-	Training           []*TrainingRecord         `json:"training"`
-	Timeline           *CertificationTimeline    `json:"timeline"`
-	Budget             *CertificationBudget      `json:"budget"`
-	Resources          []*CertificationResource  `json:"resources"`
-	Stakeholders       []*CertificationStakeholder `json:"stakeholders"`
-	RiskAssessment     *CertificationRisk        `json:"risk_assessment"`
-	Compliance         *ComplianceStatus         `json:"compliance"`
-	Performance        *CertificationPerformance `json:"performance"`
-	Metrics            *CertificationMetrics     `json:"metrics"`
-	CostBenefit        *CostBenefitAnalysis      `json:"cost_benefit"`
-	ROI                *ROIAnalysis              `json:"roi"`
-	Business           *BusinessImpact           `json:"business"`
-	Auditor            *AuditorInfo              `json:"auditor"`
-	CertificationBody  *CertificationBodyInfo    `json:"certification_body"`
-	Certificate        *CertificateInfo          `json:"certificate"`
-	Maintenance        *MaintenanceInfo          `json:"maintenance"`
-	Renewal            *RenewalInfo              `json:"renewal"`
-	Tags               []string                  `json:"tags"`
-	Notes              []string                  `json:"notes"`
-	Attachments        []*Attachment             `json:"attachments"`
-	Metadata           map[string]interface{}    `json:"metadata"`
-	CreatedAt          time.Time                 `json:"created_at"`
-	UpdatedAt          time.Time                 `json:"updated_at"`
-	CertifiedAt        *time.Time                `json:"certified_at,omitempty"`
-	ExpiresAt          *time.Time                `json:"expires_at,omitempty"`
+	ID                string                      `json:"id"`
+	Name              string                      `json:"name"`
+	Type              string                      `json:"type"`   // soc2, iso27001, hipaa, gdpr, fedramp, pci_dss
+	Status            string                      `json:"status"` // not_started, in_progress, audit_ready, certified, expired, suspended
+	CurrentPhase      string                      `json:"current_phase"`
+	Framework         string                      `json:"framework"`
+	Standard          string                      `json:"standard"`
+	Version           string                      `json:"version"`
+	Scope             *CertificationScope         `json:"scope"`
+	Requirements      []*CertificationRequirement `json:"requirements"`
+	Controls          []*CertificationControl     `json:"controls"`
+	Assessments       []*Assessment               `json:"assessments"`
+	AuditHistory      []*AuditRecord              `json:"audit_history"`
+	Evidence          []*Evidence                 `json:"evidence"`
+	Findings          []*Finding                  `json:"findings"`
+	Remediation       []*RemediationAction        `json:"remediation"`
+	Documentation     []*CertificationDocument    `json:"documentation"`
+	Training          []*TrainingRecord           `json:"training"`
+	Timeline          *CertificationTimeline      `json:"timeline"`
+	Budget            *CertificationBudget        `json:"budget"`
+	Resources         []*CertificationResource    `json:"resources"`
+	Stakeholders      []*CertificationStakeholder `json:"stakeholders"`
+	RiskAssessment    *CertificationRisk          `json:"risk_assessment"`
+	Compliance        *ComplianceStatus           `json:"compliance"`
+	Performance       *CertificationPerformance   `json:"performance"`
+	Metrics           *CertificationMetrics       `json:"metrics"`
+	CostBenefit       *CostBenefitAnalysis        `json:"cost_benefit"`
+	ROI               *ROIAnalysis                `json:"roi"`
+	Business          *BusinessImpact             `json:"business"`
+	Auditor           *AuditorInfo                `json:"auditor"`
+	CertificationBody *CertificationBodyInfo      `json:"certification_body"`
+	Certificate       *CertificateInfo            `json:"certificate"`
+	Maintenance       *MaintenanceInfo            `json:"maintenance"`
+	Renewal           *RenewalInfo                `json:"renewal"`
+	Tags              []string                    `json:"tags"`
+	Notes             []string                    `json:"notes"`
+	Attachments       []*Attachment               `json:"attachments"`
+	Metadata          map[string]interface{}      `json:"metadata"`
+	CreatedAt         time.Time                   `json:"created_at"`
+	UpdatedAt         time.Time                   `json:"updated_at"`
+	CertifiedAt       *time.Time                  `json:"certified_at,omitempty"`
+	ExpiresAt         *time.Time                  `json:"expires_at,omitempty"`
 }
 
 type AuditExecution struct {
-	ID                  string                    `json:"id"`
-	AuditPlanID        string                    `json:"audit_plan_id"`
-	Type               string                    `json:"type"` // internal, external, compliance, security, operational
-	Status             string                    `json:"status"` // planned, in_progress, completed, cancelled, on_hold
-	Phase              string                    `json:"phase"` // planning, fieldwork, reporting, follow_up
-	Scope              *AuditScope               `json:"scope"`
-	Objectives         []string                  `json:"objectives"`
-	Methodology        *AuditMethodology         `json:"methodology"`
-	Team               []*AuditTeamMember        `json:"team"`
-	Schedule           *AuditSchedule            `json:"schedule"`
-	Procedures         []*AuditProcedure         `json:"procedures"`
-	Testing            []*AuditTest              `json:"testing"`
-	Sampling           *AuditSampling            `json:"sampling"`
-	Evidence           []*AuditEvidence          `json:"evidence"`
-	Workpapers         []*AuditWorkpaper         `json:"workpapers"`
-	Findings           []*AuditFinding           `json:"findings"`
-	Observations       []*AuditObservation       `json:"observations"`
-	Recommendations    []*AuditRecommendation    `json:"recommendations"`
-	Reports            []*AuditReport            `json:"reports"`
-	Communications     []*AuditCommunication     `json:"communications"`
-	Risks              []*AuditRisk              `json:"risks"`
-	Controls           []*AuditControl           `json:"controls"`
-	Exceptions         []*AuditException         `json:"exceptions"`
-	Analytics          *AuditAnalytics           `json:"analytics"`
-	Quality            *AuditQuality             `json:"quality"`
-	Budget             *AuditBudget              `json:"budget"`
-	Resources          []*AuditResource          `json:"resources"`
-	Timeline           *AuditTimeline            `json:"timeline"`
-	Progress           *AuditProgress            `json:"progress"`
-	Performance        *AuditPerformance         `json:"performance"`
-	Stakeholders       []*AuditStakeholder       `json:"stakeholders"`
-	Approval           *AuditApproval            `json:"approval"`
-	FollowUp           *AuditFollowUp            `json:"follow_up"`
-	LessonsLearned     []*LessonLearned          `json:"lessons_learned"`
-	Tags               []string                  `json:"tags"`
-	Notes              []string                  `json:"notes"`
-	Attachments        []*Attachment             `json:"attachments"`
-	Metadata           map[string]interface{}    `json:"metadata"`
-	CreatedAt          time.Time                 `json:"created_at"`
-	UpdatedAt          time.Time                 `json:"updated_at"`
-	StartedAt          *time.Time                `json:"started_at,omitempty"`
-	CompletedAt        *time.Time                `json:"completed_at,omitempty"`
+	ID              string                 `json:"id"`
+	AuditPlanID     string                 `json:"audit_plan_id"`
+	Type            string                 `json:"type"`   // internal, external, compliance, security, operational
+	Status          string                 `json:"status"` // planned, in_progress, completed, cancelled, on_hold
+	Phase           string                 `json:"phase"`  // planning, fieldwork, reporting, follow_up
+	Scope           *AuditScope            `json:"scope"`
+	Objectives      []string               `json:"objectives"`
+	Methodology     *AuditMethodology      `json:"methodology"`
+	Team            []*AuditTeamMember     `json:"team"`
+	Schedule        *AuditSchedule         `json:"schedule"`
+	Procedures      []*AuditProcedure      `json:"procedures"`
+	Testing         []*AuditTest           `json:"testing"`
+	Sampling        *AuditSampling         `json:"sampling"`
+	Evidence        []*AuditEvidence       `json:"evidence"`
+	Workpapers      []*AuditWorkpaper      `json:"workpapers"`
+	Findings        []*AuditFinding        `json:"findings"`
+	Observations    []*AuditObservation    `json:"observations"`
+	Recommendations []*AuditRecommendation `json:"recommendations"`
+	Reports         []*AuditReport         `json:"reports"`
+	Communications  []*AuditCommunication  `json:"communications"`
+	Risks           []*AuditRisk           `json:"risks"`
+	Controls        []*AuditControl        `json:"controls"`
+	Exceptions      []*AuditException      `json:"exceptions"`
+	Analytics       *AuditAnalytics        `json:"analytics"`
+	Quality         *AuditQuality          `json:"quality"`
+	Budget          *AuditBudget           `json:"budget"`
+	Resources       []*AuditResource       `json:"resources"`
+	Timeline        *AuditTimeline         `json:"timeline"`
+	Progress        *AuditProgress         `json:"progress"`
+	Performance     *AuditPerformance      `json:"performance"`
+	Stakeholders    []*AuditStakeholder    `json:"stakeholders"`
+	Approval        *AuditApproval         `json:"approval"`
+	FollowUp        *AuditFollowUp         `json:"follow_up"`
+	LessonsLearned  []*LessonLearned       `json:"lessons_learned"`
+	Tags            []string               `json:"tags"`
+	Notes           []string               `json:"notes"`
+	Attachments     []*Attachment          `json:"attachments"`
+	Metadata        map[string]interface{} `json:"metadata"`
+	CreatedAt       time.Time              `json:"created_at"`
+	UpdatedAt       time.Time              `json:"updated_at"`
+	StartedAt       *time.Time             `json:"started_at,omitempty"`
+	CompletedAt     *time.Time             `json:"completed_at,omitempty"`
 }
 
 type ComplianceAssessment struct {
-	ID                  string                    `json:"id"`
-	Name               string                    `json:"name"`
-	Type               string                    `json:"type"` // self_assessment, third_party, internal, external
-	Framework          string                    `json:"framework"`
-	Standard           string                    `json:"standard"`
-	Status             string                    `json:"status"` // planned, in_progress, completed, reviewed, approved
-	Scope              *AssessmentScope          `json:"scope"`
-	Methodology        *AssessmentMethodology    `json:"methodology"`
-	Criteria           *AssessmentCriteria       `json:"criteria"`
-	Controls           []*AssessmentControl      `json:"controls"`
-	Requirements       []*AssessmentRequirement  `json:"requirements"`
-	Questions          []*AssessmentQuestion     `json:"questions"`
-	Responses          []*AssessmentResponse     `json:"responses"`
-	Evidence           []*AssessmentEvidence     `json:"evidence"`
-	Findings           []*AssessmentFinding      `json:"findings"`
-	GapAnalysis        *GapAnalysis              `json:"gap_analysis"`
-	RiskAnalysis       *RiskAnalysis             `json:"risk_analysis"`
-	MaturityAnalysis   *MaturityAnalysis         `json:"maturity_analysis"`
-	Scoring            *AssessmentScoring        `json:"scoring"`
-	Results            *AssessmentResults        `json:"results"`
-	Recommendations    []*AssessmentRecommendation `json:"recommendations"`
-	ActionPlan         *AssessmentActionPlan     `json:"action_plan"`
-	Reports            []*AssessmentReport       `json:"reports"`
-	Timeline           *AssessmentTimeline       `json:"timeline"`
-	Team               []*AssessmentTeamMember   `json:"team"`
-	Stakeholders       []*AssessmentStakeholder  `json:"stakeholders"`
-	Budget             *AssessmentBudget         `json:"budget"`
-	Resources          []*AssessmentResource     `json:"resources"`
-	Quality            *AssessmentQuality        `json:"quality"`
-	Approval           *AssessmentApproval       `json:"approval"`
-	Tracking           *AssessmentTracking       `json:"tracking"`
-	Performance        *AssessmentPerformance    `json:"performance"`
-	Analytics          *AssessmentAnalytics      `json:"analytics"`
-	Benchmarking       *AssessmentBenchmarking   `json:"benchmarking"`
-	Trends             *AssessmentTrends         `json:"trends"`
-	History            []*AssessmentHistory      `json:"history"`
-	Tags               []string                  `json:"tags"`
-	Notes              []string                  `json:"notes"`
-	Attachments        []*Attachment             `json:"attachments"`
-	Metadata           map[string]interface{}    `json:"metadata"`
-	CreatedAt          time.Time                 `json:"created_at"`
-	UpdatedAt          time.Time                 `json:"updated_at"`
-	CompletedAt        *time.Time                `json:"completed_at,omitempty"`
+	ID               string                      `json:"id"`
+	Name             string                      `json:"name"`
+	Type             string                      `json:"type"` // self_assessment, third_party, internal, external
+	Framework        string                      `json:"framework"`
+	Standard         string                      `json:"standard"`
+	Status           string                      `json:"status"` // planned, in_progress, completed, reviewed, approved
+	Scope            *AssessmentScope            `json:"scope"`
+	Methodology      *AssessmentMethodology      `json:"methodology"`
+	Criteria         *AssessmentCriteria         `json:"criteria"`
+	Controls         []*AssessmentControl        `json:"controls"`
+	Requirements     []*AssessmentRequirement    `json:"requirements"`
+	Questions        []*AssessmentQuestion       `json:"questions"`
+	Responses        []*AssessmentResponse       `json:"responses"`
+	Evidence         []*AssessmentEvidence       `json:"evidence"`
+	Findings         []*AssessmentFinding        `json:"findings"`
+	GapAnalysis      *GapAnalysis                `json:"gap_analysis"`
+	RiskAnalysis     *RiskAnalysis               `json:"risk_analysis"`
+	MaturityAnalysis *MaturityAnalysis           `json:"maturity_analysis"`
+	Scoring          *AssessmentScoring          `json:"scoring"`
+	Results          *AssessmentResults          `json:"results"`
+	Recommendations  []*AssessmentRecommendation `json:"recommendations"`
+	ActionPlan       *AssessmentActionPlan       `json:"action_plan"`
+	Reports          []*AssessmentReport         `json:"reports"`
+	Timeline         *AssessmentTimeline         `json:"timeline"`
+	Team             []*AssessmentTeamMember     `json:"team"`
+	Stakeholders     []*AssessmentStakeholder    `json:"stakeholders"`
+	Budget           *AssessmentBudget           `json:"budget"`
+	Resources        []*AssessmentResource       `json:"resources"`
+	Quality          *AssessmentQuality          `json:"quality"`
+	Approval         *AssessmentApproval         `json:"approval"`
+	Tracking         *AssessmentTracking         `json:"tracking"`
+	Performance      *AssessmentPerformance      `json:"performance"`
+	Analytics        *AssessmentAnalytics        `json:"analytics"`
+	Benchmarking     *AssessmentBenchmarking     `json:"benchmarking"`
+	Trends           *AssessmentTrends           `json:"trends"`
+	History          []*AssessmentHistory        `json:"history"`
+	Tags             []string                    `json:"tags"`
+	Notes            []string                    `json:"notes"`
+	Attachments      []*Attachment               `json:"attachments"`
+	Metadata         map[string]interface{}      `json:"metadata"`
+	CreatedAt        time.Time                   `json:"created_at"`
+	UpdatedAt        time.Time                   `json:"updated_at"`
+	CompletedAt      *time.Time                  `json:"completed_at,omitempty"`
 }
 
 // Implementation
 func NewComplianceSuite(config *ComplianceConfig, logger *zap.Logger) *ComplianceSuite {
 	suite := &ComplianceSuite{
-		complianceManager:   NewComplianceManager(config.Compliance, logger),
-		auditManager:        NewAuditManager(config.Audit, logger),
-		certificationEngine: NewCertificationEngine(config.Certification, logger),
-		riskManager:         NewRiskManager(config.Risk, logger),
-		policyEngine:        NewPolicyEngine(config.Policy, logger),
-		controlsManager:     NewControlsManager(config.Controls, logger),
-		dataGovernance:      NewDataGovernance(config.DataGovernance, logger),
-		privacyManager:      NewPrivacyManager(config.Privacy, logger),
-		securityCompliance:  NewSecurityCompliance(config.Security, logger),
+		complianceManager:    NewComplianceManager(config.Compliance, logger),
+		auditManager:         NewAuditManager(config.Audit, logger),
+		certificationEngine:  NewCertificationEngine(config.Certification, logger),
+		riskManager:          NewRiskManager(config.Risk, logger),
+		policyEngine:         NewPolicyEngine(config.Policy, logger),
+		controlsManager:      NewControlsManager(config.Controls, logger),
+		dataGovernance:       NewDataGovernance(config.DataGovernance, logger),
+		privacyManager:       NewPrivacyManager(config.Privacy, logger),
+		securityCompliance:   NewSecurityCompliance(config.Security, logger),
 		regulatoryCompliance: NewRegulatoryCompliance(config.Regulatory, logger),
-		industryCompliance:  NewIndustryCompliance(config.Industry, logger),
-		auditTrail:          NewAuditTrail(config.AuditTrail, logger),
-		complianceReporting: NewComplianceReporting(config.Reporting, logger),
+		industryCompliance:   NewIndustryCompliance(config.Industry, logger),
+		auditTrail:           NewAuditTrail(config.AuditTrail, logger),
+		complianceReporting:  NewComplianceReporting(config.Reporting, logger),
 		complianceMonitoring: NewComplianceMonitoring(config.Monitoring, logger),
-		remediationEngine:   NewRemediationEngine(config.Remediation, logger),
-		trainingManager:     NewComplianceTraining(config.Training, logger),
-		vendorManagement:    NewVendorCompliance(config.Vendor, logger),
-		incidentManagement:  NewComplianceIncident(config.Incident, logger),
-		assessmentEngine:    NewComplianceAssessment(config.Assessment, logger),
+		remediationEngine:    NewRemediationEngine(config.Remediation, logger),
+		trainingManager:      NewComplianceTraining(config.Training, logger),
+		vendorManagement:     NewVendorCompliance(config.Vendor, logger),
+		incidentManagement:   NewComplianceIncident(config.Incident, logger),
+		assessmentEngine:     NewComplianceAssessment(config.Assessment, logger),
 		continuousMonitoring: NewContinuousMonitoring(config.ContinuousMonitoring, logger),
-		certificationPortal: NewCertificationPortal(config.Portal, logger),
-		complianceAnalytics: NewComplianceAnalytics(config.Analytics, logger),
-		config:              config,
-		logger:              logger,
+		certificationPortal:  NewCertificationPortal(config.Portal, logger),
+		complianceAnalytics:  NewComplianceAnalytics(config.Analytics, logger),
+		config:               config,
+		logger:               logger,
 	}
-	
+
 	return suite
 }
 
 func (cs *ComplianceSuite) Start(ctx context.Context) error {
 	cs.logger.Info("Starting compliance suite")
-	
+
 	// Start compliance manager
 	if err := cs.complianceManager.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start compliance manager: %w", err)
 	}
-	
+
 	// Start audit manager
 	if err := cs.auditManager.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start audit manager: %w", err)
 	}
-	
+
 	// Start certification engine
 	if err := cs.certificationEngine.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start certification engine: %w", err)
 	}
-	
+
 	// Start supporting components
 	go cs.riskManager.Start(ctx)
 	go cs.policyEngine.Start(ctx)
@@ -371,7 +371,7 @@ func (cs *ComplianceSuite) Start(ctx context.Context) error {
 	go cs.continuousMonitoring.Start(ctx)
 	go cs.certificationPortal.Start(ctx)
 	go cs.complianceAnalytics.Start(ctx)
-	
+
 	cs.logger.Info("Compliance suite started successfully")
 	return nil
 }
@@ -405,10 +405,10 @@ func NewComplianceManager(config *ComplianceManagerConfig, logger *zap.Logger) *
 
 func (cm *ComplianceManager) Start(ctx context.Context) error {
 	cm.logger.Info("Starting compliance manager")
-	
+
 	// Initialize compliance frameworks
 	cm.initializeComplianceFrameworks()
-	
+
 	// Start sub-components
 	go cm.evidenceManager.Start(ctx)
 	go cm.gapAnalysis.Start(ctx)
@@ -416,92 +416,92 @@ func (cm *ComplianceManager) Start(ctx context.Context) error {
 	go cm.riskAssessment.Start(ctx)
 	go cm.complianceScore.Start(ctx)
 	go cm.workflowEngine.Start(ctx)
-	
+
 	return nil
 }
 
 func (cm *ComplianceManager) initializeComplianceFrameworks() {
 	frameworks := []*ComplianceFramework{
 		{
-			ID:          "soc2",
-			Name:        "SOC 2 Type II",
-			Version:     "2017",
-			Description: "Service Organization Control 2 for security, availability, processing integrity, confidentiality, and privacy",
-			Type:        "industry",
-			Scope:       "service_organizations",
+			ID:            "soc2",
+			Name:          "SOC 2 Type II",
+			Version:       "2017",
+			Description:   "Service Organization Control 2 for security, availability, processing integrity, confidentiality, and privacy",
+			Type:          "industry",
+			Scope:         "service_organizations",
 			Applicability: []string{"saas", "cloud_services", "data_processing"},
-			Industry:    []string{"technology", "financial_services", "healthcare"},
-			Organization: "AICPA",
-			Status:      "active",
-			Priority:    "critical",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			Industry:      []string{"technology", "financial_services", "healthcare"},
+			Organization:  "AICPA",
+			Status:        "active",
+			Priority:      "critical",
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		},
 		{
-			ID:          "iso27001",
-			Name:        "ISO/IEC 27001:2022",
-			Version:     "2022",
-			Description: "Information security management systems - Requirements",
-			Type:        "international",
-			Scope:       "information_security",
+			ID:            "iso27001",
+			Name:          "ISO/IEC 27001:2022",
+			Version:       "2022",
+			Description:   "Information security management systems - Requirements",
+			Type:          "international",
+			Scope:         "information_security",
 			Applicability: []string{"all_organizations"},
-			Industry:    []string{"all"},
-			Organization: "ISO",
-			Status:      "active",
-			Priority:    "high",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			Industry:      []string{"all"},
+			Organization:  "ISO",
+			Status:        "active",
+			Priority:      "high",
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		},
 		{
-			ID:          "gdpr",
-			Name:        "General Data Protection Regulation",
-			Version:     "2018",
-			Description: "EU regulation on data protection and privacy",
-			Type:        "regulatory",
-			Scope:       "data_protection",
+			ID:            "gdpr",
+			Name:          "General Data Protection Regulation",
+			Version:       "2018",
+			Description:   "EU regulation on data protection and privacy",
+			Type:          "regulatory",
+			Scope:         "data_protection",
 			Applicability: []string{"eu_data_processing"},
-			Jurisdiction: []string{"european_union"},
-			Industry:    []string{"all"},
-			Organization: "European Union",
-			Status:      "active",
-			Priority:    "critical",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			Jurisdiction:  []string{"european_union"},
+			Industry:      []string{"all"},
+			Organization:  "European Union",
+			Status:        "active",
+			Priority:      "critical",
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		},
 		{
-			ID:          "hipaa",
-			Name:        "Health Insurance Portability and Accountability Act",
-			Version:     "2013",
-			Description: "US healthcare data protection regulation",
-			Type:        "regulatory",
-			Scope:       "healthcare_data",
+			ID:            "hipaa",
+			Name:          "Health Insurance Portability and Accountability Act",
+			Version:       "2013",
+			Description:   "US healthcare data protection regulation",
+			Type:          "regulatory",
+			Scope:         "healthcare_data",
 			Applicability: []string{"healthcare", "business_associates"},
-			Jurisdiction: []string{"united_states"},
-			Industry:    []string{"healthcare", "technology"},
-			Organization: "HHS",
-			Status:      "active",
-			Priority:    "critical",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			Jurisdiction:  []string{"united_states"},
+			Industry:      []string{"healthcare", "technology"},
+			Organization:  "HHS",
+			Status:        "active",
+			Priority:      "critical",
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		},
 		{
-			ID:          "fedramp",
-			Name:        "Federal Risk and Authorization Management Program",
-			Version:     "2024",
-			Description: "US government cloud security assessment program",
-			Type:        "regulatory",
-			Scope:       "cloud_security",
+			ID:            "fedramp",
+			Name:          "Federal Risk and Authorization Management Program",
+			Version:       "2024",
+			Description:   "US government cloud security assessment program",
+			Type:          "regulatory",
+			Scope:         "cloud_security",
 			Applicability: []string{"federal_government", "cloud_providers"},
-			Jurisdiction: []string{"united_states"},
-			Industry:    []string{"technology", "government"},
-			Organization: "GSA",
-			Status:      "active",
-			Priority:    "high",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			Jurisdiction:  []string{"united_states"},
+			Industry:      []string{"technology", "government"},
+			Organization:  "GSA",
+			Status:        "active",
+			Priority:      "high",
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		},
 	}
-	
+
 	for _, framework := range frameworks {
 		cm.frameworks[framework.ID] = framework
 	}
@@ -510,88 +510,88 @@ func (cm *ComplianceManager) initializeComplianceFrameworks() {
 // Certification engine implementation
 func NewCertificationEngine(config *CertificationConfig, logger *zap.Logger) *CertificationEngine {
 	return &CertificationEngine{
-		certifications:      make(map[string]*Certification),
-		certificationPaths:  make(map[string]*CertificationPath),
-		certificationPlans:  make(map[string]*CertificationPlan),
-		certificationStatus: make(map[string]*CertificationStatus),
-		soc2Manager:         NewSOC2Manager(logger),
-		iso27001Manager:     NewISO27001Manager(logger),
-		hipaaManager:        NewHIPAAManager(logger),
-		gdprManager:         NewGDPRManager(logger),
-		fedrampManager:      NewFedRAMPManager(logger),
-		pciDssManager:       NewPCIDSSManager(logger),
-		iso9001Manager:      NewISO9001Manager(logger),
-		iso14001Manager:     NewISO14001Manager(logger),
-		cmmiManager:         NewCMMIManager(logger),
-		cobitManager:        NewCOBITManager(logger),
-		itilManager:         NewITILManager(logger),
+		certifications:       make(map[string]*Certification),
+		certificationPaths:   make(map[string]*CertificationPath),
+		certificationPlans:   make(map[string]*CertificationPlan),
+		certificationStatus:  make(map[string]*CertificationStatus),
+		soc2Manager:          NewSOC2Manager(logger),
+		iso27001Manager:      NewISO27001Manager(logger),
+		hipaaManager:         NewHIPAAManager(logger),
+		gdprManager:          NewGDPRManager(logger),
+		fedrampManager:       NewFedRAMPManager(logger),
+		pciDssManager:        NewPCIDSSManager(logger),
+		iso9001Manager:       NewISO9001Manager(logger),
+		iso14001Manager:      NewISO14001Manager(logger),
+		cmmiManager:          NewCMMIManager(logger),
+		cobitManager:         NewCOBITManager(logger),
+		itilManager:          NewITILManager(logger),
 		certificationTracker: NewCertificationTracker(logger),
-		renewalManager:      NewCertificationRenewal(logger),
-		assessmentEngine:    NewCertificationAssessment(logger),
-		gapAnalysisEngine:   NewCertificationGapAnalysis(logger),
-		preparationEngine:   NewCertificationPreparation(logger),
-		auditCoordination:   NewCertificationAuditCoordination(logger),
-		documentationEngine: NewCertificationDocumentation(logger),
-		trainingEngine:      NewCertificationTraining(logger),
-		config:              config,
-		logger:              logger,
+		renewalManager:       NewCertificationRenewal(logger),
+		assessmentEngine:     NewCertificationAssessment(logger),
+		gapAnalysisEngine:    NewCertificationGapAnalysis(logger),
+		preparationEngine:    NewCertificationPreparation(logger),
+		auditCoordination:    NewCertificationAuditCoordination(logger),
+		documentationEngine:  NewCertificationDocumentation(logger),
+		trainingEngine:       NewCertificationTraining(logger),
+		config:               config,
+		logger:               logger,
 	}
 }
 
 func (ce *CertificationEngine) Start(ctx context.Context) error {
 	ce.logger.Info("Starting certification engine")
-	
+
 	// Start certification managers
 	go ce.soc2Manager.Start(ctx)
 	go ce.iso27001Manager.Start(ctx)
 	go ce.hipaaManager.Start(ctx)
 	go ce.gdprManager.Start(ctx)
 	go ce.fedrampManager.Start(ctx)
-	
+
 	// Start supporting engines
 	go ce.certificationTracker.Start(ctx)
 	go ce.renewalManager.Start(ctx)
 	go ce.assessmentEngine.Start(ctx)
 	go ce.gapAnalysisEngine.Start(ctx)
 	go ce.preparationEngine.Start(ctx)
-	
+
 	return nil
 }
 
 func (ce *CertificationEngine) CreateCertificationPlan(request *CreateCertificationPlanRequest) (*CertificationPlan, error) {
 	ce.logger.Info("Creating certification plan", zap.String("type", request.Type), zap.String("framework", request.Framework))
-	
+
 	plan := &CertificationPlan{
-		ID:          generateCertificationPlanID(),
-		Name:        request.Name,
-		Type:        request.Type,
-		Framework:   request.Framework,
-		Status:      "planning",
-		Scope:       request.Scope,
-		Timeline:    request.Timeline,
-		Budget:      request.Budget,
-		Team:        request.Team,
-		Objectives:  request.Objectives,
+		ID:           generateCertificationPlanID(),
+		Name:         request.Name,
+		Type:         request.Type,
+		Framework:    request.Framework,
+		Status:       "planning",
+		Scope:        request.Scope,
+		Timeline:     request.Timeline,
+		Budget:       request.Budget,
+		Team:         request.Team,
+		Objectives:   request.Objectives,
 		Deliverables: request.Deliverables,
-		Milestones:  request.Milestones,
-		Risks:       request.Risks,
+		Milestones:   request.Milestones,
+		Risks:        request.Risks,
 		Dependencies: request.Dependencies,
-		Resources:   request.Resources,
+		Resources:    request.Resources,
 		Stakeholders: request.Stakeholders,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
-	
+
 	// Initialize certification-specific requirements
 	ce.initializeCertificationRequirements(plan)
-	
+
 	ce.mu.Lock()
 	ce.certificationPlans[plan.ID] = plan
 	ce.mu.Unlock()
-	
+
 	// Start certification tracking
 	ce.certificationTracker.StartTracking(plan)
-	
+
 	ce.logger.Info("Certification plan created", zap.String("plan_id", plan.ID))
 	return plan, nil
 }
@@ -628,7 +628,7 @@ func NewAuditManager(config *AuditManagerConfig, logger *zap.Logger) *AuditManag
 
 func (am *AuditManager) Start(ctx context.Context) error {
 	am.logger.Info("Starting audit manager")
-	
+
 	// Start audit engines
 	go am.internalAudit.Start(ctx)
 	go am.externalAudit.Start(ctx)
@@ -636,19 +636,19 @@ func (am *AuditManager) Start(ctx context.Context) error {
 	go am.riskBasedAudit.Start(ctx)
 	go am.complianceAudit.Start(ctx)
 	go am.securityAudit.Start(ctx)
-	
+
 	// Start supporting components
 	go am.auditAutomation.Start(ctx)
 	go am.auditAnalytics.Start(ctx)
 	go am.auditScheduler.Start(ctx)
 	go am.followUpManager.Start(ctx)
-	
+
 	return nil
 }
 
 func (am *AuditManager) ExecuteAudit(request *ExecuteAuditRequest) (*AuditExecution, error) {
 	am.logger.Info("Executing audit", zap.String("type", request.Type), zap.String("scope", request.Scope))
-	
+
 	execution := &AuditExecution{
 		ID:          generateAuditExecutionID(),
 		AuditPlanID: request.AuditPlanID,
@@ -665,14 +665,14 @@ func (am *AuditManager) ExecuteAudit(request *ExecuteAuditRequest) (*AuditExecut
 		UpdatedAt:   time.Now(),
 		StartedAt:   &[]time.Time{time.Now()}[0],
 	}
-	
+
 	am.mu.Lock()
 	am.auditExecutions[execution.ID] = execution
 	am.mu.Unlock()
-	
+
 	// Start audit workflow
 	am.auditWorkflow.StartAuditWorkflow(execution)
-	
+
 	am.logger.Info("Audit execution started", zap.String("execution_id", execution.ID))
 	return execution, nil
 }
@@ -681,14 +681,14 @@ func (am *AuditManager) ExecuteAudit(request *ExecuteAuditRequest) (*AuditExecut
 func (cs *ComplianceSuite) GetComplianceMetrics() *ComplianceMetrics {
 	cs.mu.RLock()
 	defer cs.mu.RUnlock()
-	
+
 	return &ComplianceMetrics{
 		Frameworks: &FrameworkMetrics{
-			TotalFrameworks:    int64(len(cs.complianceManager.frameworks)),
-			ActiveFrameworks:   cs.calculateActiveFrameworks(),
-			ComplianceScore:    cs.calculateOverallComplianceScore(),
-			GapAnalysis:        cs.getGapAnalysisMetrics(),
-			MaturityLevel:      cs.calculateMaturityLevel(),
+			TotalFrameworks:  int64(len(cs.complianceManager.frameworks)),
+			ActiveFrameworks: cs.calculateActiveFrameworks(),
+			ComplianceScore:  cs.calculateOverallComplianceScore(),
+			GapAnalysis:      cs.getGapAnalysisMetrics(),
+			MaturityLevel:    cs.calculateMaturityLevel(),
 		},
 		Certifications: &CertificationMetrics{
 			TotalCertifications:   int64(len(cs.certificationEngine.certifications)),
@@ -698,25 +698,25 @@ func (cs *ComplianceSuite) GetComplianceMetrics() *ComplianceMetrics {
 			CertificationProgress: cs.getCertificationProgress(),
 		},
 		Audits: &AuditMetrics{
-			TotalAudits:           int64(len(cs.auditManager.auditExecutions)),
-			ActiveAudits:          cs.calculateActiveAudits(),
-			AuditFindings:         cs.getAuditFindingsMetrics(),
-			RemediationStatus:     cs.getRemediationStatus(),
-			AuditEffectiveness:    cs.calculateAuditEffectiveness(),
+			TotalAudits:        int64(len(cs.auditManager.auditExecutions)),
+			ActiveAudits:       cs.calculateActiveAudits(),
+			AuditFindings:      cs.getAuditFindingsMetrics(),
+			RemediationStatus:  cs.getRemediationStatus(),
+			AuditEffectiveness: cs.calculateAuditEffectiveness(),
 		},
 		Risk: &RiskMetrics{
-			TotalRisks:            cs.calculateTotalRisks(),
-			HighRiskItems:         cs.calculateHighRiskItems(),
-			RiskTrends:            cs.getRiskTrends(),
-			RiskMitigation:        cs.getRiskMitigationMetrics(),
-			RiskScore:             cs.calculateOverallRiskScore(),
+			TotalRisks:     cs.calculateTotalRisks(),
+			HighRiskItems:  cs.calculateHighRiskItems(),
+			RiskTrends:     cs.getRiskTrends(),
+			RiskMitigation: cs.getRiskMitigationMetrics(),
+			RiskScore:      cs.calculateOverallRiskScore(),
 		},
 		Controls: &ControlMetrics{
-			TotalControls:         cs.calculateTotalControls(),
-			EffectiveControls:     cs.calculateEffectiveControls(),
-			ControlEffectiveness:  cs.calculateControlEffectiveness(),
-			ControlTesting:        cs.getControlTestingMetrics(),
-			ControlGaps:           cs.getControlGaps(),
+			TotalControls:        cs.calculateTotalControls(),
+			EffectiveControls:    cs.calculateEffectiveControls(),
+			ControlEffectiveness: cs.calculateControlEffectiveness(),
+			ControlTesting:       cs.getControlTestingMetrics(),
+			ControlGaps:          cs.getControlGaps(),
 		},
 		Training: &TrainingMetrics{
 			CompletionRate:        cs.calculateTrainingCompletionRate(),
@@ -725,10 +725,10 @@ func (cs *ComplianceSuite) GetComplianceMetrics() *ComplianceMetrics {
 			TrainingEffectiveness: cs.calculateTrainingEffectiveness(),
 		},
 		Incidents: &IncidentMetrics{
-			ComplianceIncidents:   cs.calculateComplianceIncidents(),
-			IncidentTrends:        cs.getIncidentTrends(),
-			ResponseTime:          cs.calculateIncidentResponseTime(),
-			ResolutionRate:        cs.calculateIncidentResolutionRate(),
+			ComplianceIncidents: cs.calculateComplianceIncidents(),
+			IncidentTrends:      cs.getIncidentTrends(),
+			ResponseTime:        cs.calculateIncidentResponseTime(),
+			ResolutionRate:      cs.calculateIncidentResolutionRate(),
 		},
 		Performance: &CompliancePerformanceMetrics{
 			OverallScore:          cs.calculateOverallComplianceScore(),
@@ -747,13 +747,13 @@ func (cs *ComplianceSuite) HandleCreateCertificationPlan(w http.ResponseWriter, 
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	
+
 	plan, err := cs.certificationEngine.CreateCertificationPlan(&request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(plan)
 }
@@ -764,20 +764,20 @@ func (cs *ComplianceSuite) HandleExecuteAudit(w http.ResponseWriter, r *http.Req
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	
+
 	execution, err := cs.auditManager.ExecuteAudit(&request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(execution)
 }
 
 func (cs *ComplianceSuite) HandleGetComplianceMetrics(w http.ResponseWriter, r *http.Request) {
 	metrics := cs.GetComplianceMetrics()
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(metrics)
 }
@@ -849,11 +849,11 @@ func (cs *ComplianceSuite) calculateActiveCertifications() int64 {
 
 func (cs *ComplianceSuite) getCertificationStatusBreakdown() map[string]int64 {
 	return map[string]int64{
-		"certified":     3,
-		"in_progress":   2,
-		"planning":      1,
-		"expired":       0,
-		"suspended":     0,
+		"certified":   3,
+		"in_progress": 2,
+		"planning":    1,
+		"expired":     0,
+		"suspended":   0,
 	}
 }
 
@@ -897,11 +897,11 @@ func (cs *ComplianceSuite) getAuditFindingsMetrics() map[string]interface{} {
 
 func (cs *ComplianceSuite) getRemediationStatus() map[string]interface{} {
 	return map[string]interface{}{
-		"total_actions":      45,
-		"completed_actions":  35,
+		"total_actions":       45,
+		"completed_actions":   35,
 		"in_progress_actions": 8,
-		"overdue_actions":    2,
-		"completion_rate":    77.8,
+		"overdue_actions":     2,
+		"completion_rate":     77.8,
 	}
 }
 
@@ -911,60 +911,92 @@ func (cs *ComplianceSuite) calculateAuditEffectiveness() float64 {
 
 // Placeholder types and structures for comprehensive compliance system
 type ComplianceConfig struct {
-	Compliance          *ComplianceManagerConfig
-	Audit               *AuditManagerConfig
-	Certification       *CertificationConfig
-	Risk                *RiskConfig
-	Policy              *PolicyConfig
-	Controls            *ControlsConfig
-	DataGovernance      *DataGovernanceConfig
-	Privacy             *PrivacyConfig
-	Security            *SecurityConfig
-	Regulatory          *RegulatoryConfig
-	Industry            *IndustryConfig
-	AuditTrail          *AuditTrailConfig
-	Reporting           *ReportingConfig
-	Monitoring          *MonitoringConfig
-	Remediation         *RemediationConfig
-	Training            *TrainingConfig
-	Vendor              *VendorConfig
-	Incident            *IncidentConfig
-	Assessment          *AssessmentConfig
+	Compliance           *ComplianceManagerConfig
+	Audit                *AuditManagerConfig
+	Certification        *CertificationConfig
+	Risk                 *RiskConfig
+	Policy               *PolicyConfig
+	Controls             *ControlsConfig
+	DataGovernance       *DataGovernanceConfig
+	Privacy              *PrivacyConfig
+	Security             *SecurityConfig
+	Regulatory           *RegulatoryConfig
+	Industry             *IndustryConfig
+	AuditTrail           *AuditTrailConfig
+	Reporting            *ReportingConfig
+	Monitoring           *MonitoringConfig
+	Remediation          *RemediationConfig
+	Training             *TrainingConfig
+	Vendor               *VendorConfig
+	Incident             *IncidentConfig
+	Assessment           *AssessmentConfig
 	ContinuousMonitoring *ContinuousMonitoringConfig
-	Portal              *PortalConfig
-	Analytics           *AnalyticsConfig
+	Portal               *PortalConfig
+	Analytics            *AnalyticsConfig
 }
 
 type ComplianceMetrics struct {
-	Frameworks      *FrameworkMetrics
-	Certifications  *CertificationMetrics
-	Audits          *AuditMetrics
-	Risk            *RiskMetrics
-	Controls        *ControlMetrics
-	Training        *TrainingMetrics
-	Incidents       *IncidentMetrics
-	Performance     *CompliancePerformanceMetrics
-	Timestamp       time.Time
+	Frameworks     *FrameworkMetrics
+	Certifications *CertificationMetrics
+	Audits         *AuditMetrics
+	Risk           *RiskMetrics
+	Controls       *ControlMetrics
+	Training       *TrainingMetrics
+	Incidents      *IncidentMetrics
+	Performance    *CompliancePerformanceMetrics
+	Timestamp      time.Time
 }
 
 // Many more types would be needed for full implementation...
 // Constructor functions for placeholder components
-func NewRiskManager(config *RiskConfig, logger *zap.Logger) *RiskManager { return &RiskManager{} }
+func NewRiskManager(config *RiskConfig, logger *zap.Logger) *RiskManager     { return &RiskManager{} }
 func NewPolicyEngine(config *PolicyConfig, logger *zap.Logger) *PolicyEngine { return &PolicyEngine{} }
-func NewControlsManager(config *ControlsConfig, logger *zap.Logger) *ControlsManager { return &ControlsManager{} }
-func NewDataGovernance(config *DataGovernanceConfig, logger *zap.Logger) *DataGovernance { return &DataGovernance{} }
-func NewPrivacyManager(config *PrivacyConfig, logger *zap.Logger) *PrivacyManager { return &PrivacyManager{} }
-func NewSecurityCompliance(config *SecurityConfig, logger *zap.Logger) *SecurityCompliance { return &SecurityCompliance{} }
-func NewRegulatoryCompliance(config *RegulatoryConfig, logger *zap.Logger) *RegulatoryCompliance { return &RegulatoryCompliance{} }
-func NewIndustryCompliance(config *IndustryConfig, logger *zap.Logger) *IndustryCompliance { return &IndustryCompliance{} }
+func NewControlsManager(config *ControlsConfig, logger *zap.Logger) *ControlsManager {
+	return &ControlsManager{}
+}
+func NewDataGovernance(config *DataGovernanceConfig, logger *zap.Logger) *DataGovernance {
+	return &DataGovernance{}
+}
+func NewPrivacyManager(config *PrivacyConfig, logger *zap.Logger) *PrivacyManager {
+	return &PrivacyManager{}
+}
+func NewSecurityCompliance(config *SecurityConfig, logger *zap.Logger) *SecurityCompliance {
+	return &SecurityCompliance{}
+}
+func NewRegulatoryCompliance(config *RegulatoryConfig, logger *zap.Logger) *RegulatoryCompliance {
+	return &RegulatoryCompliance{}
+}
+func NewIndustryCompliance(config *IndustryConfig, logger *zap.Logger) *IndustryCompliance {
+	return &IndustryCompliance{}
+}
 func NewAuditTrail(config *AuditTrailConfig, logger *zap.Logger) *AuditTrail { return &AuditTrail{} }
-func NewComplianceReporting(config *ReportingConfig, logger *zap.Logger) *ComplianceReporting { return &ComplianceReporting{} }
-func NewComplianceMonitoring(config *MonitoringConfig, logger *zap.Logger) *ComplianceMonitoring { return &ComplianceMonitoring{} }
-func NewRemediationEngine(config *RemediationConfig, logger *zap.Logger) *RemediationEngine { return &RemediationEngine{} }
-func NewComplianceTraining(config *TrainingConfig, logger *zap.Logger) *ComplianceTraining { return &ComplianceTraining{} }
-func NewVendorCompliance(config *VendorConfig, logger *zap.Logger) *VendorCompliance { return &VendorCompliance{} }
-func NewComplianceIncident(config *IncidentConfig, logger *zap.Logger) *ComplianceIncident { return &ComplianceIncident{} }
-func NewComplianceAssessment(config *AssessmentConfig, logger *zap.Logger) *ComplianceAssessment { return &ComplianceAssessment{} }
-func NewContinuousMonitoring(config *ContinuousMonitoringConfig, logger *zap.Logger) *ContinuousMonitoring { return &ContinuousMonitoring{} }
-func NewCertificationPortal(config *PortalConfig, logger *zap.Logger) *CertificationPortal { return &CertificationPortal{} }
-func NewComplianceAnalytics(config *AnalyticsConfig, logger *zap.Logger) *ComplianceAnalytics { return &ComplianceAnalytics{} }
+func NewComplianceReporting(config *ReportingConfig, logger *zap.Logger) *ComplianceReporting {
+	return &ComplianceReporting{}
+}
+func NewComplianceMonitoring(config *MonitoringConfig, logger *zap.Logger) *ComplianceMonitoring {
+	return &ComplianceMonitoring{}
+}
+func NewRemediationEngine(config *RemediationConfig, logger *zap.Logger) *RemediationEngine {
+	return &RemediationEngine{}
+}
+func NewComplianceTraining(config *TrainingConfig, logger *zap.Logger) *ComplianceTraining {
+	return &ComplianceTraining{}
+}
+func NewVendorCompliance(config *VendorConfig, logger *zap.Logger) *VendorCompliance {
+	return &VendorCompliance{}
+}
+func NewComplianceIncident(config *IncidentConfig, logger *zap.Logger) *ComplianceIncident {
+	return &ComplianceIncident{}
+}
+func NewComplianceAssessment(config *AssessmentConfig, logger *zap.Logger) *ComplianceAssessment {
+	return &ComplianceAssessment{}
+}
+func NewContinuousMonitoring(config *ContinuousMonitoringConfig, logger *zap.Logger) *ContinuousMonitoring {
+	return &ContinuousMonitoring{}
+}
+func NewCertificationPortal(config *PortalConfig, logger *zap.Logger) *CertificationPortal {
+	return &CertificationPortal{}
+}
+func NewComplianceAnalytics(config *AnalyticsConfig, logger *zap.Logger) *ComplianceAnalytics {
+	return &ComplianceAnalytics{}
+}

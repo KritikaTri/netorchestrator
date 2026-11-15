@@ -13,11 +13,11 @@ import (
 
 // Prometheus represents a Prometheus monitoring client
 type Prometheus struct {
-	registry              *prometheus.Registry
-	httpRequestsTotal     *prometheus.CounterVec
-	httpRequestDuration   *prometheus.HistogramVec
-	httpRequestsInFlight  prometheus.Gauge
-	logger                *zap.Logger
+	registry             *prometheus.Registry
+	httpRequestsTotal    *prometheus.CounterVec
+	httpRequestDuration  *prometheus.HistogramVec
+	httpRequestsInFlight prometheus.Gauge
+	logger               *zap.Logger
 }
 
 // NewPrometheus creates a new Prometheus monitoring client

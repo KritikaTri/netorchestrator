@@ -21,16 +21,16 @@ type ServiceRegistry struct {
 
 // ServiceInfo represents a registered service
 type ServiceInfo struct {
-	ID          string            `json:"id"`
-	Name        string            `json:"name"`
-	Version     string            `json:"version"`
-	Address     string            `json:"address"`
-	Port        int               `json:"port"`
-	Health      string            `json:"health"`      // healthy, unhealthy, unknown
-	LastSeen    time.Time         `json:"last_seen"`
-	Metadata    map[string]string `json:"metadata"`
-	Endpoints   []string          `json:"endpoints"`
-	Tags        []string          `json:"tags"`
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Version   string            `json:"version"`
+	Address   string            `json:"address"`
+	Port      int               `json:"port"`
+	Health    string            `json:"health"` // healthy, unhealthy, unknown
+	LastSeen  time.Time         `json:"last_seen"`
+	Metadata  map[string]string `json:"metadata"`
+	Endpoints []string          `json:"endpoints"`
+	Tags      []string          `json:"tags"`
 }
 
 // HealthCheck represents a service health check configuration
@@ -142,7 +142,7 @@ func (sr *ServiceRegistry) performHealthChecks() {
 // checkServiceHealth performs a health check on a single service
 func (sr *ServiceRegistry) checkServiceHealth(service *ServiceInfo) {
 	healthURL := fmt.Sprintf("http://%s:%d/health", service.Address, service.Port)
-	
+
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -194,7 +194,7 @@ func (sr *ServiceRegistry) GetServiceStats() map[string]interface{} {
 	}
 
 	servicesByType := make(map[string]int)
-	
+
 	for _, service := range sr.services {
 		switch service.Health {
 		case "healthy":
@@ -204,10 +204,10 @@ func (sr *ServiceRegistry) GetServiceStats() map[string]interface{} {
 		default:
 			stats["unknown_services"] = stats["unknown_services"].(int) + 1
 		}
-		
+
 		servicesByType[service.Name]++
 	}
-	
+
 	stats["services_by_type"] = servicesByType
 	return stats
 }

@@ -23,15 +23,15 @@ type APICallExecutor struct {
 
 // APICallConfig represents API call configuration
 type APICallConfig struct {
-	URL         string            `json:"url"`
-	Method      string            `json:"method"`
-	Headers     map[string]string `json:"headers"`
-	Body        interface{}       `json:"body"`
-	Timeout     time.Duration     `json:"timeout"`
-	Retry       int               `json:"retry"`
-	RetryDelay  time.Duration     `json:"retry_delay"`
-	ExpectedCode int              `json:"expected_code"`
-	Auth        AuthConfig        `json:"auth"`
+	URL          string            `json:"url"`
+	Method       string            `json:"method"`
+	Headers      map[string]string `json:"headers"`
+	Body         interface{}       `json:"body"`
+	Timeout      time.Duration     `json:"timeout"`
+	Retry        int               `json:"retry"`
+	RetryDelay   time.Duration     `json:"retry_delay"`
+	ExpectedCode int               `json:"expected_code"`
+	Auth         AuthConfig        `json:"auth"`
 }
 
 // AuthConfig represents authentication configuration
@@ -239,11 +239,11 @@ type ScriptExecutor struct {
 
 // ScriptConfig represents script execution configuration
 type ScriptConfig struct {
-	Script      string            `json:"script"`       // Script content or path
-	Interpreter string            `json:"interpreter"`  // bash, sh, python, etc.
-	WorkingDir  string            `json:"working_dir"`  // Working directory
-	Environment map[string]string `json:"environment"`  // Environment variables
-	Timeout     time.Duration     `json:"timeout"`      // Execution timeout
+	Script      string            `json:"script"`      // Script content or path
+	Interpreter string            `json:"interpreter"` // bash, sh, python, etc.
+	WorkingDir  string            `json:"working_dir"` // Working directory
+	Environment map[string]string `json:"environment"` // Environment variables
+	Timeout     time.Duration     `json:"timeout"`     // Execution timeout
 }
 
 // NewScriptExecutor creates a new script executor

@@ -34,21 +34,21 @@ func (s CircuitState) String() string {
 
 // CircuitBreakerConfig holds configuration for a circuit breaker
 type CircuitBreakerConfig struct {
-	MaxRequests         uint32        `json:"max_requests"`          // Max requests allowed in half-open state
-	Interval            time.Duration `json:"interval"`              // Interval to clear the internal counts
-	Timeout             time.Duration `json:"timeout"`               // Timeout to open the circuit breaker
-	ReadyToTrip         func(counts Counts) bool `json:"-"`        // Function to determine when to trip
-	OnStateChange       func(name string, from CircuitState, to CircuitState) `json:"-"` // Callback for state changes
-	IsSuccessful        func(err error) bool `json:"-"`           // Function to determine if request was successful
+	MaxRequests   uint32                                                `json:"max_requests"` // Max requests allowed in half-open state
+	Interval      time.Duration                                         `json:"interval"`     // Interval to clear the internal counts
+	Timeout       time.Duration                                         `json:"timeout"`      // Timeout to open the circuit breaker
+	ReadyToTrip   func(counts Counts) bool                              `json:"-"`            // Function to determine when to trip
+	OnStateChange func(name string, from CircuitState, to CircuitState) `json:"-"`            // Callback for state changes
+	IsSuccessful  func(err error) bool                                  `json:"-"`            // Function to determine if request was successful
 }
 
 // Counts holds the numbers of requests and their successes/failures
 type Counts struct {
-	Requests             uint32    `json:"requests"`
-	TotalSuccesses       uint32    `json:"total_successes"`
-	TotalFailures        uint32    `json:"total_failures"`
-	ConsecutiveSuccesses uint32    `json:"consecutive_successes"`
-	ConsecutiveFailures  uint32    `json:"consecutive_failures"`
+	Requests             uint32 `json:"requests"`
+	TotalSuccesses       uint32 `json:"total_successes"`
+	TotalFailures        uint32 `json:"total_failures"`
+	ConsecutiveSuccesses uint32 `json:"consecutive_successes"`
+	ConsecutiveFailures  uint32 `json:"consecutive_failures"`
 }
 
 // CircuitBreaker implements the circuit breaker pattern

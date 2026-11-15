@@ -44,37 +44,37 @@ type Alert struct {
 
 // AlertRule represents a rule that can trigger alerts
 type AlertRule struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Query       string                 `json:"query"`
-	Condition   string                 `json:"condition"`
-	Threshold   float64                `json:"threshold"`
-	Duration    time.Duration          `json:"duration"`
-	Severity    AlertSeverity          `json:"severity"`
-	Enabled     bool                   `json:"enabled"`
-	Labels      map[string]string      `json:"labels"`
-	Annotations map[string]string      `json:"annotations"`
-	LastEval    time.Time              `json:"last_eval"`
-	NextEval    time.Time              `json:"next_eval"`
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Query       string            `json:"query"`
+	Condition   string            `json:"condition"`
+	Threshold   float64           `json:"threshold"`
+	Duration    time.Duration     `json:"duration"`
+	Severity    AlertSeverity     `json:"severity"`
+	Enabled     bool              `json:"enabled"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	LastEval    time.Time         `json:"last_eval"`
+	NextEval    time.Time         `json:"next_eval"`
 }
 
 // NotificationChannel represents a notification delivery channel
 type NotificationChannel struct {
-	ID       string            `json:"id"`
-	Name     string            `json:"name"`
-	Type     string            `json:"type"` // slack, email, webhook, pagerduty
-	Config   map[string]string `json:"config"`
-	Enabled  bool              `json:"enabled"`
+	ID      string            `json:"id"`
+	Name    string            `json:"name"`
+	Type    string            `json:"type"` // slack, email, webhook, pagerduty
+	Config  map[string]string `json:"config"`
+	Enabled bool              `json:"enabled"`
 }
 
 // AlertManager manages alerts and notifications
 type AlertManager struct {
-	alerts              map[string]*Alert
-	rules               map[string]*AlertRule
-	channels            map[string]*NotificationChannel
-	logger              *zap.Logger
-	httpClient          *http.Client
+	alerts     map[string]*Alert
+	rules      map[string]*AlertRule
+	channels   map[string]*NotificationChannel
+	logger     *zap.Logger
+	httpClient *http.Client
 }
 
 // NewAlertManager creates a new alert manager
@@ -193,8 +193,8 @@ func (am *AlertManager) Initialize() {
 			"smtp_port":     "587",
 			"smtp_username": "alerts@company.com",
 			"smtp_password": "password",
-			"to":           "ops-team@company.com",
-			"from":         "netorchestrator@company.com",
+			"to":            "ops-team@company.com",
+			"from":          "netorchestrator@company.com",
 		},
 		Enabled: true,
 	})
@@ -303,15 +303,15 @@ func (am *AlertManager) sendToSlack(alert *Alert, channel *NotificationChannel) 
 	}
 
 	color := am.getSeverityColor(alert.Severity)
-	
+
 	payload := map[string]interface{}{
-		"channel":   channel.Config["channel"],
-		"username":  channel.Config["username"],
+		"channel":  channel.Config["channel"],
+		"username": channel.Config["username"],
 		"attachments": []map[string]interface{}{
 			{
-				"color":      color,
-				"title":      fmt.Sprintf("🚨 %s", alert.Title),
-				"text":       alert.Description,
+				"color": color,
+				"title": fmt.Sprintf("🚨 %s", alert.Title),
+				"text":  alert.Description,
 				"fields": []map[string]interface{}{
 					{"title": "Severity", "value": string(alert.Severity), "short": true},
 					{"title": "Source", "value": alert.Source, "short": true},
@@ -445,9 +445,9 @@ func (am *AlertManager) evaluateRules() {
 func (am *AlertManager) simulateRuleEvaluation(rule *AlertRule) {
 	// This is a placeholder implementation
 	// In reality, you would query your metrics store (Prometheus) here
-	
+
 	shouldAlert := false
-	
+
 	// Simple simulation based on time for demo purposes
 	now := time.Now()
 	if strings.Contains(rule.ID, "cpu") && now.Second()%30 < 5 {
@@ -459,7 +459,7 @@ func (am *AlertManager) simulateRuleEvaluation(rule *AlertRule) {
 	if shouldAlert {
 		am.TriggerAlert(
 			rule.Name,
-			fmt.Sprintf("Rule '%s' condition met: %s %s %.1f", 
+			fmt.Sprintf("Rule '%s' condition met: %s %s %.1f",
 				rule.Name, rule.Query, rule.Condition, rule.Threshold),
 			"alert_manager",
 			rule.Severity,

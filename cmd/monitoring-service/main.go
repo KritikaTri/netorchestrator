@@ -21,14 +21,14 @@ import (
 
 // MonitoringService provides comprehensive monitoring capabilities
 type MonitoringService struct {
-	server       *http.Server
-	router       *gin.Engine
-	logger       *zap.Logger
-	config       *MonitoringConfig
-	metrics      *MonitoringMetrics
+	server        *http.Server
+	router        *gin.Engine
+	logger        *zap.Logger
+	config        *MonitoringConfig
+	metrics       *MonitoringMetrics
 	observability *observability.ObservabilityPlatform
-	ctx          context.Context
-	cancel       context.CancelFunc
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 // MonitoringConfig holds the configuration for the monitoring service
@@ -58,30 +58,30 @@ type MonitoringMetrics struct {
 // NewMonitoringService creates a new monitoring service
 func NewMonitoringService(config *MonitoringConfig, logger *zap.Logger) *MonitoringService {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	service := &MonitoringService{
 		logger: logger,
 		config: config,
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	
+
 	// Initialize metrics
 	service.initializeMetrics()
-	
+
 	// Initialize observability platform
 	obsConfig := observability.DefaultObservabilityConfig()
 	service.observability = observability.NewObservabilityPlatform(obsConfig, logger.Named("observability"))
-	
+
 	// Setup HTTP router
 	service.setupRouter()
-	
+
 	// Setup HTTP server
 	service.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Port),
 		Handler: service.router,
 	}
-	
+
 	return service
 }
 
@@ -131,7 +131,7 @@ func (ms *MonitoringService) initializeMetrics() {
 			[]string{"metric", "instance"},
 		),
 	}
-	
+
 	// Register metrics with Prometheus
 	prometheus.MustRegister(
 		ms.metrics.RequestsTotal,
@@ -150,21 +150,21 @@ func (ms *MonitoringService) setupRouter() {
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	
+
 	ms.router = gin.New()
 	ms.router.Use(gin.Logger(), gin.Recovery())
-	
+
 	// Add metrics middleware
 	ms.router.Use(ms.metricsMiddleware())
-	
+
 	// Health check endpoint
 	ms.router.GET(ms.config.HealthPath, ms.healthCheck)
-	
+
 	// Metrics endpoint
 	if ms.config.PrometheusEnabled {
 		ms.router.GET(ms.config.MetricsPath, gin.WrapH(promhttp.Handler()))
 	}
-	
+
 	// Monitoring API endpoints
 	api := ms.router.Group("/api/v1")
 	{
@@ -178,7 +178,7 @@ func (ms *MonitoringService) setupRouter() {
 		api.GET("/traces", ms.getTraces)
 		api.GET("/system", ms.getSystemMetrics)
 	}
-	
+
 	// WebSocket endpoint for real-time monitoring
 	ms.router.GET("/ws/monitoring", ms.handleWebSocket)
 }
@@ -187,21 +187,21 @@ func (ms *MonitoringService) setupRouter() {
 func (ms *MonitoringService) metricsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		
+
 		ms.metrics.ActiveConnections.Inc()
 		defer ms.metrics.ActiveConnections.Dec()
-		
+
 		c.Next()
-		
+
 		duration := time.Since(start).Seconds()
 		status := fmt.Sprintf("%d", c.Writer.Status())
-		
+
 		ms.metrics.RequestsTotal.WithLabelValues(
 			c.Request.Method,
 			c.FullPath(),
 			status,
 		).Inc()
-		
+
 		ms.metrics.RequestDuration.WithLabelValues(
 			c.Request.Method,
 			c.FullPath(),
@@ -223,7 +223,7 @@ func (ms *MonitoringService) healthCheck(c *gin.Context) {
 			"storage":    "healthy",
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, health)
 }
 
@@ -254,7 +254,7 @@ func (ms *MonitoringService) getServices(c *gin.Context) {
 			"url":    "http://localhost:8083",
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"services": services,
 		"total":    len(services),
@@ -263,59 +263,59 @@ func (ms *MonitoringService) getServices(c *gin.Context) {
 
 func (ms *MonitoringService) getServiceHealth(c *gin.Context) {
 	service := c.Param("service")
-	
+
 	health := map[string]interface{}{
-		"service":     service,
-		"status":      "healthy",
-		"health":      1.0,
-		"timestamp":   time.Now().UTC(),
+		"service":       service,
+		"status":        "healthy",
+		"health":        1.0,
+		"timestamp":     time.Now().UTC(),
 		"response_time": "5ms",
-		"errors":      0,
-		"uptime":      "99.99%",
+		"errors":        0,
+		"uptime":        "99.99%",
 	}
-	
+
 	c.JSON(http.StatusOK, health)
 }
 
 func (ms *MonitoringService) getServiceMetrics(c *gin.Context) {
 	service := c.Param("service")
-	
+
 	metrics := map[string]interface{}{
-		"service":         service,
-		"requests_total":  1000,
-		"errors_total":    5,
-		"response_time":   50.5,
-		"cpu_usage":       25.5,
-		"memory_usage":    512.0,
-		"disk_usage":      75.0,
-		"network_in":      1024.0,
-		"network_out":     2048.0,
-		"timestamp":       time.Now().UTC(),
+		"service":        service,
+		"requests_total": 1000,
+		"errors_total":   5,
+		"response_time":  50.5,
+		"cpu_usage":      25.5,
+		"memory_usage":   512.0,
+		"disk_usage":     75.0,
+		"network_in":     1024.0,
+		"network_out":    2048.0,
+		"timestamp":      time.Now().UTC(),
 	}
-	
+
 	c.JSON(http.StatusOK, metrics)
 }
 
 func (ms *MonitoringService) getAlerts(c *gin.Context) {
 	alerts := []map[string]interface{}{
 		{
-			"id":          "alert-001",
-			"service":     "api-gateway",
-			"severity":    "warning",
-			"message":     "High response time detected",
-			"timestamp":   time.Now().UTC().Add(-5 * time.Minute),
-			"status":      "active",
+			"id":        "alert-001",
+			"service":   "api-gateway",
+			"severity":  "warning",
+			"message":   "High response time detected",
+			"timestamp": time.Now().UTC().Add(-5 * time.Minute),
+			"status":    "active",
 		},
 		{
-			"id":          "alert-002",
-			"service":     "network-service",
-			"severity":    "info",
-			"message":     "Service restarted",
-			"timestamp":   time.Now().UTC().Add(-10 * time.Minute),
-			"status":      "resolved",
+			"id":        "alert-002",
+			"service":   "network-service",
+			"severity":  "info",
+			"message":   "Service restarted",
+			"timestamp": time.Now().UTC().Add(-10 * time.Minute),
+			"status":    "resolved",
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"alerts": alerts,
 		"total":  len(alerts),
@@ -328,36 +328,36 @@ func (ms *MonitoringService) createAlert(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
-	
+
 	alert["id"] = fmt.Sprintf("alert-%d", time.Now().Unix())
 	alert["timestamp"] = time.Now().UTC()
 	alert["status"] = "active"
-	
+
 	c.JSON(http.StatusCreated, alert)
 }
 
 func (ms *MonitoringService) getDashboards(c *gin.Context) {
 	dashboards := []map[string]interface{}{
 		{
-			"id":    "dashboard-system",
-			"name":  "System Overview",
-			"type":  "system",
-			"url":   "/dashboards/system",
+			"id":   "dashboard-system",
+			"name": "System Overview",
+			"type": "system",
+			"url":  "/dashboards/system",
 		},
 		{
-			"id":    "dashboard-services",
-			"name":  "Services Health",
-			"type":  "services",
-			"url":   "/dashboards/services",
+			"id":   "dashboard-services",
+			"name": "Services Health",
+			"type": "services",
+			"url":  "/dashboards/services",
 		},
 		{
-			"id":    "dashboard-performance",
-			"name":  "Performance Metrics",
-			"type":  "performance",
-			"url":   "/dashboards/performance",
+			"id":   "dashboard-performance",
+			"name": "Performance Metrics",
+			"type": "performance",
+			"url":  "/dashboards/performance",
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"dashboards": dashboards,
 		"total":      len(dashboards),
@@ -368,7 +368,7 @@ func (ms *MonitoringService) getLogs(c *gin.Context) {
 	service := c.Query("service")
 	level := c.Query("level")
 	limit := c.DefaultQuery("limit", "100")
-	
+
 	logs := []map[string]interface{}{
 		{
 			"timestamp": time.Now().UTC(),
@@ -378,7 +378,7 @@ func (ms *MonitoringService) getLogs(c *gin.Context) {
 			"context":   map[string]string{"request_id": "req-123"},
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"logs":  logs,
 		"total": len(logs),
@@ -397,7 +397,7 @@ func (ms *MonitoringService) getTraces(c *gin.Context) {
 			"timestamp": time.Now().UTC(),
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"traces": traces,
 		"total":  len(traces),
@@ -424,14 +424,14 @@ func (ms *MonitoringService) getSystemMetrics(c *gin.Context) {
 			"usage":     75.0,
 		},
 		"network": map[string]interface{}{
-			"bytes_in":  1024000,
-			"bytes_out": 2048000,
-			"packets_in": 1000,
+			"bytes_in":    1024000,
+			"bytes_out":   2048000,
+			"packets_in":  1000,
 			"packets_out": 1500,
 		},
 		"timestamp": time.Now().UTC(),
 	}
-	
+
 	c.JSON(http.StatusOK, metrics)
 }
 
@@ -445,19 +445,19 @@ func (ms *MonitoringService) handleWebSocket(c *gin.Context) {
 // Start starts the monitoring service
 func (ms *MonitoringService) Start() error {
 	ms.logger.Info("Starting monitoring service", zap.Int("port", ms.config.Port))
-	
+
 	// Start observability platform
 	if err := ms.observability.Start(ms.ctx); err != nil {
 		return fmt.Errorf("failed to start observability platform: %w", err)
 	}
-	
+
 	// Start HTTP server
 	go func() {
 		if err := ms.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			ms.logger.Error("Failed to start HTTP server", zap.Error(err))
 		}
 	}()
-	
+
 	ms.logger.Info("Monitoring service started successfully")
 	return nil
 }
@@ -465,15 +465,15 @@ func (ms *MonitoringService) Start() error {
 // Stop gracefully shuts down the monitoring service
 func (ms *MonitoringService) Stop() error {
 	ms.logger.Info("Stopping monitoring service")
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), ms.config.ShutdownTimeout)
 	defer cancel()
-	
+
 	if err := ms.server.Shutdown(ctx); err != nil {
 		ms.logger.Error("Failed to shutdown HTTP server", zap.Error(err))
 		return err
 	}
-	
+
 	ms.cancel()
 	ms.logger.Info("Monitoring service stopped")
 	return nil
@@ -502,29 +502,29 @@ func main() {
 		log.Fatal("Failed to create logger:", err)
 	}
 	defer logger.Sync()
-	
+
 	// Load configuration
 	config := DefaultMonitoringConfig()
-	
+
 	// Create monitoring service
 	service := NewMonitoringService(config, logger)
-	
+
 	// Start service
 	if err := service.Start(); err != nil {
 		logger.Fatal("Failed to start monitoring service", zap.Error(err))
 	}
-	
+
 	// Wait for shutdown signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	
+
 	logger.Info("Monitoring service is running. Press Ctrl+C to stop.")
 	<-sigChan
-	
+
 	// Stop service
 	if err := service.Stop(); err != nil {
 		logger.Error("Error stopping monitoring service", zap.Error(err))
 	}
-	
+
 	logger.Info("Monitoring service shutdown complete")
 }

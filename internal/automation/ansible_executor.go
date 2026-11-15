@@ -18,23 +18,23 @@ type AnsibleExecutor struct {
 
 // AnsibleConfig represents Ansible task configuration
 type AnsibleConfig struct {
-	Action       string                 `json:"action"`       // playbook, ad-hoc, vault
-	Playbook     string                 `json:"playbook"`     // Path to playbook
-	Inventory    string                 `json:"inventory"`    // Inventory file or inline
-	ExtraVars    map[string]interface{} `json:"extra_vars"`   // Extra variables
-	Tags         []string               `json:"tags"`         // Tags to run
-	SkipTags     []string               `json:"skip_tags"`    // Tags to skip
-	Limit        string                 `json:"limit"`        // Limit to specific hosts
-	Check        bool                   `json:"check"`        // Dry run mode
-	Diff         bool                   `json:"diff"`         // Show diffs
-	Verbose      int                    `json:"verbose"`      // Verbosity level (0-4)
-	PrivateKey   string                 `json:"private_key"`  // SSH private key path
-	User         string                 `json:"user"`         // Remote user
-	BecomeUser   string                 `json:"become_user"`  // Become user (sudo)
-	Become       bool                   `json:"become"`       // Use privilege escalation
-	Module       string                 `json:"module"`       // Module for ad-hoc commands
-	ModuleArgs   string                 `json:"module_args"`  // Module arguments
-	VaultPassFile string                `json:"vault_pass_file"` // Vault password file
+	Action        string                 `json:"action"`          // playbook, ad-hoc, vault
+	Playbook      string                 `json:"playbook"`        // Path to playbook
+	Inventory     string                 `json:"inventory"`       // Inventory file or inline
+	ExtraVars     map[string]interface{} `json:"extra_vars"`      // Extra variables
+	Tags          []string               `json:"tags"`            // Tags to run
+	SkipTags      []string               `json:"skip_tags"`       // Tags to skip
+	Limit         string                 `json:"limit"`           // Limit to specific hosts
+	Check         bool                   `json:"check"`           // Dry run mode
+	Diff          bool                   `json:"diff"`            // Show diffs
+	Verbose       int                    `json:"verbose"`         // Verbosity level (0-4)
+	PrivateKey    string                 `json:"private_key"`     // SSH private key path
+	User          string                 `json:"user"`            // Remote user
+	BecomeUser    string                 `json:"become_user"`     // Become user (sudo)
+	Become        bool                   `json:"become"`          // Use privilege escalation
+	Module        string                 `json:"module"`          // Module for ad-hoc commands
+	ModuleArgs    string                 `json:"module_args"`     // Module arguments
+	VaultPassFile string                 `json:"vault_pass_file"` // Vault password file
 }
 
 // AnsibleOutput represents Ansible execution output
@@ -122,10 +122,10 @@ func (ae *AnsibleExecutor) Execute(ctx context.Context, task *TaskExecution, def
 	// Store output in task execution
 	task.Output["ansible_output"] = output
 	task.ExecutionDetails = map[string]interface{}{
-		"action":     config.Action,
-		"playbook":   config.Playbook,
-		"inventory":  config.Inventory,
-		"exit_code":  output.ExitCode,
+		"action":      config.Action,
+		"playbook":    config.Playbook,
+		"inventory":   config.Inventory,
+		"exit_code":   output.ExitCode,
 		"has_changes": ae.hasChanges(output),
 	}
 
@@ -156,59 +156,59 @@ func (ae *AnsibleExecutor) runPlaybook(ctx context.Context, config *AnsibleConfi
 	}
 
 	args := []string{"ansible-playbook"}
-	
+
 	// Add inventory
 	if config.Inventory != "" {
 		args = append(args, "-i", config.Inventory)
 	}
-	
+
 	// Add extra vars
 	if len(config.ExtraVars) > 0 {
 		extraVarsJSON, _ := json.Marshal(config.ExtraVars)
 		args = append(args, "--extra-vars", string(extraVarsJSON))
 	}
-	
+
 	// Add tags
 	if len(config.Tags) > 0 {
 		args = append(args, "--tags", strings.Join(config.Tags, ","))
 	}
-	
+
 	// Add skip tags
 	if len(config.SkipTags) > 0 {
 		args = append(args, "--skip-tags", strings.Join(config.SkipTags, ","))
 	}
-	
+
 	// Add limit
 	if config.Limit != "" {
 		args = append(args, "--limit", config.Limit)
 	}
-	
+
 	// Add check mode
 	if config.Check {
 		args = append(args, "--check")
 	}
-	
+
 	// Add diff
 	if config.Diff {
 		args = append(args, "--diff")
 	}
-	
+
 	// Add verbosity
 	if config.Verbose > 0 {
 		verbosity := strings.Repeat("v", config.Verbose)
 		args = append(args, "-"+verbosity)
 	}
-	
+
 	// Add private key
 	if config.PrivateKey != "" {
 		args = append(args, "--private-key", config.PrivateKey)
 	}
-	
+
 	// Add user
 	if config.User != "" {
 		args = append(args, "-u", config.User)
 	}
-	
+
 	// Add become
 	if config.Become {
 		args = append(args, "--become")
@@ -216,12 +216,12 @@ func (ae *AnsibleExecutor) runPlaybook(ctx context.Context, config *AnsibleConfi
 			args = append(args, "--become-user", config.BecomeUser)
 		}
 	}
-	
+
 	// Add vault password file
 	if config.VaultPassFile != "" {
 		args = append(args, "--vault-password-file", config.VaultPassFile)
 	}
-	
+
 	// Add playbook path
 	args = append(args, config.Playbook)
 
@@ -230,7 +230,7 @@ func (ae *AnsibleExecutor) runPlaybook(ctx context.Context, config *AnsibleConfi
 	task.Logs = append(task.Logs, fmt.Sprintf("Running: %s", strings.Join(args, " ")))
 
 	stdout, stderr, exitCode := ae.runCommand(cmd)
-	
+
 	output := &AnsibleOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -256,20 +256,20 @@ func (ae *AnsibleExecutor) runAdHoc(ctx context.Context, config *AnsibleConfig, 
 	}
 
 	args := []string{"ansible", "all"}
-	
+
 	// Add inventory
 	if config.Inventory != "" {
 		args = append(args, "-i", config.Inventory)
 	}
-	
+
 	// Add module
 	args = append(args, "-m", config.Module)
-	
+
 	// Add module args
 	if config.ModuleArgs != "" {
 		args = append(args, "-a", config.ModuleArgs)
 	}
-	
+
 	// Add limit
 	if config.Limit != "" {
 		args = []string{"ansible", config.Limit}
@@ -278,12 +278,12 @@ func (ae *AnsibleExecutor) runAdHoc(ctx context.Context, config *AnsibleConfig, 
 			args = append(args, "-a", config.ModuleArgs)
 		}
 	}
-	
+
 	// Add user
 	if config.User != "" {
 		args = append(args, "-u", config.User)
 	}
-	
+
 	// Add become
 	if config.Become {
 		args = append(args, "--become")
@@ -291,7 +291,7 @@ func (ae *AnsibleExecutor) runAdHoc(ctx context.Context, config *AnsibleConfig, 
 			args = append(args, "--become-user", config.BecomeUser)
 		}
 	}
-	
+
 	// Add private key
 	if config.PrivateKey != "" {
 		args = append(args, "--private-key", config.PrivateKey)
@@ -302,7 +302,7 @@ func (ae *AnsibleExecutor) runAdHoc(ctx context.Context, config *AnsibleConfig, 
 	task.Logs = append(task.Logs, fmt.Sprintf("Running ad-hoc: %s", strings.Join(args, " ")))
 
 	stdout, stderr, exitCode := ae.runCommand(cmd)
-	
+
 	output := &AnsibleOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -322,12 +322,12 @@ func (ae *AnsibleExecutor) runAdHoc(ctx context.Context, config *AnsibleConfig, 
 func (ae *AnsibleExecutor) runVault(ctx context.Context, config *AnsibleConfig, task *TaskExecution) (*AnsibleOutput, error) {
 	// Implementation for ansible-vault operations
 	args := []string{"ansible-vault"}
-	
+
 	// Add vault password file
 	if config.VaultPassFile != "" {
 		args = append(args, "--vault-password-file", config.VaultPassFile)
 	}
-	
+
 	// Add specific vault operation from module args
 	if config.ModuleArgs != "" {
 		vaultArgs := strings.Fields(config.ModuleArgs)
@@ -337,7 +337,7 @@ func (ae *AnsibleExecutor) runVault(ctx context.Context, config *AnsibleConfig, 
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 
 	stdout, stderr, exitCode := ae.runCommand(cmd)
-	
+
 	return &AnsibleOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -348,7 +348,7 @@ func (ae *AnsibleExecutor) runVault(ctx context.Context, config *AnsibleConfig, 
 // runGalaxy executes ansible galaxy operations
 func (ae *AnsibleExecutor) runGalaxy(ctx context.Context, config *AnsibleConfig, task *TaskExecution) (*AnsibleOutput, error) {
 	args := []string{"ansible-galaxy"}
-	
+
 	// Add specific galaxy operation from module args
 	if config.ModuleArgs != "" {
 		galaxyArgs := strings.Fields(config.ModuleArgs)
@@ -358,7 +358,7 @@ func (ae *AnsibleExecutor) runGalaxy(ctx context.Context, config *AnsibleConfig,
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 
 	stdout, stderr, exitCode := ae.runCommand(cmd)
-	
+
 	return &AnsibleOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -369,29 +369,29 @@ func (ae *AnsibleExecutor) runGalaxy(ctx context.Context, config *AnsibleConfig,
 // parseAnsibleOutput parses ansible output for structured data
 func (ae *AnsibleExecutor) parseAnsibleOutput(output *AnsibleOutput, stdout string) {
 	lines := strings.Split(stdout, "\n")
-	
+
 	// Initialize structures
 	output.PlayRecap = &AnsiblePlayRecap{
 		Hosts: make(map[string]AnsibleHostStats),
 	}
 	output.TaskResults = []AnsibleTaskResult{}
 	output.Stats = make(map[string]interface{})
-	
+
 	// Parse output line by line
 	inRecap := false
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// Look for play recap section
 		if strings.Contains(line, "PLAY RECAP") {
 			inRecap = true
 			continue
 		}
-		
+
 		if inRecap && line != "" && !strings.HasPrefix(line, "=") {
 			ae.parseRecapLine(line, output.PlayRecap)
 		}
-		
+
 		// Look for task results (simplified parsing)
 		if strings.Contains(line, "TASK [") || strings.Contains(line, "ok:") || strings.Contains(line, "changed:") || strings.Contains(line, "failed:") {
 			if taskResult := ae.parseTaskLine(line, i, lines); taskResult != nil {
@@ -408,12 +408,12 @@ func (ae *AnsibleExecutor) parseRecapLine(line string, recap *AnsiblePlayRecap) 
 	if len(parts) != 2 {
 		return
 	}
-	
+
 	hostname := strings.TrimSpace(parts[0])
 	statsPart := strings.TrimSpace(parts[1])
-	
+
 	stats := AnsibleHostStats{}
-	
+
 	// Parse stats
 	statItems := strings.Fields(statsPart)
 	for _, item := range statItems {
@@ -422,7 +422,7 @@ func (ae *AnsibleExecutor) parseRecapLine(line string, recap *AnsiblePlayRecap) 
 			if len(kv) == 2 {
 				key := kv[0]
 				value := parseInt(kv[1])
-				
+
 				switch key {
 				case "ok":
 					stats.Ok = value
@@ -442,7 +442,7 @@ func (ae *AnsibleExecutor) parseRecapLine(line string, recap *AnsiblePlayRecap) 
 			}
 		}
 	}
-	
+
 	recap.Hosts[hostname] = stats
 }
 
@@ -450,7 +450,7 @@ func (ae *AnsibleExecutor) parseRecapLine(line string, recap *AnsiblePlayRecap) 
 func (ae *AnsibleExecutor) parseTaskLine(line string, lineNum int, allLines []string) *AnsibleTaskResult {
 	// Simplified parsing - in reality this would be more complex
 	result := &AnsibleTaskResult{}
-	
+
 	if strings.Contains(line, "ok:") {
 		result.Status = "ok"
 	} else if strings.Contains(line, "changed:") {
@@ -462,14 +462,14 @@ func (ae *AnsibleExecutor) parseTaskLine(line string, lineNum int, allLines []st
 	} else {
 		return nil
 	}
-	
+
 	// Extract host name (simplified)
 	if idx := strings.Index(line, "["); idx != -1 {
 		if endIdx := strings.Index(line[idx:], "]"); endIdx != -1 {
 			result.Host = line[idx+1 : idx+endIdx]
 		}
 	}
-	
+
 	return result
 }
 
@@ -478,13 +478,13 @@ func (ae *AnsibleExecutor) hasChanges(output *AnsibleOutput) bool {
 	if output.PlayRecap == nil {
 		return false
 	}
-	
+
 	for _, stats := range output.PlayRecap.Hosts {
 		if stats.Changed > 0 {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -534,7 +534,7 @@ func (ae *AnsibleExecutor) Validate(definition *TaskDefinition) error {
 
 	validActions := []string{"playbook", "ad-hoc", "vault", "galaxy"}
 	action := definition.Action
-	
+
 	// If action is JSON, parse it
 	var config AnsibleConfig
 	if err := json.Unmarshal([]byte(definition.Action), &config); err == nil {

@@ -82,7 +82,7 @@ func createDemoWorkflows(engine *automation.AutomationEngine, logger *zap.Logger
 			},
 		},
 		Variables: map[string]interface{}{
-			"check_interval": "5m",
+			"check_interval":  "5m",
 			"alert_threshold": 3,
 		},
 		Schedule: "", // Manual execution for demo
@@ -258,7 +258,7 @@ func executeDemoWorkflow(engine *automation.AutomationEngine, logger *zap.Logger
 
 	// Monitor execution progress
 	fmt.Println("\n📈 Monitoring execution progress...")
-	
+
 	for i := 0; i < 30; i++ { // Wait up to 30 seconds
 		time.Sleep(1 * time.Second)
 

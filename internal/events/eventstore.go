@@ -95,16 +95,16 @@ type Saga struct {
 
 // SagaStep represents a step in a saga
 type SagaStep struct {
-	ID              string                 `json:"id"`
-	StepType        string                 `json:"step_type"`
-	Command         Command                `json:"command"`
-	CompensateCmd   *Command               `json:"compensate_command,omitempty"`
-	Status          string                 `json:"status"` // pending, completed, failed, compensated
-	RetryCount      int                    `json:"retry_count"`
-	MaxRetries      int                    `json:"max_retries"`
-	Data            map[string]interface{} `json:"data"`
-	ExecutedAt      *time.Time             `json:"executed_at"`
-	CompensatedAt   *time.Time             `json:"compensated_at"`
+	ID            string                 `json:"id"`
+	StepType      string                 `json:"step_type"`
+	Command       Command                `json:"command"`
+	CompensateCmd *Command               `json:"compensate_command,omitempty"`
+	Status        string                 `json:"status"` // pending, completed, failed, compensated
+	RetryCount    int                    `json:"retry_count"`
+	MaxRetries    int                    `json:"max_retries"`
+	Data          map[string]interface{} `json:"data"`
+	ExecutedAt    *time.Time             `json:"executed_at"`
+	CompensatedAt *time.Time             `json:"compensated_at"`
 }
 
 // EventBus manages event distribution and messaging
@@ -136,11 +136,11 @@ type Message struct {
 
 // Subscriber represents an event subscriber
 type Subscriber struct {
-	ID       string
-	Topic    string
-	Handler  func(Message) error
-	GroupID  string
-	AutoAck  bool
+	ID      string
+	Topic   string
+	Handler func(Message) error
+	GroupID string
+	AutoAck bool
 }
 
 // NewEventStore creates a new event store

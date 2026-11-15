@@ -44,12 +44,12 @@ type TerraformPlan struct {
 
 // TerraformResourceChange represents a planned resource change
 type TerraformResourceChange struct {
-	Address      string                 `json:"address"`
-	Mode         string                 `json:"mode"`
-	Type         string                 `json:"type"`
-	Name         string                 `json:"name"`
-	Change       TerraformChange        `json:"change"`
-	Values       map[string]interface{} `json:"values"`
+	Address string                 `json:"address"`
+	Mode    string                 `json:"mode"`
+	Type    string                 `json:"type"`
+	Name    string                 `json:"name"`
+	Change  TerraformChange        `json:"change"`
+	Values  map[string]interface{} `json:"values"`
 }
 
 // TerraformChange represents the change action
@@ -122,11 +122,11 @@ func (te *TerraformExecutor) Execute(ctx context.Context, task *TaskExecution, d
 	// Store output in task execution
 	task.Output["terraform_output"] = output
 	task.ExecutionDetails = map[string]interface{}{
-		"action":       config.Action,
-		"working_dir":  config.WorkingDir,
-		"workspace":    config.Workspace,
-		"exit_code":    output.ExitCode,
-		"has_changes":  output.Plan != nil && (output.Plan.Summary.Add > 0 || output.Plan.Summary.Change > 0 || output.Plan.Summary.Delete > 0),
+		"action":      config.Action,
+		"working_dir": config.WorkingDir,
+		"workspace":   config.Workspace,
+		"exit_code":   output.ExitCode,
+		"has_changes": output.Plan != nil && (output.Plan.Summary.Add > 0 || output.Plan.Summary.Change > 0 || output.Plan.Summary.Delete > 0),
 	}
 
 	task.Logs = append(task.Logs, fmt.Sprintf("Terraform %s completed successfully", config.Action))
@@ -157,7 +157,7 @@ func (te *TerraformExecutor) validate(ctx context.Context, config *TerraformConf
 	cmd.Dir = config.WorkingDir
 
 	stdout, stderr, exitCode := te.runCommand(cmd)
-	
+
 	return &TerraformOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -168,17 +168,17 @@ func (te *TerraformExecutor) validate(ctx context.Context, config *TerraformConf
 // plan runs terraform plan
 func (te *TerraformExecutor) plan(ctx context.Context, config *TerraformConfig) (*TerraformOutput, error) {
 	args := []string{"plan", "-json", "-detailed-exitcode"}
-	
+
 	// Add variables
 	for key, value := range config.Variables {
 		args = append(args, "-var", fmt.Sprintf("%s=%s", key, value))
 	}
-	
+
 	// Add targets
 	for _, target := range config.Targets {
 		args = append(args, "-target", target)
 	}
-	
+
 	// Add state file
 	if config.StateFile != "" {
 		args = append(args, "-state", config.StateFile)
@@ -188,7 +188,7 @@ func (te *TerraformExecutor) plan(ctx context.Context, config *TerraformConfig) 
 	cmd.Dir = config.WorkingDir
 
 	stdout, stderr, exitCode := te.runCommand(cmd)
-	
+
 	output := &TerraformOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -208,21 +208,21 @@ func (te *TerraformExecutor) plan(ctx context.Context, config *TerraformConfig) 
 // apply runs terraform apply
 func (te *TerraformExecutor) apply(ctx context.Context, config *TerraformConfig, task *TaskExecution) (*TerraformOutput, error) {
 	args := []string{"apply", "-json"}
-	
+
 	if config.AutoApprove {
 		args = append(args, "-auto-approve")
 	}
-	
+
 	// Add variables
 	for key, value := range config.Variables {
 		args = append(args, "-var", fmt.Sprintf("%s=%s", key, value))
 	}
-	
+
 	// Add targets
 	for _, target := range config.Targets {
 		args = append(args, "-target", target)
 	}
-	
+
 	// Add state file
 	if config.StateFile != "" {
 		args = append(args, "-state", config.StateFile)
@@ -235,7 +235,7 @@ func (te *TerraformExecutor) apply(ctx context.Context, config *TerraformConfig,
 	task.Logs = append(task.Logs, "Starting terraform apply...")
 
 	stdout, stderr, exitCode := te.runCommand(cmd)
-	
+
 	output := &TerraformOutput{
 		ExitCode: exitCode,
 		Stdout:   stdout,
@@ -258,16 +258,16 @@ func (te *TerraformExecutor) apply(ctx context.Context, config *TerraformConfig,
 // destroy runs terraform destroy
 func (te *TerraformExecutor) destroy(ctx context.Context, config *TerraformConfig, task *TaskExecution) (*TerraformOutput, error) {
 	args := []string{"destroy"}
-	
+
 	if config.AutoApprove {
 		args = append(args, "-auto-approve")
 	}
-	
+
 	// Add variables
 	for key, value := range config.Variables {
 		args = append(args, "-var", fmt.Sprintf("%s=%s", key, value))
 	}
-	
+
 	// Add targets
 	for _, target := range config.Targets {
 		args = append(args, "-target", target)
@@ -279,7 +279,7 @@ func (te *TerraformExecutor) destroy(ctx context.Context, config *TerraformConfi
 	task.Logs = append(task.Logs, "Starting terraform destroy...")
 
 	stdout, stderr, exitCode := te.runCommand(cmd)
-	
+
 	if exitCode == 0 {
 		task.Logs = append(task.Logs, "Terraform destroy completed successfully")
 	} else {
@@ -312,7 +312,7 @@ func (te *TerraformExecutor) initTerraform(ctx context.Context, workingDir strin
 	cmd.Dir = workingDir
 
 	_, stderr, exitCode := te.runCommand(cmd)
-	
+
 	if exitCode != 0 {
 		return fmt.Errorf("terraform init failed: %s", stderr)
 	}
@@ -327,14 +327,14 @@ func (te *TerraformExecutor) selectWorkspace(ctx context.Context, workingDir, wo
 	cmd.Dir = workingDir
 
 	_, _, exitCode := te.runCommand(cmd)
-	
+
 	if exitCode != 0 {
 		// Workspace doesn't exist, try to create it
 		cmd = exec.CommandContext(ctx, "terraform", "workspace", "new", workspace)
 		cmd.Dir = workingDir
 
 		_, stderr, exitCode := te.runCommand(cmd)
-		
+
 		if exitCode != 0 {
 			return fmt.Errorf("failed to create workspace %s: %s", workspace, stderr)
 		}
@@ -349,7 +349,7 @@ func (te *TerraformExecutor) getTerraformOutputs(ctx context.Context, workingDir
 	cmd.Dir = workingDir
 
 	stdout, stderr, exitCode := te.runCommand(cmd)
-	
+
 	if exitCode != 0 {
 		return nil, fmt.Errorf("terraform output failed: %s", stderr)
 	}
@@ -403,7 +403,7 @@ func (te *TerraformExecutor) parsePlan(planOutput string) (*TerraformPlan, error
 					for _, action := range actions {
 						if actionStr, ok := action.(string); ok {
 							resourceChange.Change.Actions = append(resourceChange.Change.Actions, actionStr)
-							
+
 							// Count changes
 							switch actionStr {
 							case "create":
@@ -471,7 +471,7 @@ func (te *TerraformExecutor) Validate(definition *TaskDefinition) error {
 	// Validate action
 	validActions := []string{"validate", "plan", "apply", "destroy", "output"}
 	action := definition.Action
-	
+
 	// If action is JSON, parse it
 	var config TerraformConfig
 	if err := json.Unmarshal([]byte(definition.Action), &config); err == nil {
