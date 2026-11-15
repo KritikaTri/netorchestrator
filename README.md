@@ -10,8 +10,8 @@ The project has two layers, and this README is explicit about which is which:
 | Layer | What it is | Status |
 |---|---|---|
 | **Analysis core** — `internal/topology`, `internal/cfgdiff`, `cmd/netorchctl` | Dependency-free libraries + CLI | Tested (`-race`, oracle tests, ~90%+ coverage), required in CI |
-| **Service platform** — API gateway, automation (Ansible/Terraform executors), security (JWT, API keys, rate limit, audit), event store, service registry, circuit breaker, WebSocket hub | Gin/GORM/Redis/Prometheus services | Implemented, **not yet covered by tests**; whole-module build/vet runs in CI as an informational job |
-| **Experimental** — `ai`, `microservices`, `distributed`, `observability`, `pipeline`, `enterprise`, `dashboard`, `infrastructure`, `compliance`, `business`, `sales`, `monetization` | Design explorations / simulations | Prototype-grade; `ai` uses mock embeddings. See [`docs/archive/PLATFORM_VISION.md`](docs/archive/PLATFORM_VISION.md) for the original vision |
+| **Service platform** — API gateway, automation (Ansible/Terraform executors), security (JWT, API keys, rate limit, audit), event store, service registry, circuit breaker, WebSocket hub | Gin/GORM/Redis/Prometheus services | Implemented and compiling (`go build` + `go vet` are required in CI); **not yet covered by unit tests** |
+| **Experimental** — `experimental/`: `microservices`, `distributed`, `observability`, `pipeline`, `enterprise`, `dashboard`, `infrastructure`, `compliance`, `business`, `sales`, `monetization`, plus the commands that wire them | Design explorations / simulations | Behind `//go:build experimental`; several do not compile yet (see [`experimental/README.md`](experimental/README.md)). `internal/ai` uses mock embeddings. Original vision: [`docs/archive/PLATFORM_VISION.md`](docs/archive/PLATFORM_VISION.md) |
 
 ## Analysis core
 
@@ -62,13 +62,13 @@ so it is safe in CI / change-review pipelines.
 ```bash
 make test        # race-tested core packages
 make fmt-check   # gofmt gate
-make vet         # whole module
+make vet         # whole module (required in CI)
 make build       # all commands into ./bin
 ```
 Requires Go 1.24+ (see `go.mod`). `docker-compose.yml`, `helm/` and `k8s/` contain deployment
 manifests for the service platform; `docs/API.md` and `docs/swagger/` describe its HTTP API.
 
 ## Roadmap
-See [`ROADMAP.md`](ROADMAP.md). Next: tests for the security and automation packages,
-make `go vet ./...` green so the informational CI job becomes required, and wire
-`topology` + `cfgdiff` into the API gateway as pre-change checks.
+See [`ROADMAP.md`](ROADMAP.md). Next: unit tests for the security and automation packages,
+and wire `topology` + `cfgdiff` into the API gateway as pre-change checks
+(`POST /api/v1/changes/preflight`).
