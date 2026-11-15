@@ -1,3 +1,5 @@
+//go:build experimental
+
 package main
 
 import (
@@ -12,18 +14,18 @@ import (
 
 	"go.uber.org/zap"
 
+	"netorchestrator/experimental/business"
+	"netorchestrator/experimental/compliance"
+	"netorchestrator/experimental/dashboard"
+	"netorchestrator/experimental/distributed"
+	"netorchestrator/experimental/enterprise"
+	"netorchestrator/experimental/infrastructure"
+	"netorchestrator/experimental/microservices"
+	"netorchestrator/experimental/monetization"
+	"netorchestrator/experimental/observability"
+	"netorchestrator/experimental/pipeline"
+	"netorchestrator/experimental/sales"
 	"netorchestrator/internal/ai"
-	"netorchestrator/internal/business"
-	"netorchestrator/internal/compliance"
-	"netorchestrator/internal/dashboard"
-	"netorchestrator/internal/distributed"
-	"netorchestrator/internal/enterprise"
-	"netorchestrator/internal/infrastructure"
-	"netorchestrator/internal/microservices"
-	"netorchestrator/internal/monetization"
-	"netorchestrator/internal/observability"
-	"netorchestrator/internal/pipeline"
-	"netorchestrator/internal/sales"
 )
 
 // NetOrchestrator is the unified enterprise orchestration platform

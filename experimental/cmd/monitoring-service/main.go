@@ -1,3 +1,5 @@
+//go:build experimental
+
 package main
 
 import (
@@ -15,7 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
-	"netorchestrator/internal/observability"
+	"netorchestrator/experimental/observability"
 	"netorchestrator/internal/services"
 )
 
