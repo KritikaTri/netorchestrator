@@ -78,7 +78,17 @@ func TestHubFailureIsCritical(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.Risk != RiskCritical || len(r.CutOff) != 3 {
+	if r.Risk != RiskCritical || len(r.CutOff) != 4 {
+		t.Fatalf("%+v", r)
+	}
+}
+
+func TestTiedFragmentsAreAllCutOff(t *testing.T) {
+	// a-h-b: removing h leaves two equal halves; neither is "the" main network.
+	nodes := []Node{{"h", "hub"}, {"a", "a"}, {"b", "b"}}
+	links := []Link{{"1", "h", "a", 0}, {"2", "h", "b", 0}}
+	r, _ := Assess(nodes, links, Change{RemoveNode, "h"})
+	if !reflect.DeepEqual(names(r.CutOff), []string{"a", "b"}) || r.Risk != RiskCritical {
 		t.Fatalf("%+v", r)
 	}
 }

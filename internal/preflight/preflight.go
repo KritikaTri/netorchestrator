@@ -186,27 +186,46 @@ func Assess(nodes []Node, links []Link, change Change) (*Report, error) {
 	afterComps := after.Components()
 	rep.ComponentsAfter = len(afterComps)
 
-	// Main network = largest component, before and after.
+	// "Main network" = the largest component before the change. After the
+	// change, its surviving devices may split into fragments; the largest
+	// fragment keeps the main network and every other fragment is cut off.
+	// If the largest fragment is not unique, no fragment can claim to be the
+	// main network, so every device in the tied fragments counts as cut off.
 	mainBefore := map[topology.NodeID]bool{}
 	if len(before) > 0 {
 		for _, id := range before[0] {
-			mainBefore[id] = true
+			if string(id) != removed {
+				mainBefore[id] = true
+			}
 		}
 	}
-	mainAfter := map[topology.NodeID]bool{}
-	if len(afterComps) > 0 {
-		for _, id := range afterComps[0] {
-			mainAfter[id] = true
+	var frags [][]topology.NodeID
+	for _, comp := range afterComps {
+		var f []topology.NodeID
+		for _, id := range comp {
+			if mainBefore[id] {
+				f = append(f, id)
+			}
+		}
+		if len(f) > 0 {
+			frags = append(frags, f)
+		}
+	}
+	biggest, ties := 0, 0
+	for _, f := range frags {
+		switch {
+		case len(f) > biggest:
+			biggest, ties = len(f), 1
+		case len(f) == biggest:
+			ties++
 		}
 	}
 	var cut []topology.NodeID
-	for id := range mainBefore {
-		if string(id) == removed {
-			continue // the device being taken down is not "cut off", it is the change
+	for _, f := range frags {
+		if len(f) == biggest && ties == 1 {
+			continue // the unique largest fragment stays the main network
 		}
-		if !mainAfter[id] {
-			cut = append(cut, id)
-		}
+		cut = append(cut, f...)
 	}
 	rep.CutOff = m.nodes(cut)
 
@@ -245,4 +264,14 @@ func Analyze(nodes []Node, links []Link) (*Resilience, error) {
 	sort.Strings(res.Bridges)
 	res.Redundant = len(aps) == 0 && len(bridges) == 0 && res.Components <= 1
 	return res, nil
+}
+
+// BuildGraph validates nodes/links and returns the topology graph, for callers
+// that need other analyses (e.g. shortest path) over the same input model.
+func BuildGraph(nodes []Node, links []Link) (*topology.Graph, error) {
+	m, err := build(nodes, links)
+	if err != nil {
+		return nil, err
+	}
+	return m.g, nil
 }

@@ -85,7 +85,7 @@ func TestPreflightReportsCutOffDevices(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &out); err != nil {
 		t.Fatal(err)
 	}
-	if out.Report.Target != "hub" || len(out.Report.CutOff) != 1 || out.Report.Risk == "none" {
+	if out.Report.Target != "hub" || len(out.Report.CutOff) != 2 || out.Report.Risk != "critical" {
 		t.Fatalf("unexpected report: %s", w.Body)
 	}
 }
