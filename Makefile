@@ -1,5 +1,5 @@
 GO ?= go
-VERIFIED := ./internal/topology/... ./internal/cfgdiff/... ./cmd/netorchctl/...
+VERIFIED := ./internal/topology/... ./internal/cfgdiff/... ./internal/preflight/... ./internal/config/... ./internal/security/... ./cmd/netorchctl/...
 
 .PHONY: help test test-all vet fmt fmt-check build cli demo bench
 help:            ## list targets

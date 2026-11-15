@@ -2,6 +2,7 @@ package security
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -73,8 +74,13 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 		return
 	}
 
-	// In production, this would validate against the database
-	// For demo purposes, we'll accept admin/admin123 and user/user123
+	// There is no user database yet. The built-in demo accounts are therefore
+	// disabled unless NETORCH_ENABLE_DEMO_AUTH=1 is set explicitly.
+	if os.Getenv("NETORCH_ENABLE_DEMO_AUTH") != "1" {
+		h.securityManager.auditLogger.LogAuthentication("", req.Username, c.ClientIP(), false, "Demo auth disabled")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
 	var userID, email string
 	var roles []string
 

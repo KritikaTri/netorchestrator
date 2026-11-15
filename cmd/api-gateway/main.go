@@ -56,6 +56,11 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	warning, err := cfg.Validate()
+	if err != nil {
+		log.Fatalf("Refusing to start: %v", err)
+	}
+
 	// Initialize logger
 	logger, err := initLogger(cfg.Logging)
 	if err != nil {
@@ -63,6 +68,9 @@ func main() {
 	}
 	defer logger.Sync()
 
+	if warning != "" {
+		logger.Warn(warning)
+	}
 	logger.Info("Starting NetOrchestrator API Gateway")
 
 	// Initialize database
