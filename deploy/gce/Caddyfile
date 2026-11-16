@@ -1,0 +1,9 @@
+# Automatic HTTPS (Let's Encrypt) for {$DOMAIN}.
+{$DOMAIN} {
+	# operational endpoints are not for the internet
+	@internal path /metrics /readyz
+	respond @internal 404
+
+	encode gzip
+	reverse_proxy gateway:8080
+}
