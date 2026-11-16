@@ -13,11 +13,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	"netorchestrator/internal/platform"
+	"netorchestrator/internal/ratelimit"
 )
 
 // Route maps a path prefix to a pool of replicas.
@@ -27,13 +29,19 @@ type Route struct {
 	// Idempotent routes may be retried on another replica after a transport
 	// error or 502/503/504. Non-idempotent routes are never retried.
 	Idempotent bool
+	// Limiter, if set, is applied per subject on this route in addition to the
+	// gateway-wide limit (e.g. a stricter budget for state-changing calls).
+	Limiter ratelimit.Limiter
 }
 
 // Config for the gateway.
 type Config struct {
-	Routes         []Route
-	JWTSecret      []byte
-	APIKeySHA256   []string // hex SHA-256 digests of accepted API keys
+	Routes       []Route
+	JWTSecret    []byte
+	APIKeySHA256 []string // hex SHA-256 digests of accepted API keys
+	// Limiter is the gateway-wide per-subject limiter. If nil, a token bucket
+	// is built from RatePerSecond/Burst (both must then be set).
+	Limiter        ratelimit.Limiter
 	RatePerSecond  float64
 	Burst          int
 	MaxBodyBytes   int64
@@ -57,7 +65,7 @@ type pool struct {
 type Gateway struct {
 	cfg     Config
 	pools   []*pool
-	limiter *platform.Limiter
+	limiter ratelimit.Limiter
 	client  *http.Client
 	reg     *platform.Registry
 	now     func() time.Time
@@ -86,7 +94,7 @@ func New(cfg Config, reg *platform.Registry) (*Gateway, error) {
 	}
 	g := &Gateway{
 		cfg:     cfg,
-		limiter: platform.NewLimiter(cfg.RatePerSecond, cfg.Burst, nil),
+		limiter: cfg.Limiter,
 		client: &http.Client{
 			Transport: &http.Transport{MaxIdleConnsPerHost: 256, IdleConnTimeout: 90 * time.Second},
 			CheckRedirect: func(*http.Request, []*http.Request) error {
@@ -95,6 +103,12 @@ func New(cfg Config, reg *platform.Registry) (*Gateway, error) {
 		},
 		reg: reg,
 		now: time.Now,
+	}
+	if g.limiter == nil {
+		if cfg.RatePerSecond <= 0 || cfg.Burst < 1 {
+			return nil, errors.New("gateway: configure Limiter, or RatePerSecond and Burst")
+		}
+		g.limiter = ratelimit.NewTokenBucket(cfg.RatePerSecond, cfg.Burst, 0, nil)
 	}
 	for _, d := range cfg.APIKeySHA256 {
 		b, err := hex.DecodeString(strings.TrimSpace(d))
@@ -155,6 +169,29 @@ func (g *Gateway) authenticate(r *http.Request) (subject string, ok bool) {
 	return "", false
 }
 
+// setRateHeaders sets the IETF draft RateLimit-* headers so well-behaved
+// clients can pace themselves before they ever see a 429.
+func setRateHeaders(w http.ResponseWriter, d ratelimit.Decision) {
+	h := w.Header()
+	h.Set("RateLimit-Limit", strconv.Itoa(d.Limit))
+	h.Set("RateLimit-Remaining", strconv.Itoa(d.Remaining))
+	h.Set("RateLimit-Reset", strconv.Itoa(ceilSeconds(d.Reset)))
+}
+
+func denyRateLimited(w http.ResponseWriter, d ratelimit.Decision) {
+	setRateHeaders(w, d)
+	w.Header().Set("Retry-After", strconv.Itoa(ceilSeconds(d.RetryAfter)))
+	writeErr(w, http.StatusTooManyRequests, "rate limit exceeded")
+}
+
+func ceilSeconds(d time.Duration) int {
+	s := int((d + time.Second - 1) / time.Second)
+	if s < 1 {
+		return 1
+	}
+	return s
+}
+
 func writeErr(w http.ResponseWriter, code int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
@@ -181,12 +218,24 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	if !g.limiter.Allow(subject) {
+	dec := g.limiter.Allow(subject)
+	if !dec.Allowed {
 		g.reg.Inc("gateway_rate_limited_total", 1)
-		w.Header().Set("Retry-After", "1")
-		writeErr(w, http.StatusTooManyRequests, "rate limit exceeded")
+		denyRateLimited(w, dec)
 		return
 	}
+	if rl := p.route.Limiter; rl != nil {
+		rd := rl.Allow(subject)
+		if !rd.Allowed {
+			g.reg.Inc("gateway_route_rate_limited_total", 1, "route", p.route.Prefix)
+			denyRateLimited(w, rd)
+			return
+		}
+		if rd.Remaining < dec.Remaining { // advertise whichever budget is closer to running out
+			dec = rd
+		}
+	}
+	setRateHeaders(w, dec)
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, g.cfg.MaxBodyBytes))
 	if err != nil {
 		writeErr(w, http.StatusRequestEntityTooLarge, "request too large")
