@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 )
@@ -58,53 +57,6 @@ func TestBreakerSuccessResetsFailureStreak(t *testing.T) {
 	b.Done(false)
 	if b.State() != Closed {
 		t.Fatal("non-consecutive failures must not open")
-	}
-}
-
-func TestLimiterBurstRefillAndIsolation(t *testing.T) {
-	c := &clock{time.Unix(0, 0)}
-	l := NewLimiter(2, 3, c.now)
-	for i := 0; i < 3; i++ {
-		if !l.Allow("a") {
-			t.Fatalf("burst %d denied", i)
-		}
-	}
-	if l.Allow("a") {
-		t.Fatal("over burst must be denied")
-	}
-	if !l.Allow("b") {
-		t.Fatal("keys are independent")
-	}
-	c.advance(500 * time.Millisecond) // +1 token
-	if !l.Allow("a") || l.Allow("a") {
-		t.Fatal("refill should give exactly one token")
-	}
-	c.advance(5 * time.Minute)
-	l.Allow("zzz")
-	if l.Size() != 1 {
-		t.Fatalf("idle keys should be swept, size=%d", l.Size())
-	}
-}
-
-func TestLimiterConcurrentNeverExceedsBurst(t *testing.T) {
-	l := NewLimiter(0.0001, 100, nil)
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	ok := 0
-	for i := 0; i < 400; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if l.Allow("k") {
-				mu.Lock()
-				ok++
-				mu.Unlock()
-			}
-		}()
-	}
-	wg.Wait()
-	if ok != 100 {
-		t.Fatalf("allowed %d, want exactly 100", ok)
 	}
 }
 

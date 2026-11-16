@@ -31,10 +31,11 @@ flowchart LR
 
 | Service | Responsibility | State | How it scales | When it fails |
 |---|---|---|---|---|
-| **gateway** | Authenticate (HS256 JWT or hashed API key), per-subject token-bucket rate limit, route by prefix, round-robin with a circuit breaker per replica, bounded retry **only** for idempotent routes | none | horizontally (stateless) | `/readyz` goes unready only if *every* replica of some route is circuit-open |
+| **gateway** | Authenticate (HS256 JWT or hashed API key), per-subject rate limit (token bucket or sliding window, plus a stricter per-route budget, [ADR-0006](docs/adr/0006-rate-limiting.md)) with `RateLimit-*`/`Retry-After` headers, route by prefix, round-robin with a circuit breaker per replica, bounded retry **only** for idempotent routes | none | horizontally (stateless) | `/readyz` goes unready only if *every* replica of some route is circuit-open |
 | **topology-svc** | Pure analysis: preflight (what gets cut off), resilience (single points of failure), shortest path. The topology is sent **in the request**, so replicas share nothing | none (per-replica LRU cache) | horizontally; HPA on CPU | sheds load with `429 + Retry-After` instead of queueing without bound |
 | **change-svc** | Change requests: preflight, approval policy (four-eyes, 2 approvers when risk is critical), cancel/apply, audit endpoints | event log (JSONL) | **single writer by design** ([ADR-0004](docs/adr/0004-single-writer-change-svc.md)) | refuses to start if the audit log fails verification; `/readyz` re-verifies the chain |
-| **platform** (library) | metrics, request IDs, access logs, limiter, breaker, JWT verify, graceful shutdown | n/a | n/a | n/a |
+| **platform** (library) | metrics, request IDs, access logs, breaker, JWT verify, graceful shutdown | n/a | n/a | n/a |
+| **ratelimit** (library) | token bucket + sliding-window counter, sharded, injectable clock, exact `Retry-After` | per-replica memory | n/a | n/a |
 
 ## A change request, end to end
 
@@ -76,6 +77,7 @@ sequenceDiagram
 | topology-svc down while change-svc needs preflight | change-svc breaker opens, API returns retryable `503`, nothing is written to the log |
 | Someone edits/deletes/reorders audit events | `/v1/audit/verify` returns 409; on restart the service **refuses to start** (checked with the real binary) |
 | Log truncated at the tail | **not detectable by the chain alone**: anchor `head_hash` externally (documented limitation) |
+| One user floods the API | that subject gets `429` with an exact `Retry-After`; other users are unaffected; state-changing routes have their own, stricter budget |
 | Forged `alg=none` / tampered / expired JWT, forged API key | rejected at the gateway; never reaches a backend |
 | Client sends its own `X-Authenticated-Subject` | dropped; the gateway asserts identity itself |
 | Two approvers act at the same instant | decision and append happen under one lock; no double counting (race-tested) |
@@ -88,4 +90,4 @@ sequenceDiagram
 
 ## Observability
 
-Each service exposes `/metrics` (Prometheus text format), `/healthz`, `/readyz`, JSON access logs with a propagated `X-Request-ID`. Metrics: `http_requests_total`, `http_request_duration_seconds` (histogram), `http_in_flight`, `topology_cache_total`, `topology_shed_total`, `gateway_upstream_total`, `gateway_rate_limited_total`, `gateway_auth_failures_total`, `gateway_unavailable_total`. SLOs and alert rules: [`docs/SLO.md`](docs/SLO.md), [`deploy/prometheus/alerts.yml`](deploy/prometheus/alerts.yml).
+Each service exposes `/metrics` (Prometheus text format), `/healthz`, `/readyz`, JSON access logs with a propagated `X-Request-ID`. Metrics: `http_requests_total`, `http_request_duration_seconds` (histogram), `http_in_flight`, `topology_cache_total`, `topology_shed_total`, `gateway_upstream_total`, `gateway_rate_limited_total`, `gateway_route_rate_limited_total`, `gateway_auth_failures_total`, `gateway_unavailable_total`. SLOs and alert rules: [`docs/SLO.md`](docs/SLO.md), [`deploy/prometheus/alerts.yml`](deploy/prometheus/alerts.yml).

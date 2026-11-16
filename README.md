@@ -30,10 +30,11 @@ flowchart LR
 
 | Service | Role | Scales by |
 |---|---|---|
-| `gateway` | JWT/API-key auth, per-subject rate limit, round-robin + per-replica circuit breakers, retry only for idempotent routes | stateless replicas |
+| `gateway` | JWT/API-key auth, per-subject rate limits (token bucket or sliding window, stricter on state-changing routes, `RateLimit-*` headers), round-robin + per-replica circuit breakers, retry only for idempotent routes | stateless replicas |
 | `topology-svc` | preflight, single-point-of-failure analysis, shortest path; topology is sent in the request, LRU cache, 429 load shedding | stateless replicas (HPA) |
 | `change-svc` | change requests, risk-scaled approval policy, event-sourced hash-chained audit log | single writer by design ([ADR-0004](docs/adr/0004-single-writer-change-svc.md)) |
-| `internal/platform` | stdlib-only metrics, request IDs, limiter, breaker, JWT verify, graceful shutdown | n/a |
+| `internal/platform` | stdlib-only metrics, request IDs, breaker, JWT verify, graceful shutdown | n/a |
+| `internal/ratelimit` | token bucket + sliding-window counter behind one interface; exact `Retry-After`; deterministic tests ([ADR-0006](docs/adr/0006-rate-limiting.md)) | n/a |
 
 Full design, failure-behaviour table and trust boundaries: [`ARCHITECTURE.md`](ARCHITECTURE.md). Decisions and their trade-offs: [`docs/adr/`](docs/adr). SLOs and alerts: [`docs/SLO.md`](docs/SLO.md).
 
@@ -42,7 +43,8 @@ Full design, failure-behaviour table and trust boundaries: [`ARCHITECTURE.md`](A
 | Area | Evidence |
 |---|---|
 | Algorithms (`topology`, `cfgdiff`, `preflight`) | Dijkstra vs Floyd–Warshall and cut-vertex/bridge vs brute-force oracles on random graphs; preflight 93 % coverage |
-| Services (`platform`, `gateway`, `topologysvc`, `changesvc`) | unit + HTTP tests under `-race`; coverage 87 % / 96 % / 91 % / 86 % |
+| Services (`platform`, `gateway`, `topologysvc`, `changesvc`, `ratelimit`) | unit + HTTP tests under `-race`; coverage 86 % / 94 % / 91 % / 86 % / 96 % |
+| Rate limiting | fake-clock tests: burst + steady rate, no boundary burst, `Retry-After` sufficient *and* tight, no token minting on a backwards clock, concurrent callers never exceed the burst, idle eviction; sliding window checked against an exact sliding-log oracle (worst overshoot 2 %) |
 | Security properties | forged API keys, `alg=none`, tampered/expired JWTs, spoofed identity header, field-boundary hash collisions, audit tampering (edit/delete/reorder/rehash) each have a failing-then-passing regression test |
 | Whole system | CI job **e2e** runs the real binaries (gateway → change-svc → topology-svc) and asserts the workflow's safety properties; restart-replay and refuse-to-start-on-tampered-log were also checked by hand against the built binary |
 | Containers | CI job **images** builds all three Dockerfiles and smoke-tests the container (non-root, `/healthz`) |
@@ -73,6 +75,8 @@ End-to-end (HTTP, cache disabled so every request computes):
 | **failover**: replica killed mid-run, via gateway | 5 | 1,924 | 2.1 ms | 6.0 ms | 8.3 ms |
 
 The failover row is the point: **15,395 requests, 0 failed** while a replica was killed. The via-gateway row is slower than direct because everything shares two cores and the gateway adds a hop (about +0.7 ms p50); it is deliberately *not* presented as scale-out. Scale-out numbers need replicas on separate hosts (roadmap item 8).
+
+Rate limiter micro-benchmarks (parallel, 2 vCPU): 170-360 ns/op with 0 allocations per decision for both algorithms. Sharding into 64 locks made no measurable difference on two cores, so no speed-up is claimed; it matters on many-core hosts.
 
 ## Quick start
 
@@ -134,6 +138,7 @@ Stated plainly, because they are the next things to fix ([`ROADMAP.md`](ROADMAP.
 - Authorisation is subject-based four-eyes; there are no roles/tenants yet. Denied attempts are not audited.
 - `change-svc` is a single writer, which is right for human-paced change management and wrong for high-rate ingestion.
 - The gateway's upstream list is static; in Kubernetes it relies on kube-proxy for balancing.
+- Rate-limit state is per gateway replica (N replicas allow up to N x the budget); exact global limits need a shared store ([ADR-0006](docs/adr/0006-rate-limiting.md)).
 - JWT verification is HS256-only and hand-written (tested, but use an IdP/JWKS in production).
 - `apply` records that a change was executed; pushing configuration to devices is not implemented.
 - Performance numbers come from one small machine; no multi-host scale-out measurement yet.

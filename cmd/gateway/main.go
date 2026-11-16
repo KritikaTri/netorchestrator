@@ -11,6 +11,7 @@ import (
 
 	"netorchestrator/internal/gateway"
 	"netorchestrator/internal/platform"
+	"netorchestrator/internal/ratelimit"
 )
 
 func main() {
@@ -21,24 +22,40 @@ func main() {
 	rps, _ := strconv.ParseFloat(platform.Env("GATEWAY_RATE_RPS", "200"), 64)
 	burst, _ := strconv.Atoi(platform.Env("GATEWAY_RATE_BURST", "400"))
 
+	// Gateway-wide per-subject limit. token_bucket (default) tolerates bursts;
+	// sliding_window enforces at most RPS requests in any trailing second.
+	var limiter ratelimit.Limiter
+	switch algo := platform.Env("GATEWAY_RATE_ALGO", "token_bucket"); algo {
+	case "token_bucket":
+		limiter = ratelimit.NewTokenBucket(rps, burst, 0, nil)
+	case "sliding_window":
+		limiter = ratelimit.NewSlidingWindow(int(rps), time.Second, 0, nil)
+	default:
+		log.Error("unknown GATEWAY_RATE_ALGO", "value", algo, "allowed", "token_bucket, sliding_window")
+		os.Exit(1)
+	}
+
 	routes := []gateway.Route{{
 		Prefix:     "/v1/analyze/",
 		Upstream:   split(platform.Env("GATEWAY_TOPOLOGY_UPSTREAMS", "http://localhost:8081")),
 		Idempotent: true, // pure analysis: safe to retry on another replica
 	}}
 	if u := platform.Env("GATEWAY_CHANGE_UPSTREAMS", ""); u != "" {
-		// Stateful, non-idempotent: never retried on another replica.
+		// State-changing calls get an additional, stricter per-subject budget
+		// shared by /v1/changes and /v1/audit/. They are never retried.
+		crps, _ := strconv.ParseFloat(platform.Env("GATEWAY_CHANGE_RATE_RPS", "10"), 64)
+		cburst, _ := strconv.Atoi(platform.Env("GATEWAY_CHANGE_RATE_BURST", "20"))
+		changeLimit := ratelimit.NewTokenBucket(crps, cburst, 0, nil)
 		routes = append(routes,
-			gateway.Route{Prefix: "/v1/changes", Upstream: split(u)},
-			gateway.Route{Prefix: "/v1/audit/", Upstream: split(u)})
+			gateway.Route{Prefix: "/v1/changes", Upstream: split(u), Limiter: changeLimit},
+			gateway.Route{Prefix: "/v1/audit/", Upstream: split(u), Limiter: changeLimit})
 	}
 
 	gw, err := gateway.New(gateway.Config{
-		Routes:        routes,
-		JWTSecret:     []byte(secret),
-		APIKeySHA256:  split(platform.Env("GATEWAY_API_KEY_SHA256", "")),
-		RatePerSecond: rps,
-		Burst:         burst,
+		Routes:       routes,
+		JWTSecret:    []byte(secret),
+		APIKeySHA256: split(platform.Env("GATEWAY_API_KEY_SHA256", "")),
+		Limiter:      limiter,
 	}, reg)
 	if err != nil {
 		log.Error("invalid configuration", "err", err)
