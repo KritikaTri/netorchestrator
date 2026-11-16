@@ -1,0 +1,42 @@
+# Single writer by design (see docs/adr/0004): the audit log is one hash chain,
+# so there is exactly one replica and it owns a persistent volume.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: change-svc, labels: { app: change-svc } }
+spec:
+  serviceName: change-svc
+  replicas: 1
+  selector: { matchLabels: { app: change-svc } }
+  template:
+    metadata:
+      labels: { app: change-svc }
+      annotations: { prometheus.io/scrape: "true", prometheus.io/port: "8082", prometheus.io/path: /metrics }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: change-svc
+          image: netorch/change-svc:latest
+          ports: [ { containerPort: 8082, name: http } ]
+          env:
+            - { name: ADDR, value: ":8082" }
+            - { name: CHANGE_LOG_PATH, value: /data/change-audit.jsonl }
+            - { name: CHANGE_TOPOLOGY_URL, value: "http://topology-svc:8081" }
+          volumeMounts: [ { name: data, mountPath: /data } ]
+          resources:
+            requests: { cpu: 100m, memory: 64Mi }
+            limits: { memory: 256Mi }
+          # /readyz re-verifies the whole hash chain; failure keeps the pod out of rotation
+          readinessProbe: { httpGet: { path: /readyz, port: http }, periodSeconds: 15 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 10 }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ ALL ] } }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec: { accessModes: [ ReadWriteOnce ], resources: { requests: { storage: 1Gi } } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: change-svc }
+spec:
+  selector: { app: change-svc }
+  ports: [ { name: http, port: 8082, targetPort: http } ]
