@@ -121,3 +121,4 @@ Docker.dmg
 /netorchctl
 *.tar.gz
 coverage.txt
+.loadtest-bin/

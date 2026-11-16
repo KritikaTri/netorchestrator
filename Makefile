@@ -1,5 +1,5 @@
 GO ?= go
-VERIFIED := ./internal/topology/... ./internal/cfgdiff/... ./internal/preflight/... ./internal/config/... ./internal/security/... ./cmd/netorchctl/...
+VERIFIED := ./internal/topology/... ./internal/cfgdiff/... ./internal/preflight/... ./internal/platform/... ./internal/topologysvc/... ./internal/gateway/... ./internal/config/... ./internal/security/... ./cmd/netorchctl/...
 
 .PHONY: help test test-all vet fmt fmt-check build cli demo bench
 help:            ## list targets
@@ -34,3 +34,9 @@ demo: cli        ## run the CLI against the bundled campus example
 
 bench:           ## shortest-path benchmark on a 100x100 grid
 	$(GO) test -run '^$$' -bench . -benchmem ./internal/topology
+
+loadtest:        ## end-to-end load test: 3 replicas behind the gateway (prints p50/p95/p99)
+	./scripts/loadtest.sh
+
+bench-core:      ## algorithm benchmarks on 100/1k/10k-node topologies
+	$(GO) test -run xxx -bench . -benchtime 20x ./internal/preflight
