@@ -65,3 +65,8 @@ jobs:
       - name: compose file is valid
         if: matrix.service == 'gateway'
         run: GATEWAY_JWT_SECRET=ci-secret-ci-secret-ci-secret-ci-secret docker compose -f deploy/compose.yml config -q
+      - name: prod compose + deploy scripts are valid
+        if: matrix.service == 'gateway'
+        run: |
+          GHCR_OWNER=ci GATEWAY_JWT_SECRET=ci-secret-ci-secret-ci-secret-ci-secret DOMAIN=example.com docker compose -f deploy/gce/compose.prod.yml config -q
+          for f in deploy/gce/*.sh; do bash -n "$f"; done
