@@ -114,17 +114,6 @@ go run ./cmd/netorchctl blast   -topology examples/campus.json -node dist2
 go run ./cmd/netorchctl cfgdiff -desired examples/desired.cfg -running examples/running.cfg
 ```
 
-## Deploy it (single VM, HTTPS, ~$15/month)
-`.github/workflows/publish.yml` publishes the service images to GHCR on every push to `main`. `deploy/gce/` turns them into a live demo on one Google Compute Engine VM: docker compose, Caddy with automatic HTTPS (Let's Encrypt), three topology replicas, the audit log on a persistent volume, Prometheus reachable only over an SSH tunnel. From Cloud Shell:
-
-```bash
-git clone https://github.com/KritikaTri/netorchestrator && cd netorchestrator
-./deploy/gce/deploy.sh up        # creates static IP, firewall, VM; domain is <ip>.sslip.io
-./deploy/gce/deploy.sh token     # mints a short-lived JWT for the demo
-./deploy/gce/deploy.sh destroy   # tears everything down
-```
-Details, security notes and the GHCR "make package public" step: [deploy/gce/README.md](deploy/gce/README.md).
-
 ## Where this fits
 - A **pre-change gate** in a NetDevOps pipeline: fail the pipeline when `risk` is `high`/`critical` unless approvals exist.
 - A **change record with provenance** for regulated environments: every approval is tied to the analysis and the exact topology hash it was based on.
