@@ -1,0 +1,41 @@
+name: publish images
+# Builds the service images on every push to main and publishes them to GHCR,
+# so a server only has to `docker compose pull` (no compiling on the VM).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: publish ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, topology-svc, change-svc, devtoken]
+    steps:
+      - uses: actions/checkout@v4
+      - name: lowercase owner (GHCR requires it)
+        run: echo "OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile
+          build-args: SERVICE=${{ matrix.service }}
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/netorch-${{ matrix.service }}:latest
+            ghcr.io/${{ env.OWNER }}/netorch-${{ matrix.service }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
