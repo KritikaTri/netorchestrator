@@ -1,5 +1,5 @@
 GO ?= go
-VERIFIED := ./internal/topology/... ./internal/cfgdiff/... ./internal/preflight/... ./internal/platform/... ./internal/topologysvc/... ./internal/gateway/... ./internal/config/... ./internal/security/... ./cmd/netorchctl/...
+VERIFIED := ./internal/topology/... ./internal/cfgdiff/... ./internal/preflight/... ./internal/platform/... ./internal/topologysvc/... ./internal/gateway/... ./internal/ratelimit/... ./internal/changesvc/... ./internal/config/... ./internal/security/... ./cmd/netorchctl/...
 
 .PHONY: help test test-all vet fmt fmt-check build cli demo bench
 help:            ## list targets
@@ -40,3 +40,7 @@ loadtest:        ## end-to-end load test: 3 replicas behind the gateway (prints 
 
 bench-core:      ## algorithm benchmarks on 100/1k/10k-node topologies
 	$(GO) test -run xxx -bench . -benchtime 20x ./internal/preflight
+	$(GO) test -run xxx -bench Allow -benchtime 200000x ./internal/ratelimit
+
+demo-services:   ## full change workflow through gateway -> change-svc -> topology-svc (real binaries)
+	./scripts/demo.sh

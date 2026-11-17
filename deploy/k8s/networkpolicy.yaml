@@ -1,0 +1,24 @@
+# change-svc trusts the X-Authenticated-Subject header, so ONLY the gateway
+# NOTE: add the namespace/pods of your Prometheus as an extra ingress rule if you scrape /metrics across pods.
+# may reach it. topology-svc has no auth of its own either: gateway + change-svc only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: change-svc-from-gateway-only }
+spec:
+  podSelector: { matchLabels: { app: change-svc } }
+  policyTypes: [ Ingress ]
+  ingress:
+    - from: [ { podSelector: { matchLabels: { app: gateway } } } ]
+      ports: [ { port: 8082 } ]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: topology-svc-from-gateway-and-change }
+spec:
+  podSelector: { matchLabels: { app: topology-svc } }
+  policyTypes: [ Ingress ]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app: gateway } }
+        - podSelector: { matchLabels: { app: change-svc } }
+      ports: [ { port: 8081 } ]

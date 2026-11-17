@@ -1,0 +1,53 @@
+# Stateless analysis service: scale freely (HPA below). Topology travels in each request.
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: topology-svc, labels: { app: topology-svc } }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: topology-svc } }
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  template:
+    metadata:
+      labels: { app: topology-svc }
+      annotations: { prometheus.io/scrape: "true", prometheus.io/port: "8081", prometheus.io/path: /metrics }
+    spec:
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 20   # > server drain (10s)
+      containers:
+        - name: topology-svc
+          image: netorch/topology-svc:latest
+          ports: [ { containerPort: 8081, name: http } ]
+          env: [ { name: ADDR, value: ":8081" } ]
+          resources:
+            requests: { cpu: 250m, memory: 128Mi }
+            limits: { memory: 512Mi }
+          readinessProbe: { httpGet: { path: /readyz, port: http }, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 10, failureThreshold: 3 }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ ALL ] } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: topology-svc }
+spec:
+  selector: { app: topology-svc }
+  ports: [ { name: http, port: 8081, targetPort: http } ]
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: topology-svc }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: topology-svc }
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 65 } }
+  behavior:
+    scaleDown: { stabilizationWindowSeconds: 300 }   # avoid flapping on bursty traffic
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: topology-svc }
+spec:
+  minAvailable: 1
+  selector: { matchLabels: { app: topology-svc } }

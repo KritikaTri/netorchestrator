@@ -1,63 +1,25 @@
-# NetOrchestrator Development Roadmap
+# Roadmap
 
-## 🎯 Phase 1: Foundation (Week 1-2)
-- [x] ✅ Database schema and migrations
-- [x] ✅ Podman container orchestration  
-- [x] ✅ Core API endpoints (CRUD)
-- [ ] 🚀 **PRIORITY**: Fix API startup and test endpoints
-- [ ] 🚀 **PRIORITY**: Create demo network topology
-- [ ] 📊 Add basic monitoring dashboard
+Ordered by what most improves correctness and credibility first. Items marked ✔ are shipped and tested.
 
-## 🚀 Phase 2: Core Features (Week 3-4)  
-- [ ] 🌐 **Web Dashboard**: React/Vue frontend for network management
-- [ ] 🔄 **Real-time Updates**: WebSocket implementation for live topology
-- [ ] 🐳 **Container Integration**: Full Podman lifecycle management
-- [ ] 📈 **Metrics Collection**: InfluxDB + Grafana monitoring
-- [ ] 🔐 **Authentication**: JWT-based user management
+## Shipped
+- ✔ Analysis core: shortest path, single points of failure, blast radius, config diff (oracle-tested)
+- ✔ Preflight: change-impact report with correct handling of already-partitioned networks and tied fragments
+- ✔ Services: gateway, topology-svc, change-svc on a shared stdlib platform layer
+- ✔ Four-eyes approval policy scaled by risk; event-sourced, hash-chained audit log; refuse-to-start on tamper
+- ✔ Rate limiting: token bucket + sliding window, per-subject and per-route budgets, `RateLimit-*`/`Retry-After` headers
+- ✔ Security fixes in the legacy API: no forged API keys, no default secrets, demo login off by default
+- ✔ Load generator, benchmarks, e2e test in CI, Dockerfile build in CI, k8s manifests with HPA/PDB/NetworkPolicy, SLOs + alerts
 
-## 🎨 Phase 3: Advanced Features (Month 2)
-- [ ] 🗺️  **Network Visualization**: Interactive topology graphs
-- [ ] 🤖 **Auto-scaling**: Dynamic resource allocation
-- [ ] 🔒 **Security Policies**: Advanced firewall and access control
-- [ ] 📱 **Mobile API**: REST API optimization for mobile clients
-- [ ] 🔄 **GitOps Integration**: Infrastructure as Code workflows
-
-## 🌟 Phase 4: Enterprise Features (Month 3+)
-- [ ] 🏢 **Multi-tenancy**: Organization and team management
-- [ ] 🔄 **CI/CD Integration**: Pipeline automation for network deployments
-- [ ] 📊 **Analytics**: Network performance insights and recommendations  
-- [ ] 🌍 **Multi-cloud**: Support for different container platforms
-- [ ] 📚 **Documentation**: API docs, tutorials, and guides
-
-## 🎯 Immediate Next Actions (This Week):
-
-### Day 1-2: Get API Running
-```bash
-./start-api.sh          # Start the API server
-./create-demo.sh        # Create sample network
-./test-features.sh      # Verify functionality
-```
-
-### Day 3-5: Add Web Interface
-- Create simple HTML dashboard
-- Add network topology visualization  
-- Test container creation/management
-
-### Week 2: Polish Core Features
-- Add authentication middleware
-- Implement WebSocket real-time updates
-- Create monitoring dashboards
-
-## 🎖️ Success Metrics:
-- ✅ API responds to all CRUD operations
-- ✅ Can create and manage container networks via API
-- ✅ Real-time monitoring of network topology
-- ✅ Basic web interface for network management
-- ✅ Container orchestration working with Podman
-
-## 💡 Business Value:
-1. **Network Testing**: Create isolated test environments
-2. **Development Workflows**: Spin up complex multi-service topologies  
-3. **Learning Platform**: Network simulation and education
-4. **DevOps Tool**: Infrastructure automation and management
-5. **Research**: Network behavior analysis and optimization
+## Next (highest value first)
+1. **Sign audit events** with a key held outside the service and publish the chain head externally (closes the tail-truncation gap, [ADR-0002](docs/adr/0002-event-sourced-audit-log.md)).
+2. **Audit denied attempts** (self-approval, duplicate approval, forbidden cancel).
+3. **RBAC**: roles/groups from the identity provider (OIDC/JWKS) instead of subject-only four-eyes; per-tenant isolation of changes.
+4. **Idempotency keys** on `POST /v1/changes`.
+5. **Shared rate-limit state** (Redis + Lua, or subject-affine routing) for exact limits across gateway replicas.
+6. **DNS-based upstream discovery** in the gateway so each pod gets its own breaker in Kubernetes.
+7. **Topology store with versions + delta API** to avoid shipping large topologies per request.
+8. **Executor**: apply approved config diffs (`cfgdiff`) through a device driver, then record `change.applied` from the executor, not by hand.
+9. **Distributed load test** on separate hosts to publish real scale-out numbers.
+10. Legacy platform (Gin/GORM) — add unit tests, then retire in favour of the services above; fix refresh-token handling and per-user ownership checks.
+11. Clean git history of large binaries (`git filter-repo`).

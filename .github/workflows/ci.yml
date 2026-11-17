@@ -26,3 +26,42 @@ jobs:
           go-version-file: go.mod
       - run: go build -gcflags=-e ./...   # -e: report every error, not just the first 10
       - run: go vet ./...
+
+  e2e:
+    name: e2e workflow through gateway (real binaries)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: run demo (gateway -> change-svc -> topology-svc)
+        run: scripts/demo.sh | tee demo.out
+      - name: assert the safety properties held
+        run: |
+          grep -q '"risk":"critical"' demo.out
+          grep -q 'requester cannot review their own change' demo.out
+          grep -q 'not in a state that allows this action' demo.out
+          grep -q '"ok":true' demo.out
+          grep -q 'HTTP 401' demo.out
+
+  images:
+    name: docker images build (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, topology-svc, change-svc]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f deploy/Dockerfile --build-arg SERVICE=${{ matrix.service }} -t netorch/${{ matrix.service }} .
+      - name: smoke test (container starts, serves /healthz as non-root)
+        if: matrix.service == 'topology-svc'
+        run: |
+          docker run -d --name topo -p 8081:8081 netorch/topology-svc
+          for i in $(seq 1 20); do curl -sf localhost:8081/healthz && break; sleep 0.5; done
+          curl -sf localhost:8081/healthz
+          docker inspect -f '{{.Config.User}}' netorch/topology-svc | grep -q nonroot
+      - name: compose file is valid
+        if: matrix.service == 'gateway'
+        run: GATEWAY_JWT_SECRET=ci-secret-ci-secret-ci-secret-ci-secret docker compose -f deploy/compose.yml config -q

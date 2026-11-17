@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"netorchestrator/internal/platform"
+	"netorchestrator/internal/ratelimit"
 )
 
 var secret = []byte(strings.Repeat("g", 40))
@@ -233,5 +234,96 @@ func TestRoutingBodyLimitAndConfigValidation(t *testing.T) {
 		if _, err := New(cfg, nil); err == nil {
 			t.Errorf("%s accepted", name)
 		}
+	}
+}
+
+func TestRateLimitHeadersAndRetryAfter(t *testing.T) {
+	var hits atomic.Int64
+	be := backendCounting(&hits, 200)
+	defer be.Close()
+	g, _ := newGW(t, Config{Routes: []Route{{Prefix: "/v1/analyze/", Upstream: []string{be.URL}}}, RatePerSecond: 0.5, Burst: 3})
+
+	for i, wantRemaining := range []string{"2", "1", "0"} {
+		w := do(g, "POST", "/v1/analyze/x", "{}", token("u"))
+		if w.Code != 200 || w.Header().Get("RateLimit-Limit") != "3" || w.Header().Get("RateLimit-Remaining") != wantRemaining {
+			t.Fatalf("request %d: %d limit=%q remaining=%q", i, w.Code, w.Header().Get("RateLimit-Limit"), w.Header().Get("RateLimit-Remaining"))
+		}
+	}
+	w := do(g, "POST", "/v1/analyze/x", "{}", token("u"))
+	if w.Code != 429 || w.Header().Get("Retry-After") != "2" || w.Header().Get("RateLimit-Remaining") != "0" {
+		t.Fatalf("%d retry-after=%q remaining=%q (0.5 tokens/s => 2s)", w.Code, w.Header().Get("Retry-After"), w.Header().Get("RateLimit-Remaining"))
+	}
+	if hits.Load() != 3 {
+		t.Fatal("a rate-limited request must not reach the backend")
+	}
+}
+
+func TestPerRouteLimiterIsStricterAndIndependent(t *testing.T) {
+	var a, c atomic.Int64
+	sa, sc := backendCounting(&a, 200), backendCounting(&c, 200)
+	defer sa.Close()
+	defer sc.Close()
+	strict := ratelimit.NewTokenBucket(0.001, 2, 0, nil)
+	g, reg := newGW(t, Config{Routes: []Route{
+		{Prefix: "/v1/analyze/", Upstream: []string{sa.URL}},
+		{Prefix: "/v1/changes", Upstream: []string{sc.URL}, Limiter: strict},
+	}})
+	codes := []int{}
+	for i := 0; i < 4; i++ {
+		codes = append(codes, do(g, "POST", "/v1/changes", "{}", token("u")).Code)
+	}
+	if codes[0] != 200 || codes[1] != 200 || codes[2] != 429 || codes[3] != 429 {
+		t.Fatalf("%v", codes)
+	}
+	if c.Load() != 2 {
+		t.Fatalf("backend saw %d", c.Load())
+	}
+	// the strict budget is per route: the same user is still fine on /analyze
+	if do(g, "POST", "/v1/analyze/x", "{}", token("u")).Code != 200 {
+		t.Error("route limiter must not affect other routes")
+	}
+	// and per subject: another user has their own route budget
+	if do(g, "POST", "/v1/changes", "{}", token("other")).Code != 200 {
+		t.Error("route limiter must be per subject")
+	}
+	if reg.Counter("gateway_route_rate_limited_total", "route", "/v1/changes") != 2 {
+		t.Error("route limit not counted")
+	}
+}
+
+func TestAdvertisedRemainingIsTheTighterBudget(t *testing.T) {
+	var hits atomic.Int64
+	be := backendCounting(&hits, 200)
+	defer be.Close()
+	g, _ := newGW(t, Config{
+		Routes:        []Route{{Prefix: "/v1/x", Upstream: []string{be.URL}, Limiter: ratelimit.NewTokenBucket(0.001, 3, 0, nil)}},
+		RatePerSecond: 1000, Burst: 1000,
+	})
+	w := do(g, "POST", "/v1/x", "{}", token("u"))
+	if w.Header().Get("RateLimit-Limit") != "3" || w.Header().Get("RateLimit-Remaining") != "2" {
+		t.Fatalf("limit=%q remaining=%q", w.Header().Get("RateLimit-Limit"), w.Header().Get("RateLimit-Remaining"))
+	}
+}
+
+func TestSlidingWindowLimiterCanBePlugged(t *testing.T) {
+	var hits atomic.Int64
+	be := backendCounting(&hits, 200)
+	defer be.Close()
+	g, _ := newGW(t, Config{
+		Routes:  []Route{{Prefix: "/v1/x", Upstream: []string{be.URL}}},
+		Limiter: ratelimit.NewSlidingWindow(2, time.Hour, 0, nil),
+	})
+	codes := []int{}
+	for i := 0; i < 3; i++ {
+		codes = append(codes, do(g, "POST", "/v1/x", "{}", token("u")).Code)
+	}
+	if codes[0] != 200 || codes[1] != 200 || codes[2] != 429 {
+		t.Fatalf("%v", codes)
+	}
+}
+
+func TestConfigNeedsSomeLimiter(t *testing.T) {
+	if _, err := New(Config{JWTSecret: secret, Routes: []Route{{Prefix: "/x", Upstream: []string{"http://a:1"}}}}, nil); err == nil {
+		t.Fatal("a gateway without any rate limit configuration must not start")
 	}
 }
