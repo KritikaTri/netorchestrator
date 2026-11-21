@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NetOrchestrator: safe network change management</title>
+<style>
+:root{color-scheme:light dark}
+body{font:16px/1.55 system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem}
+h1{margin-bottom:.2rem}.sub{margin-top:0;opacity:.75}
+code,pre{font-family:ui-monospace,monospace;font-size:.9em}
+pre{background:rgba(127,127,127,.15);padding:.8rem;border-radius:6px;overflow:auto}
+button{font:inherit;padding:.35rem .8rem;margin:.15rem;border-radius:6px;border:1px solid #888;background:transparent;color:inherit;cursor:pointer}
+button:hover{background:rgba(127,127,127,.2)}
+.risk{font-weight:700}.none{color:#2a9d3f}.high{color:#d98a00}.critical{color:#d32f2f}
+a{color:#3b82f6}
+</style></head><body>
+<h1>NetOrchestrator</h1>
+<p class="sub">Safe network change management as small Go services.</p>
+<p>Before a change touches a device, NetOrchestrator works out what it would cut off, requires the right number of independent approvals, and records every decision in a tamper-evident audit log.
+<a href="https://github.com/KritikaTri/netorchestrator">Source and design notes on GitHub</a>.</p>
+
+<h2>Try it: what would taking this device down cut off?</h2>
+<p>Sample campus network. Pick a device to remove. This calls the same preflight code the change service uses (read-only, nothing is stored).</p>
+<div id="btns"></div>
+<pre id="out">Pick a device above.</pre>
+
+<h2>The full workflow</h2>
+<p>The rest of the API (change requests, approvals, audit log) needs a token, so it is not open on this page. The repo's <code>make demo-services</code> runs it end to end: a critical change needs two reviewers, nobody can approve their own change, and the audit chain verifies afterwards.</p>
+<p><a href="/healthz">/healthz</a> shows the service is up.</p>
+
+<script>
+const out=document.getElementById('out'),btns=document.getElementById('btns');
+function show(r){
+  const lines=["Removing "+r.target+": risk "+r.risk.toUpperCase()];
+  lines.push(r.cut_off&&r.cut_off.length?"Cut off: "+r.cut_off.map(n=>n.name).join(", "):"Nothing is cut off.");
+  lines.push("Network islands before/after: "+r.components_before+" / "+r.components_after);
+  (r.warnings||[]).forEach(w=>lines.push("Warning: "+w));
+  out.textContent=lines.join("\n");
+}
+async function run(id){
+  out.textContent="Running...";
+  try{
+    const res=await fetch("/demo/preflight?remove="+encodeURIComponent(id));
+    const j=await res.json();
+    if(!res.ok){out.textContent=j.error||"Request failed";return}
+    show(j.report);
+  }catch(e){out.textContent="Request failed"}
+}
+fetch("/demo/topology").then(r=>r.json()).then(t=>{
+  t.nodes.forEach(n=>{const b=document.createElement('button');b.textContent=n.name;b.onclick=()=>run(n.id);btns.appendChild(b)});
+}).catch(()=>{out.textContent="Could not load the sample topology."});
+</script>
+</body></html>
