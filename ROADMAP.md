@@ -8,7 +8,7 @@ Ordered by what most improves correctness and credibility first. Items marked �
 - ✔ Services: gateway, topology-svc, change-svc on a shared stdlib platform layer
 - ✔ Four-eyes approval policy scaled by risk; event-sourced, hash-chained audit log; refuse-to-start on tamper
 - ✔ Rate limiting: token bucket + sliding window, per-subject and per-route budgets, `RateLimit-*`/`Retry-After` headers
-- ✔ Security fixes in the legacy API: no forged API keys, no default secrets, demo login off by default
+- ✔ Legacy Gin/GORM platform and experimental packages retired (see git history); this repo now contains only the three services and their tooling
 - ✔ Load generator, benchmarks, e2e test in CI, Dockerfile build in CI, k8s manifests with HPA/PDB/NetworkPolicy, SLOs + alerts
 
 ## Next (highest value first)
@@ -21,5 +21,5 @@ Ordered by what most improves correctness and credibility first. Items marked �
 7. **Topology store with versions + delta API** to avoid shipping large topologies per request.
 8. **Executor**: apply approved config diffs (`cfgdiff`) through a device driver, then record `change.applied` from the executor, not by hand.
 9. **Distributed load test** on separate hosts to publish real scale-out numbers.
-10. Legacy platform (Gin/GORM) — add unit tests, then retire in favour of the services above; fix refresh-token handling and per-user ownership checks.
+10. **Virtual lab (not built yet)**: spin up a small FRRouting (OSPF/BGP) topology in containers, kill a link, and compare the real reconvergence with what preflight predicted. Today preflight is graph analysis on a supplied topology; nothing here simulates routers.
 11. Clean git history of large binaries (`git filter-repo`).

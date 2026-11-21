@@ -141,9 +141,7 @@ Details, security notes and the GHCR "make package public" step: [deploy/gce/REA
 | `internal/topology`, `internal/cfgdiff`, `internal/preflight` | analysis core |
 | `internal/gateway`, `internal/topologysvc`, `internal/changesvc` | service implementations |
 | `deploy/` | Dockerfile, compose, Kubernetes (HPA, PDB, NetworkPolicy), Prometheus config + alerts |
-| `internal/api`, `internal/security`, `internal/services`, `cmd/api-gateway`, … | **legacy Gin/GORM platform**: compiles, security-hardened (no forged API keys, no default secrets, demo login off by default), partly tested; to be retired in favour of the services above |
-| `experimental/` | design explorations behind a build tag; several do not compile ([details](experimental/README.md)) |
-| `docs/archive/` | earlier vision documents, kept for history, **not** a description of the current system |
+| `docs/archive/` | earlier vision and legacy-API documents, kept for history, **not** a description of the current system. The earlier Gin/GORM platform and experimental packages that these describe were removed from the tree (see git history) |
 
 ## Known limitations
 Stated plainly, because they are the next things to fix ([`ROADMAP.md`](ROADMAP.md)):
