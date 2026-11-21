@@ -17,6 +17,8 @@ $ make demo-services
 7) request without a token                     -> 401 at the gateway
 ```
 
+**Live demo:** https://34-93-232-226.sslip.io has a read-only playground (pick a device in a sample campus network and see what taking it down would cut off). The full API needs a token; `make demo-services` runs the whole workflow locally.
+
 ## Architecture
 
 ```mermaid

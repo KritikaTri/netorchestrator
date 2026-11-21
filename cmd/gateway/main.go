@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"netorchestrator/internal/demo"
 	"netorchestrator/internal/gateway"
 	"netorchestrator/internal/platform"
 	"netorchestrator/internal/ratelimit"
@@ -64,6 +65,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/v1/", gw)
+	// Public, read-only landing page and playground on a fixed sample topology.
+	demoRPS, _ := strconv.ParseFloat(platform.Env("GATEWAY_DEMO_RPS", "5"), 64)
+	demoBurst, _ := strconv.Atoi(platform.Env("GATEWAY_DEMO_BURST", "20"))
+	demo.New(ratelimit.NewTokenBucket(demoRPS, demoBurst, 0, nil)).Register(mux)
 	platform.Health(mux, reg, gw.Ready)
 
 	srv := &http.Server{
