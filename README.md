@@ -125,6 +125,8 @@ git clone https://github.com/KritikaTri/netorchestrator && cd netorchestrator
 ./deploy/gce/deploy.sh token     # mints a short-lived JWT for the demo
 ./deploy/gce/deploy.sh destroy   # tears everything down
 ```
+**Live demo run** (single GCE VM, real Let's Encrypt HTTPS; transcript of `scripts/demo-live.sh`): unauthenticated request → 401; a change removing the core switch is graded `critical` with 3 devices cut off; the requester approving their own change is refused; apply before two distinct approvers is refused; after quorum the change applies and `/v1/audit/verify` reports `{"events":4,"ok":true}` for the SHA-256 hash chain.
+
 Details, security notes and the GHCR "make package public" step: [deploy/gce/README.md](deploy/gce/README.md).
 
 ## Where this fits
